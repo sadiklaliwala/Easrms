@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Easrms.API/Easrms.API.csproj" />
+  <Project Path="Easrms.Application/Easrms.Application.csproj" />
+  <Project Path="Easrms.Common/Easrms.Common.csproj" />
+  <Project Path="Easrms.Domain/Easrms.Domain.csproj" />
+  <Project Path="Easrms.Infrastructure/Easrms.Infrastructure.csproj" />
+</Solution>
