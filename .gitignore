@@ -1,0 +1,55 @@
+# ─── .NET ───────────────────────────────────────────────────────────────────
+bin/
+obj/
+.vs/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.cache
+*.log
+
+# EF Core
+Migrations/*.Designer.cs
+
+# Publish
+publish/
+
+# Rider / ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# App Settings
+appsettings.Development.json
+
+# ─── React / Node ────────────────────────────────────────────────────────────
+node_modules/
+dist/
+coverage/
+
+# Vite
+vite.config.ts.timestamp-*
+
+# Environment Files
+.env
+.env.local
+.env.development
+.env.production
+
+# npm/yarn/pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── VS Code ────────────────────────────────────────────────────────────────
+.vscode/
+
+# ─── General ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
