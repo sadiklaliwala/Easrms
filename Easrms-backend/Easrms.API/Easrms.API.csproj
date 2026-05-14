@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Easrms.Application\Easrms.Application.csproj" />
     <ProjectReference Include="..\Easrms.Common\Easrms.Common.csproj" />
+    <ProjectReference Include="..\Easrms.Infrastructure\Easrms.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

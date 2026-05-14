@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Easrms.Application\Easrms.Application.csproj" />
     <ProjectReference Include="..\Easrms.Domain\Easrms.Domain.csproj" />
   </ItemGroup>
 

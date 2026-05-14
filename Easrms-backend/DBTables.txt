@@ -1,0 +1,138 @@
+﻿+------------------------------------------------------------------------------------------------------------------------------------------------------+
+| USERS TABLE                                                                                                                          |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Column / Property         | Data Type            | Constraint                           | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| UserId                    | Guid                 | PK                                   | Unique identifier for each user                          |
+| FullName                  | string               | Required                             | Full name of the user                                    |
+| Email                     | string               | Required, Unique                     | Email used for login                                     |
+| PasswordHash              | string               | Required                             | BCrypt hashed password                                   |
+| RoleId                    | Guid                 | FK → Roles                           | Role assigned to the user                                |
+| ManagerId                 | Guid?                | FK → Users (self-reference)          | Manager of this user                                     |
+| IsActive                  | bool                 | Default true                         | Whether user account is active                           |
+| CreatedOn                 | DateTime             | Required                             | When user was created                                    |
+| UpdatedOn                 | DateTime?            | Nullable                             | When user was last updated                               |
+| LastLoginOn               | DateTime?            | Nullable                             | Last successful login                                    |
+| RefreshToken              | string?              | Nullable                             | Refresh token value                                      |
+| RefreshTokenExpiryOn      | DateTime?            | Nullable                             | Refresh token expiry date                                |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Navigation Property       | Type                 | Relationship                         | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Role                      | Role                 | Many Users → One Role                | User belongs to one role                                 |
+| Manager                   | User?                | Many Users → One Manager             | User's manager                                            |
+| Employees                 | ICollection<User>    | One Manager → Many Employees         | Employees under manager                                  |
+| CreatedRequests           | ICollection<ServiceRequest> | One User → Many Requests      | Requests created by user                                 |
+| AssignedRequests          | ICollection<ServiceRequest> | One User → Many Assigned      | Requests assigned to support user                         |
+| ClosedRequests            | ICollection<ServiceRequest> | One User → Many Closed        | Requests closed by user                                  |
+| Comments                  | ICollection<RequestComment> | One User → Many Comments      | Comments added by user                                   |
+| StatusHistories           | ICollection<RequestStatusHistory> | One User → Many Histories | Status changes performed by user                         |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ROLES TABLE                                                                                                                          |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Column / Property         | Data Type            | Constraint                           | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| RoleId                    | Guid                 | PK                                   | Unique identifier for role                               |
+| RoleName                  | string               | Required, Unique                     | Name of role                                             |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Navigation Property       | Type                 | Relationship                         | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Users                     | ICollection<User>    | One Role → Many Users                | Users assigned to this role                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------+
+| REQUEST CATEGORY TABLE                                                                                                               |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Column / Property         | Data Type            | Constraint                           | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| CategoryId                | Guid                 | PK                                   | Unique identifier for category                           |
+| CategoryName              | string               | Required, Unique                     | Category name                                            |
+| IsApprovalRequired        | bool                 | Default false                        | Whether approval is required                             |
+| IsActive                  | bool                 | Default true                         | Whether category is active                               |
+| CreatedOn                 | DateTime             | Required                             | Category creation date                                   |
+| UpdatedOn                 | DateTime?            | Nullable                             | Last updated date                                        |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Navigation Property       | Type                 | Relationship                         | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| ServiceRequests           | ICollection<ServiceRequest> | One Category → Many Requests | Requests under this category                             |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------+
+| SERVICE REQUEST TABLE                                                                                                                 |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Column / Property         | Data Type            | Constraint                           | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| RequestId                 | Guid                 | PK                                   | Unique identifier for request                            |
+| RequestNumber             | string               | Required, Unique                     | Human readable request number                            |
+| EmployeeId                | Guid                 | FK → Users                           | Employee who created request                             |
+| CategoryId                | Guid                 | FK → RequestCategory                 | Request category                                         |
+| Title                     | string               | Required                             | Request title                                            |
+| Description               | string               | Required                             | Detailed request description                             |
+| Priority                  | string               | Required                             | Low, Medium, High                                        |
+| Status                    | string               | Required                             | Current request status                                   |
+| AssignedTo                | Guid?                | FK → Users                           | Assigned support user                                    |
+| CreatedOn                 | DateTime             | Required                             | Request creation date                                    |
+| UpdatedOn                 | DateTime?            | Nullable                             | Last updated date                                        |
+| ResolvedOn                | DateTime?            | Nullable                             | Resolution date                                          |
+| ClosedOn                  | DateTime?            | Nullable                             | Closing date                                             |
+| ClosedBy                  | Guid?                | FK → Users                           | User who closed request                                  |
+| RejectionReason           | string?              | Nullable                             | Reason for rejection                                     |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Navigation Property       | Type                 | Relationship                         | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Employee                  | User                 | Many Requests → One Employee         | Request creator                                          |
+| Category                  | RequestCategory      | Many Requests → One Category         | Related category                                         |
+| AssignedUser              | User?                | Many Requests → One Support User     | Assigned support user                                    |
+| ClosedByUser              | User?                | Many Requests → One Closing User     | User who closed request                                  |
+| Comments                  | ICollection<RequestComment> | One Request → Many Comments  | Request comments                                         |
+| StatusHistories           | ICollection<RequestStatusHistory> | One Request → Many Histories | Request status history                             |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------+
+| REQUEST COMMENT TABLE                                                                                                                 |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Column / Property         | Data Type            | Constraint                           | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| CommentId                 | Guid                 | PK                                   | Unique identifier for comment                            |
+| RequestId                 | Guid                 | FK → ServiceRequest                  | Related request                                          |
+| CommentBy                 | Guid                 | FK → Users                           | User who added comment                                   |
+| CommentText               | string               | Required                             | Comment content                                          |
+| CommentType               | string               | Required                             | Type of comment                                          |
+| CreatedOn                 | DateTime             | Required                             | Comment creation date                                    |
+| IsDeleted                 | bool                 | Default false                        | Soft delete flag                                         |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Navigation Property       | Type                 | Relationship                         | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| ServiceRequest            | ServiceRequest       | Many Comments → One Request          | Related request                                          |
+| CommentByUser             | User                 | Many Comments → One User             | User who added comment                                   |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------+
+| REQUEST STATUS HISTORY TABLE                                                                                                          |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Column / Property         | Data Type            | Constraint                           | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| HistoryId                 | Guid                 | PK                                   | Unique identifier for history                            |
+| RequestId                 | Guid                 | FK → ServiceRequest                  | Related request                                          |
+| OldStatus                 | string?              | Nullable                             | Previous request status                                  |
+| NewStatus                 | string               | Required                             | Updated request status                                   |
+| ChangedBy                 | Guid                 | FK → Users                           | User who changed status                                  |
+| ChangedOn                 | DateTime             | Required                             | Status change date                                       |
+| Remarks                   | string?              | Nullable                             | Additional remarks                                       |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Navigation Property       | Type                 | Relationship                         | Description                                              |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
+| Request                   | ServiceRequest       | Many Histories → One Request         | Related request                                          |
+| ChangedByUser             | User                 | Many Histories → One User            | User who changed status                                  |
++---------------------------+----------------------+--------------------------------------+----------------------------------------------------------+
