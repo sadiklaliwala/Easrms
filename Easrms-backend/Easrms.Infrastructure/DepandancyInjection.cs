@@ -1,4 +1,6 @@
-﻿using Easrms.Infrastructure.Data;
+﻿using Easrms.Application.Interfaces.Repositories;
+using Easrms.Infrastructure.Data;
+using Easrms.Infrastructure.Repositories.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,10 +12,21 @@ namespace Easrms.Infrastructure
 {
     public static class DepandancyInjection 
     {
+
         public static IServiceCollection AddInfra(
      this IServiceCollection services,
      IConfiguration configuration)
         {
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ICommentRepository, CommentRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
+            services.AddScoped<ILookupRepository, LookupRepository>();
+            services.AddScoped<IRequestRepository, RequestRepository>();
+
+
+
+            services.AddScoped<DapperContext>();
             var connectionString =
                 configuration.GetConnectionString("DefaultConnection");
 
