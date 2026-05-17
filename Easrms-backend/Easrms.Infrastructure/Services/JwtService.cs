@@ -4,12 +4,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Easrms.Common.Settings;
 using Easrms.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Easrms.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Easrms.Application.Settings;
 
 namespace Easrms.Infrastructure.Services;
 

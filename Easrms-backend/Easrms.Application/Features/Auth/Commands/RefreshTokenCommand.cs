@@ -1,4 +1,5 @@
 ﻿using Easrms.Application.DTOs.Auth;
+using Easrms.Application.Interfaces;
 using Easrms.Application.Interfaces.Repositories;
 using MediatR;
 
@@ -21,10 +22,12 @@ public sealed class RefreshTokenCommand : IRequest<RefreshTokenResponseDto>
 public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenResponseDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IJwtService _jwtService;
 
-    public RefreshTokenCommandHandler(IUserRepository userRepository)
+    public RefreshTokenCommandHandler(IUserRepository userRepository, IJwtService jwtService)
     {
         _userRepository = userRepository;
+        _jwtService = jwtService;
     }
 
     public async Task<RefreshTokenResponseDto> Handle(
@@ -45,11 +48,17 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
             throw new UnauthorizedAccessException(
                 "Refresh token has expired. Please log in again.");
 
-        // Controller generates new tokens, calls UpdateRefreshTokenAsync, then fills this DTO.
+        //4. genrate AccessToken and RefreshToken here, so that we can set them in the response DTO before returning to controller. This way, we avoid having to set them in the controller later
+        //and keeps the logic related to token generation within the handler where it belongs.
+
+        var AccessToken = _jwtService.GenerateAccessToken(user);
+        var RefreshToken = _jwtService.GenerateRefreshToken();
+
+
         return new RefreshTokenResponseDto
         {
-            AccessToken = string.Empty,   // set by controller
-            RefreshToken = string.Empty    // set by controller
+            AccessToken = AccessToken,
+            RefreshToken = RefreshToken
         };
     }
 }

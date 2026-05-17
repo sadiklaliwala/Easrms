@@ -1,4 +1,5 @@
-﻿using Easrms.Application.Interfaces.Repositories;
+﻿using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Repositories;
 using MediatR;
 
 namespace Easrms.Application.Features.Auth.Commands;
@@ -20,10 +21,13 @@ public sealed class LogoutCommand : IRequest
 public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IJwtService _jwtService;
 
-    public LogoutCommandHandler(IUserRepository userRepository)
+    public LogoutCommandHandler(IUserRepository userRepository , IJwtService jwtService)
     {
         _userRepository = userRepository;
+        _jwtService = jwtService;
+
     }
 
     public async Task Handle(
@@ -43,5 +47,6 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
         await _userRepository.RevokeRefreshTokenAsync(request.CurrentUserId, cancellationToken);
 
         // 3. Cookie removed by AuthController after this returns
+        _jwtService.ClearTokenCookie();
     }
 }

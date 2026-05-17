@@ -1,6 +1,11 @@
 ﻿// Easrms.Common/Settings/JwtSettings.cs
 
-namespace Easrms.Common.Settings;
+
+// Easrms.Common/Settings/JwtSettings.cs
+
+using Easrms.Application.Interfaces;
+
+namespace Easrms.Application.Settings;
 
 /// <summary>
 /// Strongly-typed configuration model for JWT settings.
@@ -8,7 +13,7 @@ namespace Easrms.Common.Settings;
 /// Registered in ServiceExtensions.cs:
 ///   services.Configure&lt;JwtSettings&gt;(configuration.GetSection("JwtSettings"));
 /// </summary>
-public sealed class JwtSettings
+public sealed class JwtSettings : IJwtSettings
 {
     /// <summary>
     /// The secret key used to sign JWT tokens with HMAC-SHA256.
@@ -57,5 +62,5 @@ public sealed class JwtSettings
     /// appsettings key: JwtSettings:CookieName
     /// Example value: "easrms_access_token"
     /// </summary>
-    public string CookieName { get; init; } = "easrms_access_token";
+    public string CookieName { get; init; } = string.Empty;
 }

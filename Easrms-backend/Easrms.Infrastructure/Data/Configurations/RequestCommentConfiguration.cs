@@ -8,7 +8,7 @@ public class RequestCommentConfiguration : IEntityTypeConfiguration<RequestComme
 {
     public void Configure(EntityTypeBuilder<RequestComment> builder)
     {
-        builder.ToTable("RequestComment");
+        builder.ToTable("RequestComments");
 
         builder.HasKey(x => x.CommentId);
 

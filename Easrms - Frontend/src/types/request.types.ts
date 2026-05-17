@@ -1,66 +1,133 @@
-import type { PaginationDto } from './common.types'
+// import type { PaginationDto } from './common.types'
 
-// ============================================================
-// REQUEST TYPES
-// ============================================================
+// // ============================================================
+// // REQUEST TYPES
+// // ============================================================
 
-// GET /api/requests - List Response
-export interface RequestListDto {
-    requestId: string
-    requestNumber: string
-    title: string
-    categoryName: string
-    priority: number
-    status: number
-    createdOn: string
-    assigneeName: string
-}
+// // GET /api/requests - List Response
+// export interface RequestListDto {
+//     requestId: string
+//     requestNumber: string
+//     title: string
+//     categoryName: string
+//     priority: number
+//     status: number
+//     createdOn: string
+//     assigneeName: string
+// }
 
-// GET /api/requests/{id} - Detail Response
-export interface RequestDetailDto {
-    requestId: string
-    requestNumber: string
-    title: string
-    description: string
-    categoryName: string
-    priority: number
-    status: number
-    employeeName: string
-    assigneeName: string
-    createdOn: string
-    updatedOn: string | null
-    resolvedOn: string | null
-    closedOn: string | null
-    rejectionReason: string
-}
+// // GET /api/requests/{id} - Detail Response
+// export interface RequestDetailDto {
+//     requestId: string
+//     requestNumber: string
+//     title: string
+//     description: string
+//     categoryName: string
+//     priority: number
+//     status: number
+//     employeeName: string
+//     assigneeName: string
+//     createdOn: string
+//     updatedOn: string | null
+//     resolvedOn: string | null
+//     closedOn: string | null
+//     rejectionReason: string
+// }
 
-// POST /api/requests - Request Body
+// // POST /api/requests - Request Body
+// export interface CreateRequestDto {
+//     categoryId: string
+//     title: string
+//     description: string
+//     priority: number
+// }
+
+// // POST /api/requests/{id}/approval - Request Body
+// export interface ApprovalRequestDto {
+//     action: string
+//     comment: string
+// }
+
+// // POST /api/requests/{id}/assign - Request Body
+// export interface AssignRequestDto {
+//     supportUserId: string
+// }
+
+// // POST /api/requests/{id}/status - Request Body
+// export interface UpdateStatusDto {
+//     newStatus: number
+//     remarks: string
+// }
+
+// // Paginated list response wrapper
+// export interface RequestListWithPaginationDto {
+//     items: RequestListDto[]
+//     pagination: PaginationDto
+// }
+
+import { PaginationDto } from "./common.types";
+
 export interface CreateRequestDto {
-    categoryId: string
-    title: string
-    description: string
-    priority: number
+  categoryId: string;
+  title: string;
+  description: string;
+  priority: number;
 }
 
-// POST /api/requests/{id}/approval - Request Body
+export interface RequestListDto {
+  requestId: string;
+  requestNumber: string;
+  title: string;
+  categoryName: string;
+  priority: number;
+  status: number;
+  createdOn: string;
+  assigneeName: string;
+}
+
+export interface RequestDetailDto {
+  requestId: string;
+  requestNumber: string;
+  title: string;
+  description: string;
+  categoryName: string;
+  priority: number;
+  status: number;
+  employeeName: string;
+  assigneeName: string;
+  createdOn: string;
+  updatedOn: string | null;
+  resolvedOn: string | null;
+  closedOn: string | null;
+  rejectionReason: string;
+}
+
 export interface ApprovalRequestDto {
-    action: string
-    comment: string
+  action: string;
+  comment: string;
 }
 
-// POST /api/requests/{id}/assign - Request Body
 export interface AssignRequestDto {
-    supportUserId: string
+  supportUserId: string;
 }
 
-// POST /api/requests/{id}/status - Request Body
 export interface UpdateStatusDto {
-    newStatus: number
-    remarks: string
+  newStatus: number;
+  remarks: string;
 }
 
-// Paginated list response wrapper
 export interface RequestListWithPaginationDto {
-    items: RequestListDto[]
-    pagination: PaginationDto
+  items: RequestListDto[];
+  pagination: PaginationDto;
+}
+
+export interface RequestQueryParams {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
+  status?: number;
+  priority?: number;
+  categoryId?: string;
+  fromDate?: string;
+  toDate?: string;
 }

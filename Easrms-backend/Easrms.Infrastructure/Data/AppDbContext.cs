@@ -14,8 +14,10 @@ public class AppDbContext : DbContext
     public DbSet<User> Users{ get; set; }
     public DbSet<Role> Roles{ get; set; }
     public DbSet<RequestCategory> RequestCategories { get; set; }
+    
     public DbSet<RequestComment>  RequestComments { get; set; }
     public DbSet<RequestStatusHistory> RequestStatusHistories { get; set; }
+    
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -6,13 +6,15 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme/theme";
+import { BrowserRouter } from "react-router-dom";
 
 createRoot(document.getElementById("root")!).render(
   <LocalizationProvider dateAdapter={AdapterDateFns}>
     <Provider store={store}>
       <ThemeProvider theme={theme}>
-        
-        <App />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
       </ThemeProvider>
     </Provider>
   </LocalizationProvider>,

@@ -1,30 +1,55 @@
-// ============================================================
-// DASHBOARD TYPES
-// ============================================================
+// // ============================================================
+// // DASHBOARD TYPES
+// // ============================================================
 
-// Nested inside DashboardSummaryDto
+// // Nested inside DashboardSummaryDto
+// export interface PriorityCountDto {
+//     priority: number
+//     count: number
+// }
+
+// // Nested inside DashboardSummaryDto
+// export interface CategoryCountDto {
+//     categoryName: string
+//     count: number
+// }
+
+// // GET /api/dashboard/summary - Response
+// export interface DashboardSummaryDto {
+//     totalRequests: number
+//     openCount: number
+//     pendingApprovalCount: number
+//     approvedCount: number
+//     rejectedCount: number
+//     assignedCount: number
+//     inProgressCount: number
+//     resolvedCount: number
+//     closedCount: number
+//     byPriority: PriorityCountDto[]
+//     byCategory: CategoryCountDto[]
+// }
+
+
 export interface PriorityCountDto {
-    priority: number
-    count: number
+  priority: number;
+  count: number;
 }
 
-// Nested inside DashboardSummaryDto
 export interface CategoryCountDto {
-    categoryName: string
-    count: number
+  categoryName: string;
+  count: number;
 }
 
-// GET /api/dashboard/summary - Response
 export interface DashboardSummaryDto {
-    totalRequests: number
-    openCount: number
-    pendingApprovalCount: number
-    approvedCount: number
-    rejectedCount: number
-    assignedCount: number
-    inProgressCount: number
-    resolvedCount: number
-    closedCount: number
-    byPriority: PriorityCountDto[]
-    byCategory: CategoryCountDto[]
+  totalRequests: number;
+  openCount: number;
+  pendingApprovalCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  assignedCount: number;
+  inProgressCount: number;
+  resolvedCount: number;
+  closedCount: number;
+  byPriority: PriorityCountDto[];
+  byCategory: CategoryCountDto[];
 }

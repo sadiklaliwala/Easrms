@@ -1,6 +1,8 @@
-﻿using Easrms.Application.Interfaces.Repositories;
+﻿using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Repositories;
 using Easrms.Infrastructure.Data;
 using Easrms.Infrastructure.Repositories.Implementations;
+using Easrms.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,8 @@ namespace Easrms.Infrastructure
             services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<ILookupRepository, LookupRepository>();
             services.AddScoped<IRequestRepository, RequestRepository>();
+            services.AddScoped<IJwtService, JwtService>();
+
 
 
 

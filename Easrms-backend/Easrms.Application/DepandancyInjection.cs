@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
 using Easrms.Application.Mappings;
+using Easrms.Application.Interfaces;
+using Easrms.Application.Settings;
 
 namespace Easrms.Application
 {
@@ -11,6 +13,8 @@ namespace Easrms.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+
+            services.AddScoped<IJwtSettings, JwtSettings>();
             var assembly = typeof(DepandancyInjection).Assembly;
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 

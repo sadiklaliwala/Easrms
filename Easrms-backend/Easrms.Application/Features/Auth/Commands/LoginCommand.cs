@@ -1,4 +1,5 @@
 ﻿using Easrms.Application.DTOs.Auth;
+using Easrms.Application.Interfaces;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Helpers;
 using MediatR;
@@ -22,10 +23,15 @@ public sealed class LoginCommand : IRequest<LoginResponseDto>
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponseDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IJwtService _jwtService;
+    private readonly IJwtSettings _jwtSettings;
 
-    public LoginCommandHandler(IUserRepository userRepository)
+
+    public LoginCommandHandler(IUserRepository userRepository , IJwtService jwtService , IJwtSettings jwtSettings)
     {
         _userRepository = userRepository;
+        _jwtService = jwtService;
+        _jwtSettings = jwtSettings;
     }
 
     public async Task<LoginResponseDto> Handle(
@@ -36,10 +42,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         var user = await _userRepository.GetByEmailAsync(
             request.Email,
             trackChanges: false,
-            cancellationToken: cancellationToken);
-
-        if (user is null)
-            throw new UnauthorizedAccessException("Invalid email or password.");
+            cancellationToken: cancellationToken
+         ) ?? throw new UnauthorizedAccessException("Invalid email or password.");
 
         // 2. Active check
         if (!user.IsActive)
@@ -50,10 +54,19 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         if (!PasswordHelper.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Invalid email or password.");
 
-        // 4. Stamp LastLoginOn — direct ExecuteUpdateAsync, no SaveChanges needed
+        //4. genrate AccessToken and RefreshToken here, so that we can set them in the response DTO before returning to controller. This way, we avoid having to set them in the controller later
+        //and keeps the logic related to token generation within the handler where it belongs.
+        
+        var AccessToken = _jwtService.GenerateAccessToken(user);
+        var RefreshToken = _jwtService.GenerateRefreshToken();
+        _jwtService.SetTokenCookie(AccessToken);
+
+        user.RefreshTokenExpiryOn = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
+        // 5. Stamp LastLoginOn — direct ExecuteUpdateAsync, no SaveChanges needed
         await _userRepository.UpdateLastLoginAsync(user.UserId, cancellationToken);
 
-        // 5. Map → DTO. AccessToken + RefreshToken populated by controller.
+        // 6. Map → DTO. AccessToken + RefreshToken populated by controller.
+
         return new LoginResponseDto
         {
             UserId = user.UserId,
@@ -61,8 +74,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             Email = user.Email,
             RoleName = user.Role.RoleName,
             ManagerId = user.ManagerId,
-            AccessToken = string.Empty,   // set by controller
-            RefreshToken = string.Empty    // set by controller
+            AccessToken = AccessToken,
+            RefreshToken = RefreshToken
         };
     }
 }

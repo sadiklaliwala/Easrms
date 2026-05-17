@@ -5,22 +5,23 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Toolbar,
   Typography,
-  Divider,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import ListAltIcon from "@mui/icons-material/ListAlt";
-import CategoryIcon from "@mui/icons-material/Category";
 import PeopleIcon from "@mui/icons-material/People";
-import ApprovalIcon from "@mui/icons-material/HowToReg";
-import AssignmentIcon from "@mui/icons-material/AssignmentInd";
-import SupportIcon from "@mui/icons-material/HeadsetMic";
+import CategoryIcon from "@mui/icons-material/Category";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import TaskIcon from "@mui/icons-material/Task";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAppSelector } from "../../../../hooks/useAppSelector";
+import { useAppSelector } from "../../../hooks/useAppSelector";
+
+const DRAWER_WIDTH = 240;
 
 interface AppSidebarProps {
-  width: number;
-  topbarHeight: number;
+  open: boolean;
 }
 
 interface NavItem {
@@ -30,36 +31,18 @@ interface NavItem {
   roles: string[];
 }
 
-const navItems: NavItem[] = [
+const NAV_ITEMS: NavItem[] = [
   {
     label: "Dashboard",
     path: "/dashboard",
     icon: <DashboardIcon />,
-    roles: ["Admin", "Manager", "Employee", "Support User"],
+    roles: ["Admin", "Manager"],
   },
   {
-    label: "Requests",
-    path: "/requests",
-    icon: <ListAltIcon />,
-    roles: ["Admin", "Manager", "Employee", "Support User"],
-  },
-  {
-    label: "Approval",
-    path: "/approval",
-    icon: <ApprovalIcon />,
-    roles: ["Manager"],
-  },
-  {
-    label: "Assignment",
-    path: "/assignment",
-    icon: <AssignmentIcon />,
+    label: "Users",
+    path: "/users",
+    icon: <PeopleIcon />,
     roles: ["Admin"],
-  },
-  {
-    label: "My Tasks",
-    path: "/support",
-    icon: <SupportIcon />,
-    roles: ["Support User"],
   },
   {
     label: "Categories",
@@ -67,89 +50,94 @@ const navItems: NavItem[] = [
     icon: <CategoryIcon />,
     roles: ["Admin"],
   },
-  { label: "Users", path: "/users", icon: <PeopleIcon />, roles: ["Admin"] },
+  {
+    label: "All Requests",
+    path: "/requests",
+    icon: <AssignmentIcon />,
+    roles: ["Admin", "Manager"],
+  },
+  {
+    label: "My Requests",
+    path: "/requests",
+    icon: <AssignmentIcon />,
+    roles: ["Employee"],
+  },
+  {
+    label: "Approval Queue",
+    path: "/approval",
+    icon: <CheckCircleIcon />,
+    roles: ["Manager"],
+  },
+  {
+    label: "Assignment",
+    path: "/assignment",
+    icon: <AssignmentTurnedInIcon />,
+    roles: ["Admin"],
+  },
+  {
+    label: "My Tasks",
+    path: "/support",
+    icon: <TaskIcon />,
+    roles: ["Support User"],
+  },
 ];
 
-const AppSidebar = ({ width, topbarHeight }: AppSidebarProps) => {
+const AppSidebar = ({ open }: AppSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAppSelector((state) => state.auth);
+  const { roleName } = useAppSelector((state) => state.auth);
 
-  const filteredNav = navItems.filter(
-    (item) => user?.roleName && item.roles.includes(user.roleName),
+  const visibleItems = NAV_ITEMS.filter((item) =>
+    item.roles.includes(roleName ?? "")
   );
 
   return (
     <Drawer
-      variant="permanent"
+      variant="persistent"
+      open={open}
       sx={{
-        width,
+        width: DRAWER_WIDTH,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width,
+          width: DRAWER_WIDTH,
           boxSizing: "border-box",
-          top: `${topbarHeight}px`,
-          height: `calc(100% - ${topbarHeight}px)`,
-          borderRight: "1px solid",
-          borderColor: "divider",
-          bgcolor: "background.paper",
         },
       }}
     >
+      <Toolbar />
       <Box sx={{ overflow: "auto", mt: 1 }}>
-        <List disablePadding>
-          {filteredNav.map((item) => {
+        <List dense>
+          {visibleItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <ListItemButton
-                key={item.path}
+                key={item.label}
+                selected={isActive}
                 onClick={() => navigate(item.path)}
                 sx={{
                   mx: 1,
+                  borderRadius: 1,
                   mb: 0.5,
-                  borderRadius: 2,
-                  bgcolor: isActive ? "primary.main" : "transparent",
-                  color: isActive ? "primary.contrastText" : "text.primary",
-                  "&:hover": {
-                    bgcolor: isActive ? "primary.dark" : "action.hover",
-                  },
-                  "& .MuiListItemIcon-root": {
-                    color: isActive ? "primary.contrastText" : "text.secondary",
-                    minWidth: 36,
+                  "&.Mui-selected": {
+                    bgcolor: "primary.main",
+                    color: "white",
+                    "& .MuiListItemIcon-root": { color: "white" },
+                    "&:hover": { bgcolor: "primary.dark" },
                   },
                 }}
               >
-                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
                 <ListItemText
-                  primary={item.label}
-                  slotProps={{
-                    primary: {
-                      sx: {
-                        fontSize: "0.875rem",
-                        fontWeight: isActive ? 600 : 400,
-                      },
-                    },
-                  }}
+                  primary={
+                    <Typography variant="body2" fontWeight={isActive ? 600 : 400}>
+                      {item.label}
+                    </Typography>
+                  }
                 />
               </ListItemButton>
             );
           })}
         </List>
-
-        <Divider sx={{ mt: 2, mx: 2 }} />
-
-        <Box sx={{ p: 2, mt: 1 }}>
-          <Typography variant="caption" color="text.secondary">
-            Logged in as
-          </Typography>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {user?.fullName}
-          </Typography>
-
-          <Typography variant="caption" color="text.secondary">
-            {user?.roleName}
-          </Typography>
-        </Box>
       </Box>
     </Drawer>
   );

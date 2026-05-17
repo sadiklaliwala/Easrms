@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Easrms.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260513063950_IntialMigrations")]
-    partial class IntialMigrations
+    [Migration("20260514133958_InitalMigration")]
+    partial class InitalMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -57,7 +57,7 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasIndex("CategoryName")
                         .IsUnique();
 
-                    b.ToTable("RequestCategory", (string)null);
+                    b.ToTable("RequestCategories", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestComment", b =>
@@ -96,7 +96,7 @@ namespace Easrms.Infrastructure.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("RequestComment", (string)null);
+                    b.ToTable("RequestComments", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestStatusHistory", b =>
@@ -133,7 +133,7 @@ namespace Easrms.Infrastructure.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("RequestStatusHistory", (string)null);
+                    b.ToTable("RequestStatusHistorys", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.Role", b =>
@@ -246,7 +246,7 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasIndex("RequestNumber")
                         .IsUnique();
 
-                    b.ToTable("ServiceRequest", (string)null);
+                    b.ToTable("ServiceRequests", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.User", b =>
