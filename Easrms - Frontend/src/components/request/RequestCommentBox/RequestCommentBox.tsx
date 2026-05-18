@@ -1,11 +1,14 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
-import { CommentListDto } from "../../../types/comment.types";
+import type {
+  AddCommentDto,
+  CommentListDto,
+} from "../../../types/comment.types";
 import { formatDate } from "../../../utils/formatDate";
 
 interface RequestCommentBoxProps {
   comments: CommentListDto[];
-  onAddComment: (text: string, type: number) => void;
+  onAddComment: (data: AddCommentDto) => Promise<void>;
   isSubmitting?: boolean;
 }
 
@@ -16,18 +19,22 @@ const RequestCommentBox = ({
 }: RequestCommentBoxProps) => {
   const [text, setText] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!text.trim()) return;
-    onAddComment(text.trim(), 1);
+
+    await onAddComment({
+      commentText: text.trim(),
+      commentType: 1,
+    });
+
     setText("");
   };
-
   return (
     <Box>
-      <Typography variant="subtitle1" fontWeight={600} mb={2}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
         Comments
       </Typography>
-      <Box display="flex" flexDirection="column" gap={1.5} mb={3}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}>
         {comments.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No comments yet.
@@ -36,14 +43,22 @@ const RequestCommentBox = ({
           comments.map((c) => (
             <Box
               key={c.commentId}
-              p={1.5}
-              bgcolor="grey.50"
-              borderRadius={1}
-              border={1}
-              borderColor="divider"
+              sx={{
+                p: 1.5,
+                bgcolor: "grey.50",
+                borderRadius: 1,
+                border: 1,
+                borderColor: "divider",
+              }}
             >
-              <Box display="flex" justifyContent="space-between" mb={0.5}>
-                <Typography variant="body2" fontWeight={600}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 0.5,
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {c.commentByName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -55,7 +70,7 @@ const RequestCommentBox = ({
           ))
         )}
       </Box>
-      <Box display="flex" flexDirection="column" gap={1}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         <TextField
           placeholder="Write a comment..."
           multiline
@@ -65,7 +80,7 @@ const RequestCommentBox = ({
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <Box display="flex" justifyContent="flex-end">
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
           <Button
             variant="contained"
             size="small"

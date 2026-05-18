@@ -16,7 +16,7 @@ interface AppConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   confirmColor?: "primary" | "error" | "warning" | "success";
-  loading?: boolean;
+  isSubmitting?: boolean;
 }
 
 const AppConfirmDialog = ({
@@ -28,7 +28,7 @@ const AppConfirmDialog = ({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   confirmColor = "primary",
-  loading = false,
+  isSubmitting = false,
 }: AppConfirmDialogProps) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
@@ -37,14 +37,14 @@ const AppConfirmDialog = ({
         <DialogContentText>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+        <Button onClick={onClose} disabled={isSubmitting}>
           {cancelLabel}
         </Button>
         <Button
           onClick={onConfirm}
           color={confirmColor}
           variant="contained"
-          disabled={loading}
+          disabled={isSubmitting}
         >
           {confirmLabel}
         </Button>

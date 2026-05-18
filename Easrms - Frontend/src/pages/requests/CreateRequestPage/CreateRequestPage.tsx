@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Stack, Box } from "@mui/material";
 import toast from "react-hot-toast";
@@ -64,7 +63,6 @@ const CreateRequestPage = () => {
   const {
     control,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<CreateRequestDto>({
     resolver: joiResolver(schema),
@@ -72,7 +70,7 @@ const CreateRequestPage = () => {
       categoryId: "",
       title: "",
       description: "",
-      priority: "",
+      priority: PRIORITY_OPTIONS[0].value,
     },
   });
 
@@ -180,7 +178,13 @@ const CreateRequestPage = () => {
           </Box>
 
           {/* Actions */}
-          <Stack direction="row" spacing={2} justifyContent="flex-end">
+          <Stack
+            sx={{
+              direction: "row",
+              spacing: 2,
+              justifyContent: "flex-end",
+            }}
+          >
             <AppButton
               label="Cancel"
               variant="outlined"

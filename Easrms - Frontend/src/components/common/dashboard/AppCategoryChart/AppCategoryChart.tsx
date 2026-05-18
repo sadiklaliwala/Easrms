@@ -21,7 +21,7 @@ interface AppCategoryChartProps {
 const AppCategoryChart = ({ data }: AppCategoryChartProps) => {
   return (
     <Box>
-      <Typography variant="subtitle1" fontWeight={600} mb={2}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
         Requests by Category
       </Typography>
       <ResponsiveContainer width="100%" height={250}>

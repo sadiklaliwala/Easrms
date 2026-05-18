@@ -16,7 +16,7 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import TaskIcon from "@mui/icons-material/Task";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAppSelector } from "../../../hooks/useAppSelector";
+import { useAppSelector } from "../../../../hooks/useAppSelector";
 
 const DRAWER_WIDTH = 240;
 
@@ -88,7 +88,7 @@ const AppSidebar = ({ open }: AppSidebarProps) => {
   const { roleName } = useAppSelector((state) => state.auth);
 
   const visibleItems = NAV_ITEMS.filter((item) =>
-    item.roles.includes(roleName ?? "")
+    item.roles.includes(roleName ?? ""),
   );
 
   return (
@@ -129,7 +129,12 @@ const AppSidebar = ({ open }: AppSidebarProps) => {
                 <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography variant="body2" fontWeight={isActive ? 600 : 400}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: isActive ? 600 : 400,
+                      }}
+                    >
                       {item.label}
                     </Typography>
                   }

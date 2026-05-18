@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
-import { useAppSelector } from "../../../hooks/useAppSelector";
+import { useAppSelector } from "../../../../hooks/useAppSelector";
 
 interface AppTopbarProps {
   onMenuToggle: () => void;
@@ -36,7 +36,11 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
     : "U";
 
   return (
-    <AppBar position="fixed" elevation={1} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar
+      position="fixed"
+      elevation={1}
+      sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+    >
       <Toolbar>
         <IconButton
           color="inherit"
@@ -46,12 +50,32 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
         >
           <MenuIcon />
         </IconButton>
-        <Typography variant="h6" fontWeight={700} flexGrow={1}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            flexGrow: 1,
+          }}
+        >
           EASRMS
         </Typography>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Box textAlign="right" sx={{ display: { xs: "none", sm: "block" } }}>
-            <Typography variant="body2" fontWeight={600} lineHeight={1.2}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <Box
+            sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                lineHeight: 1.2,
+              }}
+            >
               {fullName}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8 }}>
@@ -60,13 +84,24 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
           </Box>
           <Tooltip title="Account">
             <IconButton onClick={handleOpen} sx={{ p: 0.5 }}>
-              <Avatar sx={{ width: 34, height: 34, bgcolor: "secondary.main", fontSize: 14 }}>
+              <Avatar
+                sx={{
+                  width: 34,
+                  height: 34,
+                  bgcolor: "secondary.main",
+                  fontSize: 14,
+                }}
+              >
                 {initials}
               </Avatar>
             </IconButton>
           </Tooltip>
         </Box>
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
           <MenuItem disabled>
             <Typography variant="body2">{roleName}</Typography>
           </MenuItem>

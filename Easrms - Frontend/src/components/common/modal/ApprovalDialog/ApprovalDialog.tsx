@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   DialogActions,
   DialogContent,
@@ -7,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { AppModal } from "../AppModal";
+import AppModal from "../AppModal";
 
 interface ApprovalDialogProps {
   open: boolean;
@@ -15,6 +14,7 @@ interface ApprovalDialogProps {
   onApprove: (comment: string) => void;
   onReject: (comment: string) => void;
   isSubmitting?: boolean;
+  loading?: boolean;
 }
 
 const ApprovalDialog = ({
@@ -50,10 +50,23 @@ const ApprovalDialog = ({
   };
 
   return (
-    <AppModal open={open} onClose={handleClose} title="Approval Decision" maxWidth="sm">
+    <AppModal
+      open={open}
+      onClose={handleClose}
+      title="Approval Decision"
+      maxWidth="sm"
+    >
       <DialogContent sx={{ px: 0, pt: 1 }}>
-        <Typography variant="body2" color="text.secondary" mb={2}>
-          Add a comment before approving or rejecting. Comment is mandatory for rejection.
+        <Typography
+          sx={{
+            fontSize: 12,
+            variant: "body2 ",
+            color: "text.secondary",
+            mb: 2,
+          }}
+        >
+          Add a comment before approving or rejecting. Comment is mandatory for
+          rejection.
         </Typography>
         <TextField
           label="Comment"

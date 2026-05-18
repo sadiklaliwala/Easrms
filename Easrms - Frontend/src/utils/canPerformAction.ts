@@ -1,11 +1,10 @@
 import { ROLES } from "../constants/role.constants";
 import { STATUS } from "../constants/status.constants";
-import { RequestDetailDto } from "../types/request.types";
 import { STATUS_ENUM_REVERSE } from "../constants/status.constants";
 
 export const canApproveOrReject = (
   roleName: string,
-  status: number
+  status: number,
 ): boolean => {
   return (
     roleName === ROLES.MANAGER &&
@@ -25,7 +24,7 @@ export const canUpdateStatus = (
   roleName: string,
   status: number,
   assignedToUserId: string,
-  currentUserId: string
+  currentUserId: string,
 ): boolean => {
   const statusLabel = STATUS_ENUM_REVERSE[status];
   return (
@@ -39,7 +38,7 @@ export const canCloseRequest = (
   roleName: string,
   status: number,
   employeeId: string,
-  currentUserId: string
+  currentUserId: string,
 ): boolean => {
   const statusLabel = STATUS_ENUM_REVERSE[status];
   return (

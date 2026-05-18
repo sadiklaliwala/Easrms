@@ -1,11 +1,6 @@
-import {
-  Box,
-  Drawer,
-  IconButton,
-  Typography,
-} from "@mui/material";
+import { Box, Drawer, IconButton, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 interface AppDrawerProps {
   open: boolean;
@@ -28,22 +23,35 @@ const AppDrawer = ({
     <Drawer anchor={anchor} open={open} onClose={onClose}>
       <Box sx={{ width }} role="presentation">
         <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          px={2}
-          py={1.5}
-          borderBottom={1}
-          borderColor="divider"
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 2,
+            py: 1.5,
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
         >
-          <Typography variant="h6" fontWeight={600}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+            }}
+          >
             {title}
           </Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
         </Box>
-        <Box p={2}>{children}</Box>
+        <Box
+          sx={{
+            p: 2,
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Drawer>
   );

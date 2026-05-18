@@ -28,12 +28,14 @@ const AppSearchInput = ({
       placeholder={placeholder}
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <SearchIcon fontSize="small" />
-          </InputAdornment>
-        ),
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+        },
       }}
     />
   );

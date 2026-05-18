@@ -9,8 +9,8 @@ import {
   TableSortLabel,
   Typography,
 } from "@mui/material";
-import { ReactNode, useState } from "react";
-import { AppEmptyState } from "../../../common/feedback/AppEmptyState";
+import { type ReactNode, useState } from "react";
+import AppEmptyState from "../../../common/feedback/AppEmptyState";
 
 export interface Column<T> {
   key: keyof T | string;
@@ -73,12 +73,22 @@ function AppDataGrid<T>({
                     direction={orderBy === String(col.key) ? order : "asc"}
                     onClick={() => handleSort(String(col.key))}
                   >
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography
+                      sx={{
+                        variant: "body2",
+                        fontWeight: 600,
+                      }}
+                    >
                       {col.label}
                     </Typography>
                   </TableSortLabel>
                 ) : (
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography
+                    sx={{
+                      variant: "body2",
+                      fontWeight: 600,
+                    }}
+                  >
                     {col.label}
                   </Typography>
                 )}

@@ -3,7 +3,7 @@ import {
   IconButton,
   InputAdornment,
   TextField,
-  TextFieldProps,
+  type TextFieldProps,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -12,7 +12,10 @@ type AppPasswordInputProps = TextFieldProps & {
   label?: string;
 };
 
-const AppPasswordInput = ({ label = "Password", ...rest }: AppPasswordInputProps) => {
+const AppPasswordInput = ({
+  label = "Password",
+  ...rest
+}: AppPasswordInputProps) => {
   const [show, setShow] = useState(false);
 
   return (
@@ -20,14 +23,16 @@ const AppPasswordInput = ({ label = "Password", ...rest }: AppPasswordInputProps
       label={label}
       type={show ? "text" : "password"}
       fullWidth
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton onClick={() => setShow((prev) => !prev)} edge="end">
-              {show ? <VisibilityOff /> : <Visibility />}
-            </IconButton>
-          </InputAdornment>
-        ),
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={() => setShow((prev) => !prev)} edge="end">
+                {show ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        },
       }}
       {...rest}
     />

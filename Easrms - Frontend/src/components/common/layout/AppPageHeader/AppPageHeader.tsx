@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 interface AppPageHeaderProps {
   title: string;
@@ -9,13 +9,31 @@ interface AppPageHeaderProps {
 
 const AppPageHeader = ({ title, subtitle, actions }: AppPageHeaderProps) => {
   return (
-    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: 3,
+      }}
+    >
       <Box>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           {title}
         </Typography>
         {subtitle && (
-          <Typography variant="body2" color="text.secondary" mt={0.5}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              mt: 0.5,
+            }}
+          >
             {subtitle}
           </Typography>
         )}

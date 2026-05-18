@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Typography } from "@mui/material";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 interface AppMetricCardProps {
   title: string;
@@ -8,16 +8,27 @@ interface AppMetricCardProps {
   color?: string;
 }
 
-const AppMetricCard = ({ title, count, icon, color = "#1976d2" }: AppMetricCardProps) => {
+const AppMetricCard = ({
+  title,
+  count,
+  icon,
+  color = "#1976d2",
+}: AppMetricCardProps) => {
   return (
     <Card elevation={1}>
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Box>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               {title}
             </Typography>
-            <Typography variant="h4" fontWeight={700}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
               {count}
             </Typography>
           </Box>

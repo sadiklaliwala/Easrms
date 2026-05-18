@@ -8,7 +8,14 @@ const AppSkeletonLoader = ({ rows = 5 }: AppSkeletonLoaderProps) => {
   return (
     <Stack spacing={1}>
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} variant="rectangular" height={48} borderRadius={1} />
+        <Skeleton
+          key={i}
+          variant="rectangular"
+          sx={{
+            borderRadius: 1,
+            height: 48,
+          }}
+        />
       ))}
     </Stack>
   );

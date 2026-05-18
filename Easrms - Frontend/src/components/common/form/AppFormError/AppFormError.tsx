@@ -7,7 +7,13 @@ interface AppFormErrorProps {
 const AppFormError = ({ message }: AppFormErrorProps) => {
   if (!message) return null;
   return (
-    <Typography variant="caption" color="error" mt={0.5}>
+    <Typography
+      variant="caption"
+      sx={{
+        color: "error",
+        mt: 0.5,
+      }}
+    >
       {message}
     </Typography>
   );

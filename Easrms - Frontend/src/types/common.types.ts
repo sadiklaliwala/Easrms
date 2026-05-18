@@ -2,6 +2,8 @@
 // // COMMON TYPES
 // // ============================================================
 
+import type { ReactNode } from "react";
+
 // // Generic wrapper for all API responses
 // export interface ApiResponse<T = unknown> {
 //     success: boolean
@@ -31,7 +33,6 @@
 //     fullName: string
 // }
 
-
 export interface PaginationDto {
   pageNumber: number;
   pageSize: number;
@@ -55,4 +56,11 @@ export interface SupportUserLookupDto {
 export interface ManagerLookupDto {
   userId: string;
   fullName: string;
+}
+export interface GridColumn<T> {
+  key: keyof T | "actions";
+  label: string;
+  render?: (row: T) => ReactNode;
+  sortable?: boolean;
+  width?: string | number;
 }

@@ -33,7 +33,7 @@
 //     isApprovalRequired: boolean
 // }
 
-import { PaginationDto } from "./common.types";
+import { type PaginationDto } from "./common.types";
 export interface CategoryListDto {
   categoryId: string;
   categoryName: string;

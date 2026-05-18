@@ -43,7 +43,7 @@
 //     managerId?: string
 // }
 
-import { PaginationDto } from "./common.types";
+import { type PaginationDto } from "./common.types";
 
 export interface UserListDto {
   userId: string;

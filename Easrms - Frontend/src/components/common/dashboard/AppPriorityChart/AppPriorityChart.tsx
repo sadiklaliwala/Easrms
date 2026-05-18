@@ -26,7 +26,7 @@ const COLORS: Record<string, string> = {
 const AppPriorityChart = ({ data }: AppPriorityChartProps) => {
   return (
     <Box>
-      <Typography variant="subtitle1" fontWeight={600} mb={2}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, ml: 2 }}>
         Requests by Priority
       </Typography>
       <ResponsiveContainer width="100%" height={250}>
@@ -41,10 +41,7 @@ const AppPriorityChart = ({ data }: AppPriorityChartProps) => {
             label
           >
             {data.map((entry, index) => (
-              <Cell
-                key={index}
-                fill={COLORS[entry.priority] ?? "#8884d8"}
-              />
+              <Cell key={index} fill={COLORS[entry.priority] ?? "#8884d8"} />
             ))}
           </Pie>
           <Tooltip />

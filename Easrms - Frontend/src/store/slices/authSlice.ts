@@ -41,9 +41,8 @@
 // export const { setCredentials, clearCredentials, updateUser } = authSlice.actions
 // export default authSlice.reducer
 
-
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { LoginResponseDto } from '../../types/auth.types';
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { type LoginResponseDto } from "../../types/auth.types";
 
 interface AuthState {
   userId: string | null;
@@ -64,7 +63,7 @@ const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<LoginResponseDto>) => {

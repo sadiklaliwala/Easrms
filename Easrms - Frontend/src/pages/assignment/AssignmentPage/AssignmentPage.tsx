@@ -1,38 +1,47 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Stack } from '@mui/material';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Stack } from "@mui/material";
+import toast from "react-hot-toast";
 
 import {
   useGetRequestsQuery,
   useAssignRequestMutation,
-} from '../../../store/api/request.endpoints';
-import { useGetSupportUsersQuery } from '../../../store/api/lookup.endpoints';
+} from "../../../store/api/request.endpoints";
+import { useGetSupportUsersQuery } from "../../../store/api/lookup.endpoints";
 
-import AppPageHeader from '../../../components/common/layout/AppPageHeader';
-import AppSearchInput from '../../../components/common/filter/AppSearchInput';
-import AppFilterBar from '../../../components/common/filter/AppFilterBar';
-import AppSelect from '../../../components/common/form/AppSelect';
-import AppDataGrid from '../../../components/common/table/AppDataGrid';
-import AppPagination from '../../../components/common/table/AppPagination';
-import AppStatusBadge from '../../../components/common/table/AppStatusBadge';
-import AppPriorityBadge from '../../../components/common/table/AppPriorityBadge';
-import AppTableActions from '../../../components/common/table/AppTableActions';
-import AppLoader from '../../../components/common/feedback/AppLoader';
-import AppErrorState from '../../../components/common/feedback/AppErrorState';
-import AssignSupportDialog from '../../../components/common/modal/AssignSupportDialog';
+import AppPageHeader from "../../../components/common/layout/AppPageHeader";
+import AppSearchInput from "../../../components/common/filter/AppSearchInput";
+import AppFilterBar from "../../../components/common/filter/AppFilterBar";
+import AppSelect from "../../../components/common/form/AppSelect";
+import AppDataGrid from "../../../components/common/table/AppDataGrid";
+import AppPagination from "../../../components/common/table/AppPagination";
+import AppStatusBadge from "../../../components/common/table/AppStatusBadge";
+import AppPriorityBadge from "../../../components/common/table/AppPriorityBadge";
+import AppTableActions from "../../../components/common/table/AppTableActions";
+import AppLoader from "../../../components/common/feedback/AppLoader";
+import AppErrorState from "../../../components/common/feedback/AppErrorState";
+import AssignSupportDialog from "../../../components/common/modal/AssignSupportDialog";
 
-import { STATUS, STATUS_OPTIONS } from '../../../constants/status.constants';
-import { formatDate } from '../../../utils/formatDate';
+import {
+  STATUS,
+  STATUS_ENUM,
+  STATUS_OPTIONS,
+  type StatusType,
+} from "../../../constants/status.constants";
+import { formatDate } from "../../../utils/formatDate";
 
-import type { RequestListDto, RequestQueryParams } from '../../../types/request.types';
-import type { GridColumn } from '../../../types/common.types';
+import type {
+  RequestListDto,
+  RequestQueryParams,
+} from "../../../types/request.types";
+import type { GridColumn } from "../../../types/common.types";
+import { PRIORITY_ENUM } from "../../../constants/priority.constants";
 
 // ─── Eligible statuses for assignment ─────────────────────────────────────────
-const ASSIGNABLE_STATUSES = [STATUS.OPEN, STATUS.APPROVED];
+const ASSIGNABLE_STATUSES: StatusType[] = [STATUS.OPEN, STATUS.APPROVED];
 
 const assignableStatusOptions = [
-  { label: 'Open & Approved', value: '' },
+  { label: "Open & Approved", value: "" },
   ...STATUS_OPTIONS.filter((s) => ASSIGNABLE_STATUSES.includes(s.value)),
 ];
 
@@ -46,7 +55,9 @@ const AssignmentPage = () => {
     status: STATUS.OPEN,
   });
 
-  const [selectedRequest, setSelectedRequest] = useState<RequestListDto | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<RequestListDto | null>(
+    null,
+  );
   const [assignOpen, setAssignOpen] = useState(false);
 
   const { data: response, isLoading, isError } = useGetRequestsQuery(params);
@@ -64,14 +75,14 @@ const AssignmentPage = () => {
         body: { supportUserId },
       }).unwrap();
       if (res.success) {
-        toast.success('Request assigned successfully');
+        toast.success("Request assigned successfully");
         setAssignOpen(false);
         setSelectedRequest(null);
       } else {
-        toast.error(res.message ?? 'Assignment failed');
+        toast.error(res.message ?? "Assignment failed");
       }
     } catch (err: any) {
-      toast.error(err?.data?.message ?? 'Assignment failed');
+      toast.error(err?.data?.message ?? "Assignment failed");
     }
   };
 
@@ -83,48 +94,52 @@ const AssignmentPage = () => {
   // ─── Table Columns ────────────────────────────────────────────────────────────
   const columns: GridColumn<RequestListDto>[] = [
     {
-      key: 'requestNumber',
-      label: 'Request #',
+      key: "requestNumber",
+      label: "Request #",
       render: (row) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+        <span style={{ fontFamily: "monospace", fontWeight: 600 }}>
           {row.requestNumber}
         </span>
       ),
     },
-    { key: 'title', label: 'Title' },
-    { key: 'categoryName', label: 'Category' },
+    { key: "title", label: "Title" },
+    { key: "categoryName", label: "Category" },
     {
-      key: 'priority',
-      label: 'Priority',
-      render: (row) => <AppPriorityBadge priority={row.priority} />,
+      key: "priority",
+      label: "Priority",
+      render: (row) => (
+        <AppPriorityBadge priority={PRIORITY_ENUM[row.priority].toString()} />
+      ),
     },
     {
-      key: 'status',
-      label: 'Status',
-      render: (row) => <AppStatusBadge status={row.status} />,
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <AppStatusBadge status={STATUS_ENUM[row.status].toString()} />
+      ),
     },
     {
-      key: 'assigneeName',
-      label: 'Assignee',
-      render: (row) => row.assigneeName ?? '—',
+      key: "assigneeName",
+      label: "Assignee",
+      render: (row) => row.assigneeName ?? "—",
     },
     {
-      key: 'createdOn',
-      label: 'Created On',
+      key: "createdOn",
+      label: "Created On",
       render: (row) => formatDate(row.createdOn),
     },
     {
-      key: 'actions',
-      label: 'Actions',
+      key: "actions",
+      label: "Actions",
       render: (row) => (
         <AppTableActions
           actions={[
             {
-              label: 'View Details',
+              label: "View Details",
               onClick: () => navigate(`/requests/${row.requestId}`),
             },
             {
-              label: 'Assign',
+              label: "Assign",
               onClick: () => openAssignDialog(row),
             },
           ]}
@@ -134,7 +149,8 @@ const AssignmentPage = () => {
   ];
 
   if (isLoading) return <AppLoader />;
-  if (isError || !response?.success) return <AppErrorState message="Failed to load requests for assignment" />;
+  if (isError || !response?.success)
+    return <AppErrorState message="Failed to load requests for assignment" />;
 
   const requests = response.data.items;
   const pagination = response.data.pagination;
@@ -178,9 +194,10 @@ const AssignmentPage = () => {
 
       {/* Pagination */}
       <AppPagination
-        page={pagination.pageNumber}
+        pageNumber={pagination.pageNumber}
         pageSize={pagination.pageSize}
-        total={pagination.totalCount}
+        totalCount={pagination.totalCount}
+        totalPages={pagination.totalPages}
         onPageChange={(page) => setParams((p) => ({ ...p, pageNumber: page }))}
         onPageSizeChange={(size) =>
           setParams((p) => ({ ...p, pageSize: size, pageNumber: 1 }))
@@ -196,7 +213,7 @@ const AssignmentPage = () => {
         }}
         supportUsers={supportUsers}
         onAssign={handleAssign}
-        loading={assigning}
+        isSubmitting={assigning}
       />
     </Stack>
   );

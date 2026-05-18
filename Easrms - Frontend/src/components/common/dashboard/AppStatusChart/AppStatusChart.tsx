@@ -21,11 +21,14 @@ interface AppStatusChartProps {
 const AppStatusChart = ({ data }: AppStatusChartProps) => {
   return (
     <Box>
-      <Typography variant="subtitle1" fontWeight={600} mb={2}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, ml: 2 }}>
         Requests by Status
       </Typography>
       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="status" tick={{ fontSize: 11 }} />
           <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />

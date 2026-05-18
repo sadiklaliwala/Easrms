@@ -1,4 +1,4 @@
-import { FormLabel, FormLabelProps } from "@mui/material";
+import { FormLabel, type FormLabelProps } from "@mui/material";
 
 interface AppLabelProps extends FormLabelProps {
   label: string;

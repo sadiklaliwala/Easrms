@@ -65,13 +65,14 @@
 //     pagination: PaginationDto
 // }
 
-import { PaginationDto } from "./common.types";
+import type { PriorityType } from "../constants/priority.constants";
+import { type PaginationDto } from "./common.types";
 
 export interface CreateRequestDto {
   categoryId: string;
   title: string;
   description: string;
-  priority: number;
+  priority: PriorityType;
 }
 
 export interface RequestListDto {
@@ -125,7 +126,7 @@ export interface RequestQueryParams {
   pageNumber?: number;
   pageSize?: number;
   search?: string;
-  status?: number;
+  status?: string;
   priority?: number;
   categoryId?: string;
   fromDate?: string;

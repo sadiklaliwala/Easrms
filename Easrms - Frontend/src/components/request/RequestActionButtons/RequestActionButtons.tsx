@@ -1,6 +1,6 @@
 import { Box, Button } from "@mui/material";
 import { useAppSelector } from "../../../hooks/useAppSelector";
-import { RequestDetailDto } from "../../../types/request.types";
+import { type RequestDetailDto } from "../../../types/request.types";
 
 interface RequestActionButtonsProps {
   request: RequestDetailDto;
@@ -28,8 +28,7 @@ const RequestActionButtons = ({
   const isEmployee = roleName === "Employee";
 
   const canApprove = isManager && status === "Pending Approval";
-  const canAssign =
-    isAdmin && (status === "Open" || status === "Approved");
+  const canAssign = isAdmin && (status === "Open" || status === "Approved");
   const canUpdateStatus =
     isSupport &&
     assignedTo === userId &&
@@ -42,7 +41,13 @@ const RequestActionButtons = ({
   }
 
   return (
-    <Box display="flex" gap={1} flexWrap="wrap">
+    <Box
+      sx={{
+        display: "flex",
+        gap: 1,
+        flexWrap: "wrap",
+      }}
+    >
       {canApprove && (
         <>
           <Button
@@ -84,12 +89,7 @@ const RequestActionButtons = ({
         </Button>
       )}
       {canClose && (
-        <Button
-          variant="outlined"
-          color="error"
-          size="small"
-          onClick={onClose}
-        >
+        <Button variant="outlined" color="error" size="small" onClick={onClose}>
           Close Request
         </Button>
       )}

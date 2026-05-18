@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   DialogActions,
   DialogContent,
@@ -11,8 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { AppModal } from "../AppModal";
-import { SupportUserLookupDto } from "../../../../types/common.types";
+import AppModal from "../AppModal";
+import { type SupportUserLookupDto } from "../../../../types/common.types";
 
 interface AssignSupportDialogProps {
   open: boolean;
@@ -49,9 +48,21 @@ const AssignSupportDialog = ({
   };
 
   return (
-    <AppModal open={open} onClose={handleClose} title="Assign Support User" maxWidth="sm">
+    <AppModal
+      open={open}
+      onClose={handleClose}
+      title="Assign Support User"
+      maxWidth="sm"
+    >
       <DialogContent sx={{ px: 0, pt: 1 }}>
-        <Typography variant="body2" color="text.secondary" mb={2}>
+        <Typography
+          sx={{
+            fontSize: 12,
+            fontWeight: 500,
+            color: "text.secondary",
+            mb: 2,
+          }}
+        >
           Select a support user to assign this request to.
         </Typography>
         <FormControl fullWidth size="small" error={!!error}>

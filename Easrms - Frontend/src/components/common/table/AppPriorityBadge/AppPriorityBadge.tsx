@@ -1,7 +1,8 @@
 import { Chip } from "@mui/material";
+import type { PriorityType } from "../../../../constants/priority.constants";
 
 interface AppPriorityBadgeProps {
-  priority: string;
+  priority: PriorityType | string;
 }
 
 const priorityColorMap: Record<

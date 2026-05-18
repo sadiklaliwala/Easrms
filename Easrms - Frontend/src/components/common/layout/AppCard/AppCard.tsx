@@ -1,5 +1,5 @@
-import { Card, CardContent, CardProps } from "@mui/material";
-import { ReactNode } from "react";
+import { Card, CardContent, type CardProps } from "@mui/material";
+import type { ReactNode } from "react";
 
 interface AppCardProps extends CardProps {
   children: ReactNode;

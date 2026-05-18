@@ -1,5 +1,10 @@
-import { Button, DialogActions, DialogContent, Typography } from "@mui/material";
-import { AppModal } from "../AppModal";
+import {
+  Button,
+  DialogActions,
+  DialogContent,
+  Typography,
+} from "@mui/material";
+import AppModal from "../AppModal";
 
 interface CloseRequestDialogProps {
   open: boolean;

@@ -24,18 +24,32 @@ const AppPagination = ({
 
   return (
     <Box
-      display="flex"
-      justifyContent="space-between"
-      alignItems="center"
-      mt={2}
-      flexWrap="wrap"
-      gap={1}
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mt: 2,
+        flexWrap: "wrap",
+        gap: 1,
+      }}
     >
       <Typography variant="body2" color="text.secondary">
         Showing {totalCount === 0 ? 0 : from}–{to} of {totalCount} records
       </Typography>
-      <Box display="flex" alignItems="center" gap={2}>
-        <Box display="flex" alignItems="center" gap={1}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
           <Typography variant="body2" color="text.secondary">
             Rows per page:
           </Typography>

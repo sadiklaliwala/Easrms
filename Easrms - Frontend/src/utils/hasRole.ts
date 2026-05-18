@@ -1,4 +1,4 @@
-import { ROLES, RoleType } from "../constants/role.constants";
+import { ROLES, type RoleType } from "../constants/role.constants";
 
 export const hasRole = (
   currentRole: string | null | undefined,

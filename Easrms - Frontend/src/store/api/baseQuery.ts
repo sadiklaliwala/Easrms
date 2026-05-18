@@ -5,13 +5,13 @@
 //     credentials: 'include',
 // })
 
-import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7001',
-  credentials: 'include', // Required — JWT is in HttpOnly cookie
+  baseUrl: import.meta.env.VITE_API_BASE_URL ?? "https://localhost:7252",
+  credentials: "include", // Required — JWT is in HttpOnly cookie
   prepareHeaders: (headers) => {
-    headers.set('Content-Type', 'application/json');
+    headers.set("Content-Type", "application/json");
     return headers;
   },
 });

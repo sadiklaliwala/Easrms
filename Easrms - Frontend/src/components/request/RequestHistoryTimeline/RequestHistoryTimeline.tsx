@@ -1,10 +1,5 @@
-import {
-  Box,
-  Chip,
-  Paper,
-  Typography,
-} from "@mui/material";
-import { StatusHistoryDto } from "../../../types/comment.types";
+import { Box, Chip, Paper, Typography } from "@mui/material";
+import { type StatusHistoryDto } from "../../../types/comment.types";
 import { formatDate } from "../../../utils/formatDate";
 
 interface RequestHistoryTimelineProps {
@@ -21,14 +16,25 @@ const RequestHistoryTimeline = ({ history }: RequestHistoryTimelineProps) => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap={1.5}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
       {history.map((item) => (
         <Paper key={item.historyId} variant="outlined" sx={{ p: 2 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
-            <Box display="flex" alignItems="center" gap={1}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 0.5,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               {item.oldStatus && (
                 <>
-                  <Chip label={item.oldStatus} size="small" variant="outlined" />
+                  <Chip
+                    label={item.oldStatus}
+                    size="small"
+                    variant="outlined"
+                  />
                   <Typography variant="body2">→</Typography>
                 </>
               )}
@@ -42,7 +48,7 @@ const RequestHistoryTimeline = ({ history }: RequestHistoryTimelineProps) => {
             By: <strong>{item.changedByName}</strong>
           </Typography>
           {item.remarks && (
-            <Typography variant="body2" mt={0.5}>
+            <Typography sx={{ variant: "body2", mt: 0.5 }}>
               {item.remarks}
             </Typography>
           )}

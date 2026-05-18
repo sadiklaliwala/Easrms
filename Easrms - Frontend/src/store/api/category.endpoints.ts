@@ -53,54 +53,67 @@
 //     useToggleCategoryStatusMutation,
 // } = categoryEndpoints;
 
-import { api } from './api';
-import ApiEndPoints from '../ApiEndPoints';
-import type { ApiResponse } from '../../types/common.types';
+import { api } from "./api";
+import ApiEndPoints from "../ApiEndPoints";
+import type { ApiResponse } from "../../types/common.types";
 import type {
   CategoryListWithPaginationDto,
   CategoryDetailDto,
   CreateCategoryDto,
   UpdateCategoryDto,
   CategoryQueryParams,
-} from '../../types/category.types';
-import { buildQueryParams } from '../../utils/buildQueryParams';
+} from "../../types/category.types";
+import { buildQueryParams } from "../../utils/buildQueryParams";
 
 const categoryEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
-    getCategories: builder.query<ApiResponse<CategoryListWithPaginationDto>, CategoryQueryParams>({
-      query: (params) => `${ApiEndPoints.CATEGORIES.BASE}?${buildQueryParams(params)}`,
-      providesTags: ['Category'],
+    getCategories: builder.query<
+      ApiResponse<CategoryListWithPaginationDto>,
+      CategoryQueryParams
+    >({
+      query: (params) =>
+        `${ApiEndPoints.CATEGORIES.BASE}?${buildQueryParams(params)}`,
+      providesTags: ["Category"],
     }),
 
     getCategoryById: builder.query<ApiResponse<CategoryDetailDto>, string>({
       query: (id) => ApiEndPoints.CATEGORIES.BY_ID(id),
-      providesTags: (_result, _error, id) => [{ type: 'Category', id }],
+      providesTags: (_result, _error, id) => [{ type: "Category", id }],
     }),
 
-    createCategory: builder.mutation<ApiResponse<CategoryDetailDto>, CreateCategoryDto>({
+    createCategory: builder.mutation<
+      ApiResponse<CategoryDetailDto>,
+      CreateCategoryDto
+    >({
       query: (body) => ({
         url: ApiEndPoints.CATEGORIES.BASE,
-        method: 'POST',
+        method: "POST",
         body,
       }),
-      invalidatesTags: ['Category'],
+      invalidatesTags: ["Category"],
     }),
 
-    updateCategory: builder.mutation<ApiResponse<CategoryDetailDto>, { id: string; body: UpdateCategoryDto }>({
+    updateCategory: builder.mutation<
+      ApiResponse<CategoryDetailDto>,
+      { id: string; body: UpdateCategoryDto }
+    >({
       query: ({ id, body }) => ({
         url: ApiEndPoints.CATEGORIES.BY_ID(id),
-        method: 'PUT',
+        method: "PUT",
         body,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Category', id }, 'Category'],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Category", id },
+        "Category",
+      ],
     }),
 
     toggleCategoryStatus: builder.mutation<ApiResponse<null>, string>({
       query: (id) => ({
         url: ApiEndPoints.CATEGORIES.TOGGLE(id),
-        method: 'PUT',
+        method: "PUT",
       }),
-      invalidatesTags: ['Category'],
+      invalidatesTags: ["Category"],
     }),
   }),
 });

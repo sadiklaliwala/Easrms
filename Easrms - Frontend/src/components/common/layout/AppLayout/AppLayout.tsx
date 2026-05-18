@@ -1,8 +1,8 @@
 import { Box, Toolbar } from "@mui/material";
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { AppTopbar } from "../AppTopbar";
-import { AppSidebar } from "../AppSidebar";
+import AppTopbar from "../AppTopbar";
+import AppSidebar from "../AppSidebar";
 import { useLogoutMutation } from "../../../../store/api/auth.endpoints";
 import toast from "react-hot-toast";
 

@@ -1,7 +1,7 @@
-import { TextField, TextFieldProps } from "@mui/material";
+import { TextField, type TextFieldProps } from "@mui/material";
 
 type AppTextAreaProps = TextFieldProps & {
-  label: string;
+  label?: string;
   rows?: number;
 };
 

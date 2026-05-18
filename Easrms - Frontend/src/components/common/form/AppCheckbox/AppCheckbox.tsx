@@ -1,6 +1,6 @@
 import {
   Checkbox,
-  CheckboxProps,
+  type CheckboxProps,
   FormControlLabel,
 } from "@mui/material";
 

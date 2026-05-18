@@ -7,7 +7,7 @@ import {
   useGetRequestsQuery,
   useUpdateRequestStatusMutation,
 } from "../../../store/api/request.endpoints";
-import { useAppSelector } from "../../../hooks/useAppSelector";
+// import { useAppSelector } from "../../../hooks/useAppSelector";
 
 import AppPageHeader from "../../../components/common/layout/AppPageHeader";
 import AppSearchInput from "../../../components/common/filter/AppSearchInput";
@@ -22,7 +22,7 @@ import AppLoader from "../../../components/common/feedback/AppLoader";
 import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import UpdateStatusDialog from "../../../components/common/modal/UpdateStatusDialog";
 
-import { STATUS } from "../../../constants/status.constants";
+import { STATUS, STATUS_ENUM } from "../../../constants/status.constants";
 import { formatDate } from "../../../utils/formatDate";
 
 import type {
@@ -30,6 +30,7 @@ import type {
   RequestQueryParams,
 } from "../../../types/request.types";
 import type { GridColumn } from "../../../types/common.types";
+import { PRIORITY_ENUM } from "../../../constants/priority.constants";
 
 // ─── Status filter options for support user ───────────────────────────────────
 const SUPPORT_STATUS_OPTIONS = [
@@ -42,7 +43,7 @@ const SUPPORT_STATUS_OPTIONS = [
 // ─── Component ────────────────────────────────────────────────────────────────
 const SupportTaskPage = () => {
   const navigate = useNavigate();
-  const { userId } = useAppSelector((state) => state.auth);
+  // const { userId } = useAppSelector((state) => state.auth);
 
   const [params, setParams] = useState<RequestQueryParams>({
     pageNumber: 1,
@@ -60,7 +61,7 @@ const SupportTaskPage = () => {
     useUpdateRequestStatusMutation();
 
   // ─── Handlers ─────────────────────────────────────────────────────────────────
-  const handleStatusUpdate = async (newStatus: string, remarks: string) => {
+  const handleStatusUpdate = async (newStatus: number, remarks: string) => {
     if (!selectedRequest) return;
     try {
       const res = await updateStatus({
@@ -100,12 +101,16 @@ const SupportTaskPage = () => {
     {
       key: "priority",
       label: "Priority",
-      render: (row) => <AppPriorityBadge priority={row.priority} />,
+      render: (row) => (
+        <AppPriorityBadge priority={PRIORITY_ENUM[row.priority].toString()} />
+      ),
     },
     {
       key: "status",
       label: "Status",
-      render: (row) => <AppStatusBadge status={row.status} />,
+      render: (row) => (
+        <AppStatusBadge status={STATUS_ENUM[row.status].toString()} />
+      ),
     },
     {
       key: "createdOn",
@@ -122,8 +127,8 @@ const SupportTaskPage = () => {
               label: "View Details",
               onClick: () => navigate(`/requests/${row.requestId}`),
             },
-            ...(row.status === STATUS.ASSIGNED ||
-            row.status === STATUS.IN_PROGRESS
+            ...(row.status === STATUS_ENUM.ASSIGNED ||
+            row.status === STATUS_ENUM.IN_PROGRESS
               ? [
                   {
                     label: "Update Status",
@@ -183,9 +188,10 @@ const SupportTaskPage = () => {
 
       {/* Pagination */}
       <AppPagination
-        page={pagination.pageNumber}
+        totalPages={pagination.totalPages}
+        pageNumber={pagination.pageNumber}
         pageSize={pagination.pageSize}
-        total={pagination.totalCount}
+        totalCount={pagination.totalCount}
         onPageChange={(page) => setParams((p) => ({ ...p, pageNumber: page }))}
         onPageSizeChange={(size) =>
           setParams((p) => ({ ...p, pageSize: size, pageNumber: 1 }))
@@ -199,9 +205,9 @@ const SupportTaskPage = () => {
           setStatusOpen(false);
           setSelectedRequest(null);
         }}
-        currentStatus={selectedRequest?.status ?? ""}
+        currentStatus={STATUS_ENUM[selectedRequest?.status ?? ""].toString()}
         onUpdate={handleStatusUpdate}
-        loading={updatingStatus}
+        isSubmitting={updatingStatus}
       />
     </Stack>
   );

@@ -1,5 +1,5 @@
-import { IconButton, IconButtonProps, Tooltip } from "@mui/material";
-import { ReactNode } from "react";
+import { IconButton, type IconButtonProps, Tooltip } from "@mui/material";
+import { type ReactNode } from "react";
 
 interface AppIconButtonProps extends IconButtonProps {
   icon: ReactNode;

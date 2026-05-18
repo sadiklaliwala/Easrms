@@ -1,10 +1,14 @@
 import { Chip } from "@mui/material";
+import type { StatusType } from "../../../../constants/status.constants";
 
 interface AppStatusBadgeProps {
-  status: string;
+  status: StatusType | string;
 }
 
-const statusColorMap: Record<string, "default" | "warning" | "info" | "success" | "error" | "primary" | "secondary"> = {
+const statusColorMap: Record<
+  string,
+  "default" | "warning" | "info" | "success" | "error" | "primary" | "secondary"
+> = {
   Open: "info",
   "Pending Approval": "warning",
   Approved: "primary",

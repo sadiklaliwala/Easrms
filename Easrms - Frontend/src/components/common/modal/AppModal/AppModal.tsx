@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 interface AppModalProps {
   open: boolean;
@@ -27,8 +27,19 @@ const AppModal = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth>
       <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" fontWeight={600}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+            }}
+          >
             {title}
           </Typography>
           <IconButton onClick={onClose} size="small">

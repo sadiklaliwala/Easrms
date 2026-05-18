@@ -12,11 +12,17 @@ interface RequestMetaInfoProps {
 const MetaRow = ({ label, value }: { label: string; value?: string }) => {
   if (!value) return null;
   return (
-    <Box display="flex" justifyContent="space-between" py={1}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        py: 1,
+      }}
+    >
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body2" fontWeight={500}>
+      <Typography variant="body2" sx={{ fontWeight: 500 }}>
         {value}
       </Typography>
     </Box>

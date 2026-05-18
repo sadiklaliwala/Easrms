@@ -1,4 +1,4 @@
-import { LoadingButton, LoadingButtonProps } from "@mui/lab";
+import { LoadingButton, type LoadingButtonProps } from "@mui/lab";
 
 interface AppLoadingButtonProps extends LoadingButtonProps {
   label: string;

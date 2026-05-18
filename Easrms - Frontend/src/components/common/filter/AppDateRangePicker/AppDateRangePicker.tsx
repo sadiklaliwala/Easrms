@@ -25,14 +25,23 @@ const AppDateRangePicker = ({ onChange }: AppDateRangePickerProps) => {
   };
 
   return (
-    <Box display="flex" gap={2}>
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+      }}
+    >
       <TextField
         label="From"
         type="date"
         size="small"
         value={from}
         onChange={(e) => handleFromChange(e.target.value)}
-        InputLabelProps={{ shrink: true }}
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+          },
+        }}
       />
       <TextField
         label="To"
@@ -40,7 +49,11 @@ const AppDateRangePicker = ({ onChange }: AppDateRangePickerProps) => {
         size="small"
         value={to}
         onChange={(e) => handleToChange(e.target.value)}
-        InputLabelProps={{ shrink: true }}
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+          },
+        }}
       />
     </Box>
   );

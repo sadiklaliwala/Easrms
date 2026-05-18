@@ -4,9 +4,10 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Typography,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { MouseEvent, ReactNode, useState } from "react";
+import { type MouseEvent, type ReactNode, useState } from "react";
 
 interface ActionItem {
   label: string;
@@ -52,11 +53,11 @@ const AppTableActions = ({ actions }: AppTableActionsProps) => {
               </ListItemIcon>
             )}
             <ListItemText
-              primary={action.label}
-              primaryTypographyProps={{
-                fontSize: 14,
-                color: action.color,
-              }}
+              primary={
+                <Typography sx={{ fontSize: 14, color: action.color }}>
+                  {action.label}
+                </Typography>
+              }
             />
           </MenuItem>
         ))}

@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { AppModal } from "../AppModal";
+import AppModal from "../AppModal";
 
 interface UpdateStatusDialogProps {
   open: boolean;
@@ -60,7 +60,7 @@ const UpdateStatusDialog = ({
     }
 
     const selectedLabel = availableTransitions.find(
-      (t) => t.value === selectedStatus
+      (t) => t.value === selectedStatus,
     )?.label;
 
     if (selectedLabel === "Resolved" && !remarks.trim()) {
@@ -77,12 +77,23 @@ const UpdateStatusDialog = ({
   };
 
   return (
-    <AppModal open={open} onClose={handleClose} title="Update Request Status" maxWidth="sm">
+    <AppModal
+      open={open}
+      onClose={handleClose}
+      title="Update Request Status"
+      maxWidth="sm"
+    >
       <DialogContent sx={{ px: 0, pt: 1 }}>
-        <Typography variant="body2" color="text.secondary" mb={2}>
+        <Typography
+          sx={{
+            variant: "body2",
+            color: "text.secondary",
+            mb: 2,
+          }}
+        >
           Current Status: <strong>{currentStatus}</strong>
         </Typography>
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <FormControl fullWidth size="small" error={!!statusError}>
             <InputLabel>New Status</InputLabel>
             <Select

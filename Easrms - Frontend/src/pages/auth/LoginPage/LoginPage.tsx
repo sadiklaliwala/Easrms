@@ -112,11 +112,11 @@ const LoginPage = () => {
         }}
       >
         {/* Header */}
-        <Stack spacing={0.5} mb={4} alignItems="center">
-          <Typography variant="h5" fontWeight={700} color="primary">
+        <Stack sx={{ spacing: 0.5, mb: 4, alignItems: "center" }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: "primary" }}>
             EASRMS
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Employee Asset & Service Request Management
           </Typography>
         </Stack>
