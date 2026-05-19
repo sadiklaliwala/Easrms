@@ -1,6 +1,8 @@
 import { Box, Button } from "@mui/material";
 import { useAppSelector } from "../../../hooks/useAppSelector";
 import { type RequestDetailDto } from "../../../types/request.types";
+import { STATUS_ENUM_REVERSE, STATUS } from "../../../constants/status.constants";
+import { ROLES } from "../../../constants/role.constants";
 
 interface RequestActionButtonsProps {
   request: RequestDetailDto;
@@ -22,19 +24,24 @@ const RequestActionButtons = ({
   const { roleName, userId } = useAppSelector((state) => state.auth);
   const { status, assignedTo, employeeId } = request as any;
 
-  const isAdmin = roleName === "Admin";
-  const isManager = roleName === "Manager";
-  const isSupport = roleName === "Support User";
-  const isEmployee = roleName === "Employee";
+  const isAdmin = roleName === ROLES.ADMIN;
+  const isManager = roleName === ROLES.MANAGER;
+  const isSupport = roleName === ROLES.SUPPORT_USER;
+  const isEmployee = roleName === ROLES.EMPLOYEE;
 
-  const canApprove = isManager && status === "Pending Approval";
-  const canAssign = isAdmin && (status === "Open" || status === "Approved");
+  const statusLabel = STATUS_ENUM_REVERSE[status];
+
+  const canApprove = isManager && statusLabel === STATUS.PENDING_APPROVAL;
+  const canAssign =
+    isAdmin && (statusLabel === STATUS.OPEN || statusLabel === STATUS.APPROVED);
+  console.log(assignedTo, userId, statusLabel, "assignedTo , userId");
   const canUpdateStatus =
     isSupport &&
     assignedTo === userId &&
-    (status === "Assigned" || status === "In Progress");
+    (statusLabel === STATUS.ASSIGNED || statusLabel === STATUS.IN_PROGRESS);
   const canClose =
-    status === "Resolved" && (isAdmin || (isEmployee && employeeId === userId));
+    statusLabel === STATUS.RESOLVED &&
+    (isAdmin || (isEmployee && employeeId === userId));
 
   if (!canApprove && !canAssign && !canUpdateStatus && !canClose) {
     return null;

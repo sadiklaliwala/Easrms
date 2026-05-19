@@ -21,11 +21,14 @@ import AppErrorState from "../../../components/common/feedback/AppErrorState";
 
 import { ROLES } from "../../../constants/role.constants";
 import {
-  STATUS_ENUM,
+  // STATUS_ENUM,
+  STATUS_ENUM_REVERSE,
   STATUS_OPTIONS,
 } from "../../../constants/status.constants";
 import {
-  PRIORITY_ENUM,
+  // PRIORITY_ENUM,
+  // PRIORITY_ENUM_REVERSE,
+  PRIORITY_LABEL,
   PRIORITY_OPTIONS,
 } from "../../../constants/priority.constants";
 import { formatDate } from "../../../utils/formatDate";
@@ -87,14 +90,14 @@ const RequestListPage = () => {
       key: "priority",
       label: "Priority",
       render: (row) => (
-        <AppPriorityBadge priority={PRIORITY_ENUM[row.priority].toString()} />
+        <AppPriorityBadge priority={PRIORITY_LABEL[row.priority]} />
       ),
     },
     {
       key: "status",
       label: "Status",
       render: (row) => (
-        <AppStatusBadge status={STATUS_ENUM[row.status].toString()} />
+        <AppStatusBadge status={STATUS_ENUM_REVERSE[row.status].toString()} />
       ),
     },
     { key: "assigneeName", label: "Assignee" },
@@ -153,9 +156,7 @@ const RequestListPage = () => {
           onChange={(e) =>
             setParams((p) => ({
               ...p,
-              priority: e.target.value
-                ? PRIORITY_ENUM[e.target.value as keyof typeof PRIORITY_ENUM]
-                : undefined,
+              priority: e.target.value ? Number(e.target.value) : undefined,
               pageNumber: 1,
             }))
           }

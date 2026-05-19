@@ -1,4 +1,6 @@
-﻿namespace Easrms.Domain.Entities;
+﻿using Easrms.Common.Enums;
+
+namespace Easrms.Domain.Entities;
 
 public class RequestStatusHistory
 {
@@ -6,9 +8,9 @@ public class RequestStatusHistory
 
     public Guid RequestId { get; set; }
 
-    public string? OldStatus { get; set; }
+    public RequestStatusEnum? OldStatus { get; set; }
 
-    public string NewStatus { get; set; } = string.Empty;
+    public RequestStatusEnum NewStatus { get; set; }
 
     public Guid ChangedBy { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
+using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
 
@@ -56,7 +57,7 @@ public sealed class ApprovalRequestCommandHandler(
             ?? throw new KeyNotFoundException(
                 $"Service request with id '{request.RequestId}' was not found.");
 
-        if (entity.Status != StatusConstants.PendingApproval)
+        if (entity.Status != RequestStatusEnum.PendingApproval)
             throw new InvalidOperationException(
                 $"Request '{entity.RequestNumber}' is not in Pending Approval status " +
                 $"and cannot be approved or rejected. Current status: {entity.Status}.");
@@ -71,7 +72,7 @@ public sealed class ApprovalRequestCommandHandler(
 
         if (request.Action == "Approve")
         {
-            entity.Status = StatusConstants.Approved;
+            entity.Status = RequestStatusEnum.Approved;
         }
         else if (request.Action == "Reject")
         {
@@ -79,7 +80,7 @@ public sealed class ApprovalRequestCommandHandler(
                 throw new InvalidOperationException(
                     "A comment is mandatory when rejecting a request.");
 
-            entity.Status = StatusConstants.Rejected;
+            entity.Status = RequestStatusEnum.Rejected;
             entity.RejectionReason = request.Comment;
         }
         else

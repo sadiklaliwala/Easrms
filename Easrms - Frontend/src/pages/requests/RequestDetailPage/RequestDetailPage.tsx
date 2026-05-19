@@ -38,8 +38,11 @@ import CloseRequestDialog from "../../../components/common/modal/CloseRequestDia
 
 import type { ApprovalRequestDto } from "../../../types/request.types";
 import type { AddCommentDto } from "../../../types/comment.types";
-import { STATUS_ENUM } from "../../../constants/status.constants";
-import { PRIORITY_ENUM } from "../../../constants/priority.constants";
+import { STATUS_ENUM_REVERSE } from "../../../constants/status.constants";
+import {
+  // PRIORITY_ENUM_REVERSE
+  PRIORITY_LABEL,
+} from "../../../constants/priority.constants";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const RequestDetailPage = () => {
@@ -191,7 +194,7 @@ const RequestDetailPage = () => {
       {/* Status Stepper */}
       <AppCard>
         <RequestStatusStepper
-          currentStatus={STATUS_ENUM[request.status].toString()}
+          currentStatus={STATUS_ENUM_REVERSE[request.status].toString()}
         />
       </AppCard>
 
@@ -203,8 +206,8 @@ const RequestDetailPage = () => {
               <RequestDetailHeader
                 requestNumber={request.requestNumber}
                 title={request.title}
-                status={STATUS_ENUM[request.status].toString()}
-                priority={PRIORITY_ENUM[request.priority].toString()}
+                status={STATUS_ENUM_REVERSE[request.status].toString()}
+                priority={PRIORITY_LABEL[request.priority]}
                 categoryName={request.categoryName}
               />
             </AppCard>
@@ -259,7 +262,7 @@ const RequestDetailPage = () => {
       <UpdateStatusDialog
         open={statusOpen}
         onClose={() => setStatusOpen(false)}
-        currentStatus={STATUS_ENUM[request.status].toString()}
+        currentStatus={STATUS_ENUM_REVERSE[request.status].toString()}
         onUpdate={handleStatusUpdate}
         isSubmitting={updatingStatus}
       />

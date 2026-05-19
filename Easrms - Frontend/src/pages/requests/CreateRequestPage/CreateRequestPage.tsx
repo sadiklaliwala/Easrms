@@ -18,7 +18,10 @@ import AppFormError from "../../../components/common/form/AppFormError";
 import AppLoadingButton from "../../../components/common/buttons/AppLoadingButton";
 import AppButton from "../../../components/common/buttons/AppButton";
 
-import { PRIORITY_OPTIONS } from "../../../constants/priority.constants";
+import {
+  PRIORITY,
+  PRIORITY_OPTIONS,
+} from "../../../constants/priority.constants";
 import type { CreateRequestDto } from "../../../types/request.types";
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
@@ -36,10 +39,13 @@ const schema = Joi.object({
     "string.empty": "Description is required",
     "string.min": "Description must be at least 10 characters",
   }),
-  priority: Joi.string().valid("Low", "Medium", "High").required().messages({
-    "string.empty": "Priority is required",
-    "any.only": "Select a valid priority",
-  }),
+  priority: Joi.number()
+    .valid(PRIORITY.LOW, PRIORITY.MEDIUM, PRIORITY.HIGH)
+    .required()
+    .messages({
+      "any.required": "Priority is required",
+      "any.only": "Select a valid priority",
+    }),
 });
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -70,7 +76,7 @@ const CreateRequestPage = () => {
       categoryId: "",
       title: "",
       description: "",
-      priority: PRIORITY_OPTIONS[0].value,
+      priority: PRIORITY.LOW,
     },
   });
 

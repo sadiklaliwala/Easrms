@@ -108,14 +108,13 @@ namespace Easrms.Infrastructure.Migrations
                     b.Property<DateTime>("ChangedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("NewStatus")
-                        .IsRequired()
+                    b.Property<int>("NewStatus")
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("int");
 
-                    b.Property<string>("OldStatus")
+                    b.Property<int?>("OldStatus")
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("int");
 
                     b.Property<string>("Remarks")
                         .HasMaxLength(500)
@@ -130,7 +129,7 @@ namespace Easrms.Infrastructure.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("RequestStatusHistorys", (string)null);
+                    b.ToTable("RequestStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.Role", b =>
@@ -200,10 +199,9 @@ namespace Easrms.Infrastructure.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Priority")
-                        .IsRequired()
+                    b.Property<int>("Priority")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("int");
 
                     b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
@@ -217,10 +215,9 @@ namespace Easrms.Infrastructure.Migrations
                     b.Property<DateTime?>("ResolvedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()

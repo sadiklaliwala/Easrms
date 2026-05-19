@@ -22,9 +22,11 @@ interface UpdateStatusDialogProps {
   isSubmitting?: boolean;
 }
 
+import { STATUS } from "../../../../constants/status.constants";
+
 const STATUS_TRANSITIONS: Record<string, { label: string; value: number }[]> = {
-  Assigned: [{ label: "In Progress", value: 5 }],
-  "In Progress": [{ label: "Resolved", value: 6 }],
+  [STATUS.ASSIGNED]: [{ label: STATUS.IN_PROGRESS, value: 6 }],
+  [STATUS.IN_PROGRESS]: [{ label: STATUS.RESOLVED, value: 7 }],
 };
 
 const UpdateStatusDialog = ({

@@ -5,45 +5,23 @@ using MediatR;
 
 namespace Easrms.Application.Features.Request.Queries;
 
-/// <summary>
-/// Returns a paginated, filtered list of service requests.
-/// Scope is role-driven — the handler applies the correct data boundary
-/// based on CurrentUserRole and CurrentUserId.
-///
-/// Role → scope applied by handler:
-///   Employee     → only requests where EmployeeId == CurrentUserId
-///   Support User → only requests where AssignedTo  == CurrentUserId
-///   Admin        → all requests (no filter)
-///   Manager      → all requests (no filter; managers see team via approval queue)
-/// </summary>
 public sealed class GetAllRequestsQuery : IRequest<RequestListWithPaginationDto>
 {
     // Pagination
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
-
     // Filters
-    public string? Search { get; init; }   // request number or title
+    public string? Search { get; init; }
     public string? Status { get; init; }
     public string? Priority { get; init; }
     public Guid? CategoryId { get; init; }
-
     // Injected by controller from JWT claims
     public Guid CurrentUserId { get; init; }
     public string CurrentUserRole { get; init; } = string.Empty;
-
-    public string RoleName { get; set; } = string.Empty;
 }
 
-
-/// <summary>
-/// Step-by-step per HANDLER_REPO_REFERENCE_MAP:
-///   1. Build queryParams — set EmployeeId if Employee, AssignedTo if Support User,
-///      no scope filter for Admin or Manager
-///   2. IRequestRepository.GetPagedRequestsAsync(queryParams)
-///      → returns RequestListWithPaginationDto directly (Dapper projection)
-/// </summary>
-public sealed class GetAllRequestsQueryHandler(IRequestRepository requestRepository) : IRequestHandler<GetAllRequestsQuery, RequestListWithPaginationDto>
+public sealed class GetAllRequestsQueryHandler(IRequestRepository requestRepository)
+    : IRequestHandler<GetAllRequestsQuery, RequestListWithPaginationDto>
 {
     private readonly IRequestRepository _requestRepository = requestRepository;
 
@@ -51,17 +29,22 @@ public sealed class GetAllRequestsQueryHandler(IRequestRepository requestReposit
         GetAllRequestsQuery request,
         CancellationToken cancellationToken)
     {
-        // 1. Build scoped query params based on caller's role
         Guid? scopedEmployeeId = null;
         Guid? scopedAssignedTo = null;
+        Guid? scopedManagerId = null;
 
         if (request.CurrentUserRole == RoleConstants.Employee)
-            scopedEmployeeId = request.CurrentUserId;
-        else if (request.CurrentUserRole == RoleConstants.SupportUser)
-            scopedAssignedTo = request.CurrentUserId;
-        // Admin and Manager: no scope filter — both fields remain null
+            scopedEmployeeId = request.CurrentUserId;       // own requests only
 
-        var requestQuery = new RequestQueryParams()
+        else if (request.CurrentUserRole == RoleConstants.SupportUser)
+            scopedAssignedTo = request.CurrentUserId;       // assigned to them only
+
+        else if (request.CurrentUserRole == RoleConstants.Manager)
+            scopedManagerId = request.CurrentUserId;        // own + team requests
+
+        // Admin → all three remain null → no WHERE filter → sees everything
+
+        var requestQuery = new RequestQueryParams
         {
             PageNumber = request.PageNumber,
             PageSize = request.PageSize,
@@ -71,9 +54,9 @@ public sealed class GetAllRequestsQueryHandler(IRequestRepository requestReposit
             CategoryId = request.CategoryId,
             EmployeeId = scopedEmployeeId,
             AssignedTo = scopedAssignedTo,
+            ManagerId = scopedManagerId,   // new
         };
 
-        // 2. Delegate to repository — Dapper handles projection + pagination
         return await _requestRepository.GetPagedRequestsAsync(
             requestQuery,
             cancellationToken: cancellationToken);

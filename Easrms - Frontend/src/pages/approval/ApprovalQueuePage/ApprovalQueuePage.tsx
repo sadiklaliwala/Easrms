@@ -20,7 +20,10 @@ import AppLoader from "../../../components/common/feedback/AppLoader";
 import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import ApprovalDialog from "../../../components/common/modal/ApprovalDialog";
 
-import { STATUS, STATUS_ENUM } from "../../../constants/status.constants";
+import {
+  STATUS,
+  STATUS_ENUM_REVERSE,
+} from "../../../constants/status.constants";
 import { formatDate } from "../../../utils/formatDate";
 
 import type {
@@ -29,7 +32,7 @@ import type {
   ApprovalRequestDto,
 } from "../../../types/request.types";
 import type { GridColumn } from "../../../types/common.types";
-import { PRIORITY_ENUM } from "../../../constants/priority.constants";
+import { PRIORITY_LABEL } from "../../../constants/priority.constants";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const ApprovalQueuePage = () => {
@@ -94,7 +97,7 @@ const ApprovalQueuePage = () => {
       key: "priority",
       label: "Priority",
       render: (row) => (
-        <AppPriorityBadge priority={PRIORITY_ENUM[row.priority].toString()} />
+        <AppPriorityBadge priority={PRIORITY_LABEL[row.priority]} />
       ),
     },
     {
@@ -102,7 +105,7 @@ const ApprovalQueuePage = () => {
       label: "Status",
       render: (row) => (
         <AppStatusBadge
-          status={STATUS_ENUM[row.status]?.toString() ?? "Unknown"}
+          status={STATUS_ENUM_REVERSE[row.status]?.toString() ?? "Unknown"}
         />
       ),
     },

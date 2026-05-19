@@ -1,5 +1,6 @@
 ﻿using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
+using Easrms.Common.Enums;
 using Easrms.Common.Helpers;
 using Easrms.Domain.Entities;
 using MediatR;
@@ -16,7 +17,7 @@ public sealed class CreateRequestCommand : IRequest<string>
     public Guid CategoryId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public string Priority { get; init; } = string.Empty;
+    public PriorityEnums Priority { get; init; } = PriorityEnums.Low;
 
     /// <summary>EmployeeId extracted from JWT claims by the controller.</summary>
     public Guid CurrentUserId { get; init; }
@@ -93,7 +94,7 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             Title = request.Title,
             Description = request.Description,
             Priority = request.Priority,
-            Status = initialStatus,
+            Status = RequestStatusEnum.Open,
             CreatedOn = DateTime.UtcNow
         };
 
@@ -105,7 +106,7 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             HistoryId = Guid.NewGuid(),
             RequestId = entity.RequestId,
             OldStatus = null,
-            NewStatus = initialStatus,
+            NewStatus = RequestStatusEnum.Open,
             ChangedBy = request.CurrentUserId,
             ChangedOn = DateTime.UtcNow,
             Remarks = "Request created."

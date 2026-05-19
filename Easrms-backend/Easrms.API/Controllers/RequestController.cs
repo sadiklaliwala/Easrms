@@ -32,14 +32,14 @@ public class RequestController : ControllerBase
         [FromQuery] string? priority = null,
         [FromQuery] Guid? categoryId = null,
         CancellationToken cancellationToken = default)
-    {
+   {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var roleName = User.FindFirstValue(ClaimTypes.Role)!;
 
         var query = new GetAllRequestsQuery
         {
             CurrentUserId = currentUserId,
-            RoleName = roleName,
+            CurrentUserRole = roleName,
             PageNumber = pageNumber,
             PageSize = pageSize,
             Search = search,
@@ -150,10 +150,13 @@ public class RequestController : ControllerBase
         [FromBody] AssignRequestDto dto,
         CancellationToken cancellationToken = default)
     {
+
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var command = new AssignRequestCommand
         {
             RequestId = id,
-            SupportUserId = dto.SupportUserId
+            SupportUserId = dto.SupportUserId,
+            CurrentUserId= currentUserId
         };
 
         await _mediator.Send(command, cancellationToken);

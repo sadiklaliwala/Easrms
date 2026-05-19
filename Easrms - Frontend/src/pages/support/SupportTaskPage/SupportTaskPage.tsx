@@ -22,7 +22,11 @@ import AppLoader from "../../../components/common/feedback/AppLoader";
 import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import UpdateStatusDialog from "../../../components/common/modal/UpdateStatusDialog";
 
-import { STATUS, STATUS_ENUM } from "../../../constants/status.constants";
+import {
+  STATUS,
+  STATUS_ENUM,
+  STATUS_ENUM_REVERSE,
+} from "../../../constants/status.constants";
 import { formatDate } from "../../../utils/formatDate";
 
 import type {
@@ -30,7 +34,10 @@ import type {
   RequestQueryParams,
 } from "../../../types/request.types";
 import type { GridColumn } from "../../../types/common.types";
-import { PRIORITY_ENUM } from "../../../constants/priority.constants";
+import {
+  // PRIORITY_ENUM, PRIORITY_ENUM_REVERSE,
+  PRIORITY_LABEL,
+} from "../../../constants/priority.constants";
 
 // ─── Status filter options for support user ───────────────────────────────────
 const SUPPORT_STATUS_OPTIONS = [
@@ -102,14 +109,14 @@ const SupportTaskPage = () => {
       key: "priority",
       label: "Priority",
       render: (row) => (
-        <AppPriorityBadge priority={PRIORITY_ENUM[row.priority].toString()} />
+        <AppPriorityBadge priority={PRIORITY_LABEL[row.priority]} />
       ),
     },
     {
       key: "status",
       label: "Status",
       render: (row) => (
-        <AppStatusBadge status={STATUS_ENUM[row.status].toString()} />
+        <AppStatusBadge status={STATUS_ENUM_REVERSE[row.status].toString()} />
       ),
     },
     {
@@ -205,7 +212,7 @@ const SupportTaskPage = () => {
           setStatusOpen(false);
           setSelectedRequest(null);
         }}
-        currentStatus={STATUS_ENUM[selectedRequest?.status ?? ""].toString()}
+        currentStatus={selectedRequest ? STATUS_ENUM_REVERSE[selectedRequest.status] : ""}
         onUpdate={handleStatusUpdate}
         isSubmitting={updatingStatus}
       />

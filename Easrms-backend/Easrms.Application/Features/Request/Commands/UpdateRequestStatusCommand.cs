@@ -1,5 +1,6 @@
 ﻿using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
+using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
 
@@ -13,7 +14,7 @@ namespace Easrms.Application.Features.Request.Commands;
 public sealed class UpdateRequestStatusCommand : IRequest
 {
     public Guid RequestId { get; init; }
-    public string NewStatus { get; init; } = string.Empty;
+    public RequestStatusEnum NewStatus { get; init; }
     public string Remarks { get; init; } = string.Empty;
 
     /// <summary>Support user's UserId extracted from JWT claims by the controller.</summary>
@@ -46,11 +47,11 @@ public sealed class UpdateRequestStatusCommandHandler(
     private readonly ICommentRepository _commentRepository = commentRepository;
 
     // Valid transitions: key = current status, value = expected new status
-    private static readonly Dictionary<string, string> AllowedTransitions = new()
-    {
-        { StatusConstants.Assigned,   StatusConstants.InProgress },
-        { StatusConstants.InProgress, StatusConstants.Resolved   }
-    };
+    private static readonly Dictionary<RequestStatusEnum, RequestStatusEnum> AllowedTransitions = new()
+{
+    { RequestStatusEnum.Assigned, RequestStatusEnum.InProgress },
+    { RequestStatusEnum.InProgress, RequestStatusEnum.Resolved }
+};
 
     public async Task Handle(
         UpdateRequestStatusCommand request,
@@ -73,7 +74,7 @@ public sealed class UpdateRequestStatusCommandHandler(
         }
 
         // 1c. Remarks mandatory when resolving
-        if (request.NewStatus == StatusConstants.Resolved
+        if (request.NewStatus == RequestStatusEnum.Resolved
             && string.IsNullOrWhiteSpace(request.Remarks))
         {
             throw new InvalidOperationException(
@@ -90,7 +91,7 @@ public sealed class UpdateRequestStatusCommandHandler(
         entity.Status = request.NewStatus;
         entity.UpdatedOn = DateTime.UtcNow;
 
-        if (request.NewStatus == StatusConstants.Resolved)
+        if (request.NewStatus == RequestStatusEnum.Resolved)
             entity.ResolvedOn = DateTime.UtcNow;
 
         // 4. Mark dirty

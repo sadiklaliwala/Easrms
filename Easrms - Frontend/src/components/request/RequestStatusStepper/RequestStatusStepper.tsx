@@ -1,13 +1,14 @@
 import { Step, StepLabel, Stepper } from "@mui/material";
+import { STATUS } from "../../../constants/status.constants";
 
 const STATUS_STEPS = [
-  "Open",
-  "Pending Approval",
-  "Approved",
-  "Assigned",
-  "In Progress",
-  "Resolved",
-  "Closed",
+  STATUS.OPEN,
+  STATUS.PENDING_APPROVAL,
+  STATUS.APPROVED,
+  STATUS.ASSIGNED,
+  STATUS.IN_PROGRESS,
+  STATUS.RESOLVED,
+  STATUS.CLOSED,
 ];
 
 interface RequestStatusStepperProps {
@@ -15,7 +16,7 @@ interface RequestStatusStepperProps {
 }
 
 const RequestStatusStepper = ({ currentStatus }: RequestStatusStepperProps) => {
-  if (currentStatus === "Rejected") {
+  if (currentStatus === STATUS.REJECTED) {
     return (
       <Stepper activeStep={-1} alternativeLabel>
         <Step key="Rejected" completed={false}>

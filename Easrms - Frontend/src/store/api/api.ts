@@ -38,13 +38,14 @@
 //     endpoints: () => ({}),
 // })
 
-
-import { createApi } from '@reduxjs/toolkit/query/react';
-import baseQuery from './baseQuery';
+import { createApi } from "@reduxjs/toolkit/query/react";
+import baseQuery from "./baseQuery";
 
 export const api = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery,
-  tagTypes: ['User', 'Category', 'Request', 'Comment', 'History', 'Dashboard'],
+  tagTypes: ["User", "Category", "Request", "Comment", "History", "Dashboard"],
+  refetchOnFocus: false, // globally disable refetch on focus
+  refetchOnReconnect: false, // globally disable refetch on reconnect
   endpoints: () => ({}),
 });

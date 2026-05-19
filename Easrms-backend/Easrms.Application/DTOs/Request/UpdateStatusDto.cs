@@ -1,8 +1,10 @@
-﻿namespace Easrms.Application.DTOs.Request;
+﻿using Easrms.Common.Enums;
+
+namespace Easrms.Application.DTOs.Request;
 
 public class UpdateStatusDto
 {
-    public string NewStatus { get; set; } = string.Empty;
+    public RequestStatusEnum NewStatus { get; set; }
     public string Remarks { get; set; } = string.Empty;
 }
 

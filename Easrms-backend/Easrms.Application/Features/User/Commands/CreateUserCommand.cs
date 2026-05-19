@@ -6,7 +6,8 @@ using MediatR;
 namespace Easrms.Application.Features.User.Commands;
 
 public sealed record CreateUserCommand(
-    CreateUserDto Dto
+    CreateUserDto Dto,
+    Guid CurrentUserId
 ) : IRequest<Guid>;
 
 /// <summary>
@@ -63,6 +64,11 @@ public sealed class CreateUserCommandHandler
                 throw new KeyNotFoundException(
                     "Manager not found.");
             }
+        }
+        else
+        {
+            // If no manager is assigned, default to the current user (the creator)
+            dto.ManagerId = request.CurrentUserId;
         }
 
         // ---------------------------------------------------------------------

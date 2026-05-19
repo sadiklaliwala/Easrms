@@ -62,11 +62,14 @@ const LoginPage = () => {
   }, [isAuthenticated, roleName]);
 
   const redirectByRole = (role: string) => {
+    console.log(role);
     if (role === ROLES.ADMIN || role === ROLES.MANAGER) {
       navigate("/dashboard", { replace: true });
     } else if (role === ROLES.EMPLOYEE) {
       navigate("/requests", { replace: true });
     } else if (role === ROLES.SUPPORT_USER) {
+      console.log(role);
+      console.log("my tasks");
       navigate("/my-tasks", { replace: true });
     }
   };
@@ -78,7 +81,9 @@ const LoginPage = () => {
       if (response.success && response.data) {
         dispatch(setCredentials(response.data));
         toast.success(`Welcome back, ${response.data.fullName}!`);
+
         redirectByRole(response.data.roleName);
+        console.log("my tasks");
       } else {
         toast.error(response.message ?? "Login failed");
       }

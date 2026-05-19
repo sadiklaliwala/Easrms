@@ -1,5 +1,6 @@
 ﻿using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
+using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
 
@@ -54,7 +55,7 @@ public sealed class CloseRequestCommandHandler(
                 $"Service request with id '{request.RequestId}' was not found.");
 
         // 1b. Only Resolved requests can be closed
-        if (entity.Status != StatusConstants.Resolved)
+        if (entity.Status != RequestStatusEnum.Resolved)
             throw new InvalidOperationException(
                 $"Request '{entity.RequestNumber}' cannot be closed because its current status " +
                 $"is '{entity.Status}'. Only Resolved requests can be closed.");
@@ -68,7 +69,7 @@ public sealed class CloseRequestCommandHandler(
                 "You do not have permission to close this request.");
 
         // 2. Apply changes
-        entity.Status = StatusConstants.Closed;
+        entity.Status = RequestStatusEnum.Closed;
         entity.ClosedOn = DateTime.UtcNow;
         entity.ClosedBy = request.CurrentUserId;
         entity.UpdatedOn = DateTime.UtcNow;
@@ -81,8 +82,8 @@ public sealed class CloseRequestCommandHandler(
         {
             HistoryId = Guid.NewGuid(),
             RequestId = entity.RequestId,
-            OldStatus = StatusConstants.Resolved,
-            NewStatus = StatusConstants.Closed,
+            OldStatus = RequestStatusEnum.Resolved,
+            NewStatus = RequestStatusEnum.Closed,
             ChangedBy = request.CurrentUserId,
             ChangedOn = DateTime.UtcNow
         };

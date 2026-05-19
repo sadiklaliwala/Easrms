@@ -17,6 +17,7 @@ import TaskIcon from "@mui/icons-material/Task";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector } from "../../../../hooks/useAppSelector";
+import { ROLES } from "../../../../constants/role.constants";
 
 const DRAWER_WIDTH = 240;
 
@@ -36,49 +37,49 @@ const NAV_ITEMS: NavItem[] = [
     label: "Dashboard",
     path: "/dashboard",
     icon: <DashboardIcon />,
-    roles: ["Admin", "Manager"],
+    roles: [ROLES.ADMIN, ROLES.MANAGER],
   },
   {
     label: "Users",
     path: "/users",
     icon: <PeopleIcon />,
-    roles: ["Admin"],
+    roles: [ROLES.ADMIN],
   },
   {
     label: "Categories",
     path: "/categories",
     icon: <CategoryIcon />,
-    roles: ["Admin"],
+    roles: [ROLES.ADMIN],
   },
   {
     label: "All Requests",
     path: "/requests",
     icon: <AssignmentIcon />,
-    roles: ["Admin", "Manager"],
+    roles: [ROLES.ADMIN, ROLES.MANAGER],
   },
   {
     label: "My Requests",
     path: "/requests",
     icon: <AssignmentIcon />,
-    roles: ["Employee"],
+    roles: [ROLES.EMPLOYEE],
   },
   {
     label: "Approval Queue",
-    path: "/approval",
+    path: "/approvals",
     icon: <CheckCircleIcon />,
-    roles: ["Manager"],
+    roles: [ROLES.MANAGER],
   },
   {
     label: "Assignment",
-    path: "/assignment",
+    path: "/assignments",
     icon: <AssignmentTurnedInIcon />,
-    roles: ["Admin"],
+    roles: [ROLES.ADMIN],
   },
   {
     label: "My Tasks",
-    path: "/support",
+    path: "/my-tasks",
     icon: <TaskIcon />,
-    roles: ["Support User"],
+    roles: [ROLES.SUPPORT_USER],
   },
 ];
 

@@ -1,4 +1,6 @@
-﻿namespace Easrms.Application.DTOs.Request;
+using Easrms.Common.Enums;
+
+namespace Easrms.Application.DTOs.Request;
 
 public class RequestDetailDto
 {
@@ -7,10 +9,12 @@ public class RequestDetailDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
-    public int Priority { get; set; }
-    public int Status { get; set; }
+    public PriorityEnums Priority { get; set; }
+    public RequestStatusEnum Status { get; set; }
     public string EmployeeName { get; set; } = string.Empty;
+    public Guid EmployeeId { get; set; }
     public string AssigneeName { get; set; } = string.Empty;
+    public Guid? AssignedTo { get; set; }
     public DateTime CreatedOn { get; set; }
     public DateTime? UpdatedOn { get; set; }
     public DateTime? ResolvedOn { get; set; }

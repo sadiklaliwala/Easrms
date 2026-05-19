@@ -11,7 +11,7 @@ namespace Easrms.Application.Features.Comment.Commands;
 public sealed class AddCommentCommand : IRequest<Guid>
 {
     public Guid RequestId { get; init; }
-    public Guid CurrentUserId { get; init; }
+   
     public string CommentText { get; init; } = string.Empty;
     public int CommentType { get; init; }
 
@@ -45,7 +45,7 @@ public sealed class AddCommentCommandHandler : IRequestHandler<AddCommentCommand
     public async Task<Guid> Handle(
         AddCommentCommand request,
         CancellationToken cancellationToken)
-    {
+    {        
         // 1. Confirm the parent request exists — lightweight scalar check
         var requestExists = await _requestRepository.ExistsAsync(
             request.RequestId,
@@ -58,9 +58,8 @@ public sealed class AddCommentCommandHandler : IRequestHandler<AddCommentCommand
         // 2. Build entity
         var comment = new RequestComment
         {
-            CommentId = Guid.NewGuid(),
             RequestId = request.RequestId,
-            CommentBy = request.CurrentUserId,
+            CommentBy = request.CommentBy,
             CommentText = request.CommentText,
             CommentType = request.CommentType.ToString(),   // stored as string in domain
             CreatedOn = DateTime.UtcNow,

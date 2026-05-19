@@ -61,9 +61,9 @@ public sealed class JwtService : IJwtService
 
         var claims = new List<Claim>
         {
-            new(ClaimUserId,   user.UserId.ToString()),
-            new(ClaimEmail,    user.Email),
-            new(ClaimRole,     user.Role.RoleName),
+            new(ClaimTypes.NameIdentifier,   user.UserId.ToString()),
+            new(ClaimTypes.Email,    user.Email),
+            new(ClaimTypes.Role,     user.Role.RoleName),
             new(ClaimFullName, user.FullName),
         };
 
@@ -163,7 +163,7 @@ public sealed class JwtService : IJwtService
         {
             HttpOnly = true,                    // Not accessible via JavaScript
             Secure = true,                    // HTTPS only
-            SameSite = SameSiteMode.Strict,     // No cross-site requests
+            SameSite = SameSiteMode.None,     // No cross-site requests
             Expires = DateTimeOffset.UtcNow
                             .AddMinutes(_jwtSettings.AccessTokenExpiryMinutes),
             Path = "/",                     // Available to all API routes
@@ -185,7 +185,7 @@ public sealed class JwtService : IJwtService
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddDays(-1), // expired = deleted
             Path = "/",
         };

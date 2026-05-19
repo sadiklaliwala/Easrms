@@ -89,9 +89,9 @@
 //     useCloseRequestMutation,
 // } = requestEndpoints
 
-import { api } from './api';
-import ApiEndPoints from '../ApiEndPoints';
-import type { ApiResponse } from '../../types/common.types';
+import { api } from "./api";
+import ApiEndPoints from "../ApiEndPoints";
+import type { ApiResponse } from "../../types/common.types";
 import type {
   RequestListWithPaginationDto,
   RequestDetailDto,
@@ -100,63 +100,91 @@ import type {
   AssignRequestDto,
   UpdateStatusDto,
   RequestQueryParams,
-} from '../../types/request.types';
-import { buildQueryParams } from '../../utils/buildQueryParams';
+} from "../../types/request.types";
+import { buildQueryParams } from "../../utils/buildQueryParams";
 
 const requestEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
-    getRequests: builder.query<ApiResponse<RequestListWithPaginationDto>, RequestQueryParams>({
-      query: (params) => `${ApiEndPoints.REQUESTS.BASE}?${buildQueryParams(params)}`,
-      providesTags: ['Request'],
+    getRequests: builder.query<
+      ApiResponse<RequestListWithPaginationDto>,
+      RequestQueryParams
+    >({
+      query: (params) =>
+        `${ApiEndPoints.REQUESTS.BASE}${buildQueryParams(params)}`,
+      providesTags: ["Request"],
     }),
 
     getRequestById: builder.query<ApiResponse<RequestDetailDto>, string>({
       query: (id) => ApiEndPoints.REQUESTS.BY_ID(id),
-      providesTags: (_result, _error, id) => [{ type: 'Request', id }],
+      providesTags: (_result, _error, id) => [{ type: "Request", id }],
     }),
 
-    createRequest: builder.mutation<ApiResponse<RequestDetailDto>, CreateRequestDto>({
+    createRequest: builder.mutation<
+      ApiResponse<RequestDetailDto>,
+      CreateRequestDto
+    >({
       query: (body) => ({
         url: ApiEndPoints.REQUESTS.BASE,
-        method: 'POST',
+        method: "POST",
         body,
       }),
-      invalidatesTags: ['Request'],
+      invalidatesTags: ["Request"],
     }),
 
-    approveOrRejectRequest: builder.mutation<ApiResponse<null>, { id: string; body: ApprovalRequestDto }>({
+    approveOrRejectRequest: builder.mutation<
+      ApiResponse<null>,
+      { id: string; body: ApprovalRequestDto }
+    >({
       query: ({ id, body }) => ({
         url: ApiEndPoints.REQUESTS.APPROVAL(id),
-        method: 'POST',
+        method: "POST",
         body,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Request', id }, 'Request'],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Request", id },
+        "Request",
+      ],
     }),
 
-    assignRequest: builder.mutation<ApiResponse<null>, { id: string; body: AssignRequestDto }>({
+    assignRequest: builder.mutation<
+      ApiResponse<null>,
+      { id: string; body: AssignRequestDto }
+    >({
       query: ({ id, body }) => ({
         url: ApiEndPoints.REQUESTS.ASSIGN(id),
-        method: 'POST',
+        method: "POST",
         body,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Request', id }, 'Request'],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Request", id },
+        "Request",
+      ],
     }),
 
-    updateRequestStatus: builder.mutation<ApiResponse<null>, { id: string; body: UpdateStatusDto }>({
+    updateRequestStatus: builder.mutation<
+      ApiResponse<null>,
+      { id: string; body: UpdateStatusDto }
+    >({
       query: ({ id, body }) => ({
         url: ApiEndPoints.REQUESTS.STATUS(id),
-        method: 'POST',
+        method: "POST",
         body,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Request', id }, 'Request'],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Request", id },
+        "Request",
+      ],
     }),
 
     closeRequest: builder.mutation<ApiResponse<null>, string>({
       query: (id) => ({
         url: ApiEndPoints.REQUESTS.CLOSE(id),
-        method: 'PUT',
+        method: "PUT",
       }),
-      invalidatesTags: (_result, _error, id) => [{ type: 'Request', id }, 'Request'],
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Request", id },
+        "Request",
+      ],
     }),
   }),
 });

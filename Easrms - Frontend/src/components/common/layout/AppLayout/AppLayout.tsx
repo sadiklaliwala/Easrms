@@ -5,6 +5,9 @@ import AppTopbar from "../AppTopbar";
 import AppSidebar from "../AppSidebar";
 import { useLogoutMutation } from "../../../../store/api/auth.endpoints";
 import toast from "react-hot-toast";
+import { useAppDispatch } from "../../../../hooks/useAppSelector";
+import { clearCredentials } from "../../../../store/slices/authSlice";
+import { api } from "../../../../store/api/api";
 
 const DRAWER_WIDTH = 240;
 
@@ -12,13 +15,18 @@ const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const [logout] = useLogoutMutation();
+  const dispatch = useAppDispatch();
 
   const handleLogout = async () => {
     try {
       await logout().unwrap();
+      console.log("logged out and navigated");
+      navigate("/login");
     } catch {
       // ignore
     } finally {
+      dispatch(clearCredentials());
+      dispatch(api.util.resetApiState());
       navigate("/login");
       toast.success("Logged out successfully");
     }

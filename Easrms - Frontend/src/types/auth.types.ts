@@ -39,7 +39,6 @@
 //     refreshToken: string
 // }
 
-
 export interface LoginRequestDto {
   email: string;
   password: string;
@@ -60,6 +59,7 @@ export interface CurrentUserDto {
   fullName: string;
   email: string;
   roleName: string;
+  managerId: string | null;
 }
 
 export interface RefreshTokenRequestDto {

@@ -60,11 +60,11 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         var AccessToken = _jwtService.GenerateAccessToken(user);
         var RefreshToken = _jwtService.GenerateRefreshToken();
         _jwtService.SetTokenCookie(AccessToken);
-
+        user.RefreshToken = RefreshToken;
         user.RefreshTokenExpiryOn = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
         // 5. Stamp LastLoginOn — direct ExecuteUpdateAsync, no SaveChanges needed
+        await _userRepository.UpdateRefreshTokenAsync(user.UserId, RefreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
         await _userRepository.UpdateLastLoginAsync(user.UserId, cancellationToken);
-
         // 6. Map → DTO. AccessToken + RefreshToken populated by controller.
 
         return new LoginResponseDto
@@ -74,8 +74,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             Email = user.Email,
             RoleName = user.Role.RoleName,
             ManagerId = user.ManagerId,
-            AccessToken = AccessToken,
-            RefreshToken = RefreshToken
+            //AccessToken = AccessToken,
+            //RefreshToken = RefreshToken
         };
     }
 }

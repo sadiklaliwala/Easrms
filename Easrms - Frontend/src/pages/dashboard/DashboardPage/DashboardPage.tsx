@@ -18,7 +18,7 @@ import AppCategoryChart from "../../../components/common/dashboard/AppCategoryCh
 import AppLoader from "../../../components/common/feedback/AppLoader";
 import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import { STATUS } from "../../../constants/status.constants";
-import { PRIORITY_ENUM_REVERSE } from "../../../constants/priority.constants";
+import { PRIORITY_LABEL } from "../../../constants/priority.constants";
 
 const DashboardPage = () => {
   const { roleName } = useAppSelector((state) => state.auth);
@@ -30,7 +30,7 @@ const DashboardPage = () => {
 
   const data = response.data;
   const priorityChartData = data.byPriority.map((p) => ({
-    priority: PRIORITY_ENUM_REVERSE[p.priority],
+    priority: PRIORITY_LABEL[p.priority],
     count: p.count,
   }));
 

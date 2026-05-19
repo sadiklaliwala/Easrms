@@ -6,6 +6,7 @@ using Easrms.Common.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Easrms.API.Controllers;
 
@@ -81,7 +82,8 @@ public class UserController : ControllerBase
         [FromBody] CreateUserDto dto,
         CancellationToken cancellationToken = default)
     {
-        var command = new CreateUserCommand(dto);
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var command = new CreateUserCommand(dto, currentUserId);
         var newId = await _mediator.Send(command, cancellationToken);
 
         return StatusCode(201, new ApiResponse<object>

@@ -41,13 +41,14 @@ import type {
   UserQueryParams,
 } from "../../../types/user.types";
 import type { GridColumn } from "../../../types/common.types";
+import { ROLES } from "../../../constants/role.constants";
 
 // ─── Role options (hardcoded as per SRS) ─────────────────────────────────────
 const ROLE_OPTIONS = [
-  { label: "Admin", value: "00000000-0000-0000-0000-000000000001" },
-  { label: "Manager", value: "00000000-0000-0000-0000-000000000002" },
-  { label: "Employee", value: "00000000-0000-0000-0000-000000000003" },
-  { label: "Support User", value: "00000000-0000-0000-0000-000000000004" },
+  { label: ROLES.ADMIN, value: "90A5EB56-0DDC-4187-9F32-8870F8FC7043" },
+  { label: ROLES.MANAGER, value: "90A5EB56-0DDC-4187-9F32-8870F8FC7044" },
+  { label: ROLES.EMPLOYEE, value: "90A5EB56-0DDC-4187-9F32-8870F8FC7045" },
+  { label: ROLES.SUPPORT_USER, value: "90A5EB56-0DDC-4187-9F32-8870F8FC7046" },
 ];
 
 // ─── Validation Schemas ───────────────────────────────────────────────────────
@@ -444,7 +445,7 @@ const UserFormFields = ({
               {...field}
               options={managers}
               fullWidth
-              placeholder="Select manager (optional)"
+              placeholder="Select manager (Default will be logged in Admin)"
             />
           )}
         />

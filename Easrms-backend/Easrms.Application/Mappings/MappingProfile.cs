@@ -22,6 +22,7 @@ public class MappingProfile : Profile
 
         CreateMap<User, CurrentUserDto>()
              .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
+             //.ForMember(dest => dest.ManagerId, opt => opt.MapFrom(src => src.ManagerId!=null ? src.ManagerId : string.Empty));
 
         // Category mappings
         CreateMap<RequestCategory, CategoryListDto>();

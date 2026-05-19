@@ -1,4 +1,6 @@
-﻿namespace Easrms.Domain.Entities;
+﻿using Easrms.Common.Enums;
+
+namespace Easrms.Domain.Entities;
 
 public class ServiceRequest
 {
@@ -14,9 +16,9 @@ public class ServiceRequest
 
     public string Description { get; set; } = string.Empty;
 
-    public string Priority { get; set; } = string.Empty;
+    public PriorityEnums Priority { get; set; }
 
-    public string Status { get; set; } = string.Empty;
+    public RequestStatusEnum Status { get; set; }
 
     public Guid? AssignedTo { get; set; }
 

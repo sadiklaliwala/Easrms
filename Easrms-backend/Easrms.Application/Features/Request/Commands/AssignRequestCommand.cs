@@ -1,5 +1,6 @@
 ﻿using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
+using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
 
@@ -54,7 +55,11 @@ public sealed class AssignRequestCommandHandler(
             ?? throw new KeyNotFoundException(
                 $"Service request with id '{request.RequestId}' was not found.");
 
-        var assignableStatuses = new[] { StatusConstants.Open, StatusConstants.Approved };
+        var assignableStatuses = new[]
+{
+    RequestStatusEnum.Open,
+    RequestStatusEnum.Approved
+};
 
         if (!assignableStatuses.Contains(entity.Status))
             throw new InvalidOperationException(
@@ -72,7 +77,7 @@ public sealed class AssignRequestCommandHandler(
 
         // 3. Apply changes
         var oldStatus = entity.Status;
-        entity.Status = StatusConstants.Assigned;
+        entity.Status = Common.Enums.RequestStatusEnum.Assigned;
         entity.AssignedTo = request.SupportUserId;
         entity.UpdatedOn = DateTime.UtcNow;
 
@@ -82,10 +87,9 @@ public sealed class AssignRequestCommandHandler(
         // 5. Stage history entry
         var history = new RequestStatusHistory
         {
-            HistoryId = Guid.NewGuid(),
             RequestId = entity.RequestId,
             OldStatus = oldStatus,
-            NewStatus = StatusConstants.Assigned,
+            NewStatus = Common.Enums.RequestStatusEnum.Assigned,
             ChangedBy = request.CurrentUserId,
             ChangedOn = DateTime.UtcNow
         };

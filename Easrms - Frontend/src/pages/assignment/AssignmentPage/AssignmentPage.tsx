@@ -24,7 +24,8 @@ import AssignSupportDialog from "../../../components/common/modal/AssignSupportD
 
 import {
   STATUS,
-  STATUS_ENUM,
+  // STATUS_ENUM,
+  STATUS_ENUM_REVERSE,
   STATUS_OPTIONS,
   type StatusType,
 } from "../../../constants/status.constants";
@@ -35,7 +36,11 @@ import type {
   RequestQueryParams,
 } from "../../../types/request.types";
 import type { GridColumn } from "../../../types/common.types";
-import { PRIORITY_ENUM } from "../../../constants/priority.constants";
+import {
+  PRIORITY_LABEL,
+  // PRIORITY_ENUM,
+  // PRIORITY_ENUM_REVERSE,
+} from "../../../constants/priority.constants";
 
 // ─── Eligible statuses for assignment ─────────────────────────────────────────
 const ASSIGNABLE_STATUSES: StatusType[] = [STATUS.OPEN, STATUS.APPROVED];
@@ -108,14 +113,14 @@ const AssignmentPage = () => {
       key: "priority",
       label: "Priority",
       render: (row) => (
-        <AppPriorityBadge priority={PRIORITY_ENUM[row.priority].toString()} />
+        <AppPriorityBadge priority={PRIORITY_LABEL[row.priority]} />
       ),
     },
     {
       key: "status",
       label: "Status",
       render: (row) => (
-        <AppStatusBadge status={STATUS_ENUM[row.status].toString()} />
+        <AppStatusBadge status={STATUS_ENUM_REVERSE[row.status].toString()} />
       ),
     },
     {

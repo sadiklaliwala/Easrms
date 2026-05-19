@@ -51,6 +51,7 @@ interface AuthState {
   roleName: string | null;
   managerId: string | null;
   isAuthenticated: boolean;
+  isInitializing: boolean; // tracks first load check
 }
 
 const initialState: AuthState = {
@@ -60,6 +61,7 @@ const initialState: AuthState = {
   roleName: null,
   managerId: null,
   isAuthenticated: false,
+  isInitializing: true, // true until first getMe resolves
 };
 
 const authSlice = createSlice({
@@ -73,6 +75,7 @@ const authSlice = createSlice({
       state.roleName = action.payload.roleName;
       state.managerId = action.payload.managerId ?? null;
       state.isAuthenticated = true;
+      state.isInitializing = false;
     },
     clearCredentials: (state) => {
       state.userId = null;
@@ -81,9 +84,14 @@ const authSlice = createSlice({
       state.roleName = null;
       state.managerId = null;
       state.isAuthenticated = false;
+      state.isInitializing = false; // done initializing
+    },
+    setInitializingDone: (state) => {
+      state.isInitializing = false;
     },
   },
 });
 
-export const { setCredentials, clearCredentials } = authSlice.actions;
+export const { setCredentials, clearCredentials, setInitializingDone } =
+  authSlice.actions;
 export default authSlice.reducer;

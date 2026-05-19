@@ -1,6 +1,7 @@
 ﻿using Easrms.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
 
 namespace Easrms.Infrastructure.Data.Configurations;
 
@@ -15,6 +16,9 @@ public class RequestCommentConfiguration : IEntityTypeConfiguration<RequestComme
         builder.Property(x => x.CommentText)
                .IsRequired()
                .HasMaxLength(1000);
+        builder.HasOne(x => x.CommentByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CommentBy);
 
         builder.Property(x => x.CommentType)
                .IsRequired()
