@@ -8,7 +8,7 @@ public class RequestStatusHistoryConfiguration : IEntityTypeConfiguration<Reques
 {
     public void Configure(EntityTypeBuilder<RequestStatusHistory> builder)
     {
-        builder.ToTable("RequestStatusHistory");
+        builder.ToTable("RequestStatusHistories");
 
         builder.HasKey(x => x.HistoryId);
 

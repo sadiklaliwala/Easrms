@@ -1,6 +1,147 @@
-﻿namespace Easrms.API.Controllers;
+﻿using Easrms.Application.DTOs.Category;
+using Easrms.Application.Features.Category.Commands;
+using Easrms.Application.Features.Category.Queries;
+using Easrms.Common.Constants;
+using Easrms.Common.Response;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-public class CategoryController
+namespace Easrms.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class CategoryController : ControllerBase
 {
-}
+    private readonly IMediator _mediator;
 
+    public CategoryController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    // GET /api/categories
+    [HttpGet]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] bool? isActive = null,
+        [FromQuery] bool? isApprovalRequired = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllCategoriesQuery
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            Search = search,
+            IsActive = isActive,
+            IsApprovalRequired = isApprovalRequired
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Categories retrieved successfully.",
+            Data = result,
+            Errors = null
+        });
+    }
+
+    // GET /api/categories/{id}
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetCategoryByIdQuery { CategoryId = id };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Category retrieved successfully.",
+            Data = result,
+            Errors = null
+        });
+    }
+
+    // POST /api/categories
+    [HttpPost]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> Create(
+        [FromBody] CreateCategoryDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new CreateCategoryCommand
+        {
+            CategoryName = dto.CategoryName,
+            IsApprovalRequired = dto.IsApprovalRequired
+        };
+
+        var newId = await _mediator.Send(command, cancellationToken);
+
+        return StatusCode(201, new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 201,
+            Message = "Category created successfully.",
+            Data = new { CategoryId = newId },
+            Errors = null
+        });
+    }
+
+    // PUT /api/categories/{id}
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateCategoryDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new UpdateCategoryCommand
+        {
+            CategoryId = id,
+            CategoryName = dto.CategoryName,
+            IsApprovalRequired = dto.IsApprovalRequired
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Category updated successfully.",
+            Data = null,
+            Errors = null
+        });
+    }
+
+    // PUT /api/categories/{id}/activate-deactivate
+    [HttpPut("{id:guid}/activate-deactivate")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> ToggleStatus(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new ToggleCategoryStatusCommand { CategoryId = id };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Category status updated successfully.",
+            Data = null,
+            Errors = null
+        });
+    }
+}

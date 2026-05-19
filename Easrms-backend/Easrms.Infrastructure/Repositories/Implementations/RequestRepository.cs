@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Dapper;
+﻿using Dapper;
 using Easrms.Application.DTOs.Common;
 using Easrms.Application.DTOs.Request;
 using Easrms.Application.Interfaces.Repositories;
+using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using Easrms.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,15 +27,19 @@ public class RequestRepository : IRequestRepository
     }
 
     /// <summary>
-    /// Get paged service requests using Dapper. Supports filtering, searching, sorting and pagination.
+    /// Get paged service requests using Dapper.
+    /// Supports filtering, searching, sorting and pagination.
+    /// Priority and Status are stored as int (enum values) in DB.
     /// </summary>
-    public async Task<RequestListWithPaginationDto> GetPagedRequestsAsync(RequestQueryParams queryParams, CancellationToken cancellationToken = default)
+    public async Task<RequestListWithPaginationDto> GetPagedRequestsAsync(
+        RequestQueryParams queryParams,
+        CancellationToken cancellationToken = default)
     {
         if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
 
         // Validate paging inputs
         var pageNumber = Math.Max(1, queryParams.PageNumber);
-        var pageSize = Math.Clamp(queryParams.PageSize, 1, 100);
+        var pageSize = Math.Clamp(queryParams.PageSize, 1, 10);
         var offset = (pageNumber - 1) * pageSize;
 
         // Build WHERE clauses and parameters
@@ -53,16 +53,34 @@ public class RequestRepository : IRequestRepository
             parameters.Add("@TitleSearch", "%" + queryParams.SearchTerm + "%");
         }
 
+        // Status filter: query param is the int value of the enum
         if (!string.IsNullOrWhiteSpace(queryParams.Status))
         {
-            whereClauses.Add("sr.Status = @Status");
-            parameters.Add("@Status", queryParams.Status);
+            if (int.TryParse(queryParams.Status, out var statusInt))
+            {
+                whereClauses.Add("sr.Status = @Status");
+                parameters.Add("@Status", statusInt);
+            }
+            else if (Enum.TryParse<RequestStatusEnum>(queryParams.Status, true, out var statusEnum))
+            {
+                whereClauses.Add("sr.Status = @Status");
+                parameters.Add("@Status", (int)statusEnum);
+            }
         }
 
+        // Priority filter: query param is the int value of the enum
         if (!string.IsNullOrWhiteSpace(queryParams.Priority))
         {
-            whereClauses.Add("sr.Priority = @Priority");
-            parameters.Add("@Priority", queryParams.Priority);
+            if (int.TryParse(queryParams.Priority, out var priorityInt))
+            {
+                whereClauses.Add("sr.Priority = @Priority");
+                parameters.Add("@Priority", priorityInt);
+            }
+            else if (Enum.TryParse<PriorityEnums>(queryParams.Priority, true, out var priorityEnum))
+            {
+                whereClauses.Add("sr.Priority = @Priority");
+                parameters.Add("@Priority", (int)priorityEnum);
+            }
         }
 
         if (queryParams.CategoryId.HasValue)
@@ -82,6 +100,11 @@ public class RequestRepository : IRequestRepository
             whereClauses.Add("sr.AssignedTo = @AssignedTo");
             parameters.Add("@AssignedTo", queryParams.AssignedTo.Value);
         }
+        if (queryParams.ManagerId.HasValue)
+        {
+            whereClauses.Add("EXISTS (SELECT 1 FROM Users u WHERE u.UserId = sr.EmployeeId AND u.ManagerId = @ManagerId)");
+            parameters.Add("@ManagerId", queryParams.ManagerId.Value);
+        }
 
         if (queryParams.FromDate.HasValue)
         {
@@ -95,16 +118,19 @@ public class RequestRepository : IRequestRepository
             parameters.Add("@ToDate", queryParams.ToDate.Value.ToUniversalTime());
         }
 
-        // Sorting - allowlist columns
+        // Sorting — allowlist only
         var allowedSort = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "CreatedOn", "sr.CreatedOn" },
-            { "Priority", "sr.Priority" },
-            { "Status", "sr.Status" },
+            { "CreatedOn",     "sr.CreatedOn"     },
+            { "Priority",      "sr.Priority"      },
+            { "Status",        "sr.Status"        },
             { "RequestNumber", "sr.RequestNumber" }
         };
 
-        var sortColumn = allowedSort.ContainsKey(queryParams.SortBy) ? allowedSort[queryParams.SortBy] : "sr.CreatedOn";
+        var sortColumn = allowedSort.TryGetValue(queryParams.SortBy ?? string.Empty, out var col)
+            ? col
+            : "sr.CreatedOn";
+
         var sortDir = queryParams.SortAscending ? "ASC" : "DESC";
 
         parameters.Add("@Offset", offset);
@@ -113,40 +139,55 @@ public class RequestRepository : IRequestRepository
         var where = string.Join(" AND ", whereClauses);
 
         var sql = $@"
-                    SELECT COUNT(1) FROM ServiceRequests sr
-                    WHERE {where};
+            SELECT COUNT(1)
+            FROM ServiceRequests sr
+            WHERE {where};
 
-                    SELECT sr.RequestId, sr.RequestNumber, sr.Title, rc.CategoryName, sr.Priority, sr.Status, sr.CreatedOn, au.FullName as AssigneeName
-                    FROM ServiceRequests sr
-                    LEFT JOIN RequestCategories rc ON sr.CategoryId = rc.CategoryId
-                    LEFT JOIN Users au ON sr.AssignedTo = au.UserId
-                    WHERE {where}
-                    ORDER BY {sortColumn} {sortDir}
-                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+            SELECT
+                sr.RequestId,
+                sr.RequestNumber,
+                sr.Title,
+                rc.CategoryName,
+                sr.Priority,
+                sr.Status,
+                sr.CreatedOn,
+                au.FullName AS AssigneeName
+            FROM ServiceRequests sr
+            LEFT JOIN RequestCategories rc ON sr.CategoryId  = rc.CategoryId
+            LEFT JOIN Users            au ON sr.AssignedTo   = au.UserId
+            WHERE {where}
+            ORDER BY {sortColumn} {sortDir}
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
         using var conn = _dapperContext.CreateConnection();
-        using var multi = await conn.QueryMultipleAsync(new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+        using var multi = await conn.QueryMultipleAsync(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
 
         var total = await multi.ReadFirstAsync<int>();
-        var rows = await multi.ReadAsync();
+        var rows = (await multi.ReadAsync()).ToList();
 
-        var items = new List<RequestListDto>();
-        foreach (var row in rows)
+        var items = rows.Select(row =>
         {
-            // Dapper returns dynamic; safely map fields
+            // DB columns are int — cast directly, no string parsing needed
             Guid requestId = row.RequestId;
             string requestNumber = row.RequestNumber ?? string.Empty;
             string title = row.Title ?? string.Empty;
             string categoryName = row.CategoryName ?? string.Empty;
-            string priorityStr = row.Priority ?? string.Empty;
-            string statusStr = row.Status ?? string.Empty;
+            int priorityInt = (int)row.Priority;
+            int statusInt = (int)row.Status;
             DateTime createdOn = row.CreatedOn;
             string assigneeName = row.AssigneeName ?? string.Empty;
 
-            int.TryParse(priorityStr, out var priority);
-            int.TryParse(statusStr, out var status);
+            // Safe cast: fall back to sensible defaults if the DB value is somehow out of range
+            var priority = Enum.IsDefined(typeof(PriorityEnums), priorityInt)
+                ? (PriorityEnums)priorityInt
+                : PriorityEnums.Low;
 
-            items.Add(new RequestListDto
+            var status = Enum.IsDefined(typeof(RequestStatusEnum), statusInt)
+                ? (RequestStatusEnum)statusInt
+                : RequestStatusEnum.Open;
+
+            return new RequestListDto
             {
                 RequestId = requestId,
                 RequestNumber = requestNumber,
@@ -156,10 +197,10 @@ public class RequestRepository : IRequestRepository
                 Status = status,
                 CreatedOn = createdOn,
                 AssigneeName = assigneeName
-            });
-        }
+            };
+        }).ToList();
 
-        var result = new RequestListWithPaginationDto
+        return new RequestListWithPaginationDto
         {
             Items = items,
             Pagination = new PaginationDto
@@ -170,15 +211,16 @@ public class RequestRepository : IRequestRepository
                 TotalPages = (int)Math.Ceiling(total / (double)pageSize)
             }
         };
-
-        return result;
     }
 
     /// <summary>
-    /// Get a ServiceRequest by id with all required navigations loaded for detail views and mutation flows.
-    /// Returns tracked entity so handlers may modify it and call SaveChangesAsync.
+    /// Get a ServiceRequest by id with all required navigations loaded.
+    /// Returns a tracked entity so handlers may modify and call SaveChangesAsync.
+    /// EF Core maps int columns to enum properties automatically via value conversion.
     /// </summary>
-    public async Task<ServiceRequest?> GetRequestByIdAsync(Guid requestId, CancellationToken cancellationToken = default)
+    public async Task<ServiceRequest?> GetRequestByIdAsync(
+        Guid requestId,
+        CancellationToken cancellationToken = default)
     {
         return await _dbContext.ServiceRequests
             .Include(sr => sr.Employee)
@@ -189,9 +231,12 @@ public class RequestRepository : IRequestRepository
     }
 
     /// <summary>
-    /// Lightweight fetch with only Category navigation loaded. Read-only (no tracking) as it's used for approval checks.
+    /// Lightweight fetch with only Category navigation loaded.
+    /// Read-only (no tracking) — used for approval checks.
     /// </summary>
-    public async Task<ServiceRequest?> GetRequestWithCategoryAsync(Guid requestId, CancellationToken cancellationToken = default)
+    public async Task<ServiceRequest?> GetRequestWithCategoryAsync(
+        Guid requestId,
+        CancellationToken cancellationToken = default)
     {
         return await _dbContext.ServiceRequests
             .Include(sr => sr.Category)
@@ -200,18 +245,24 @@ public class RequestRepository : IRequestRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsAsync(Guid requestId, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(
+        Guid requestId,
+        CancellationToken cancellationToken = default)
     {
-        return await _dbContext.ServiceRequests.AnyAsync(sr => sr.RequestId == requestId, cancellationToken);
+        return await _dbContext.ServiceRequests
+            .AnyAsync(sr => sr.RequestId == requestId, cancellationToken);
     }
 
-    public async Task<bool> IsRequestNumberExistsAsync(string requestNumber, CancellationToken cancellationToken = default)
+    public async Task<bool> IsRequestNumberExistsAsync(
+        string requestNumber,
+        CancellationToken cancellationToken = default)
     {
-        return await _dbContext.ServiceRequests.AnyAsync(sr => sr.RequestNumber == requestNumber, cancellationToken);
+        return await _dbContext.ServiceRequests
+            .AnyAsync(sr => sr.RequestNumber == requestNumber, cancellationToken);
     }
 
     /// <summary>
-    /// Adds request to the DbContext. Does NOT call SaveChanges — handler should call SaveChangesAsync.
+    /// Adds request to DbContext. Does NOT call SaveChanges — handler must call SaveChangesAsync.
     /// </summary>
     public async Task AddAsync(ServiceRequest request, CancellationToken cancellationToken = default)
     {

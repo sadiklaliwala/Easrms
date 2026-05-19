@@ -1,11 +1,13 @@
 using Easrms.API;
 using Easrms.API.Middleware;
+using Easrms.Application.Interfaces;
+using Easrms.Application.Settings;
 using Easrms.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-
 using Serilog;
 using System.Text;
 
@@ -20,19 +22,25 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
-Console.WriteLine("App Started 1");
 
 builder.Services.AddControllers();
 
 builder.Services.AddApi(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
+// Bind JwtSettings and expose as IJwtSettings
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+// Expose the bound JwtSettings instance as IJwtSettings for consumers that take IJwtSettings
+builder.Services.AddSingleton<IJwtSettings>(sp =>
+    sp.GetRequiredService<IOptions<JwtSettings>>().Value);
 
 //builder.Services.AddAutoMapper(
 //    typeof(Easrms.Application.Mappings.MappingProfile).Assembly);
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"];
-
+var secretKey = jwtSettings["Secret"];
+Console.WriteLine("Jwtsection "+builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -57,7 +65,9 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            context.Token = context.Request.Cookies["accessToken"];
+            context.Token = context.Request.Cookies[
+    builder.Configuration["JwtSettings:CookieName"]!
+];
             return Task.CompletedTask;
         }
     };
@@ -80,7 +90,6 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-Console.WriteLine("App Started 2");
 
 var app = builder.Build();
 
@@ -98,14 +107,10 @@ app.UseHttpsRedirection();
 
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
-Console.WriteLine("App Started 3");
 
 app.UseAuthorization();
-Console.WriteLine("App Started 4");
 
 app.MapControllers();
-Console.WriteLine("App Started 5");
 
 app.Run();
-Console.WriteLine("App Started 6");
 

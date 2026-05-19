@@ -1,37 +1,55 @@
-import { Box } from '@mui/material';
-import { Outlet } from 'react-router-dom';
-import AppSidebar from '../AppSidebar/AppSidebar';
-import AppTopbar from '../AppTopbar/AppTopbar';
+import { Box, Toolbar } from "@mui/material";
+import { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import AppTopbar from "../AppTopbar";
+import AppSidebar from "../AppSidebar";
+import { useLogoutMutation } from "../../../../store/api/auth.endpoints";
+import toast from "react-hot-toast";
+import { useAppDispatch } from "../../../../hooks/useAppSelector";
+import { clearCredentials } from "../../../../store/slices/authSlice";
+import { api } from "../../../../store/api/api";
 
-const SIDEBAR_WIDTH = 240;
-const TOPBAR_HEIGHT = 64;
+const DRAWER_WIDTH = 240;
 
 const AppLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+  const [logout] = useLogoutMutation();
+  const dispatch = useAppDispatch();
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      console.log("logged out and navigated");
+      navigate("/login");
+    } catch {
+      // ignore
+    } finally {
+      dispatch(clearCredentials());
+      dispatch(api.util.resetApiState());
+      navigate("/login");
+      toast.success("Logged out successfully");
+    }
+  };
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      
-      {/* Sidebar */}
-      <AppSidebar width={SIDEBAR_WIDTH} topbarHeight={TOPBAR_HEIGHT} />
-
-      {/* Main Area */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, ml: `${SIDEBAR_WIDTH}px` }}>
-        
-        {/* Topbar */}
-        <AppTopbar height={TOPBAR_HEIGHT} sidebarWidth={SIDEBAR_WIDTH} />
-
-        {/* Page Content */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            mt: `${TOPBAR_HEIGHT}px`,
-            p: 3,
-            overflow: 'auto',
-          }}
-        >
-          <Outlet />
-        </Box>
-
+    <Box sx={{ display: "flex" }}>
+      <AppTopbar
+        onMenuToggle={() => setSidebarOpen((prev) => !prev)}
+        onLogout={handleLogout}
+      />
+      <AppSidebar open={sidebarOpen} />
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: { xs: 2, sm: 3, md: 4 },
+          minHeight: "100vh",
+          bgcolor: "background.default",
+        }}
+      >
+        <Toolbar />
+        <Outlet />
       </Box>
     </Box>
   );

@@ -14,7 +14,7 @@ namespace Easrms.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "RequestCategory",
+                name: "RequestCategories",
                 columns: table => new
                 {
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -26,7 +26,7 @@ namespace Easrms.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RequestCategory", x => x.CategoryId);
+                    table.PrimaryKey("PK_RequestCategories", x => x.CategoryId);
                 });
 
             migrationBuilder.CreateTable(
@@ -76,7 +76,7 @@ namespace Easrms.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ServiceRequest",
+                name: "ServiceRequests",
                 columns: table => new
                 {
                     RequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -85,8 +85,8 @@ namespace Easrms.Infrastructure.Migrations
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Priority = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Priority = table.Column<int>(type: "int", maxLength: 20, nullable: false),
+                    Status = table.Column<int>(type: "int", maxLength: 30, nullable: false),
                     AssignedTo = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -97,27 +97,27 @@ namespace Easrms.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ServiceRequest", x => x.RequestId);
+                    table.PrimaryKey("PK_ServiceRequests", x => x.RequestId);
                     table.ForeignKey(
-                        name: "FK_ServiceRequest_RequestCategory_CategoryId",
+                        name: "FK_ServiceRequests_RequestCategories_CategoryId",
                         column: x => x.CategoryId,
-                        principalTable: "RequestCategory",
+                        principalTable: "RequestCategories",
                         principalColumn: "CategoryId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ServiceRequest_Users_AssignedTo",
+                        name: "FK_ServiceRequests_Users_AssignedTo",
                         column: x => x.AssignedTo,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ServiceRequest_Users_ClosedBy",
+                        name: "FK_ServiceRequests_Users_ClosedBy",
                         column: x => x.ClosedBy,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ServiceRequest_Users_EmployeeId",
+                        name: "FK_ServiceRequests_Users_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Users",
                         principalColumn: "UserId",
@@ -125,7 +125,7 @@ namespace Easrms.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RequestComment",
+                name: "RequestComments",
                 columns: table => new
                 {
                     CommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -138,15 +138,15 @@ namespace Easrms.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RequestComment", x => x.CommentId);
+                    table.PrimaryKey("PK_RequestComments", x => x.CommentId);
                     table.ForeignKey(
-                        name: "FK_RequestComment_ServiceRequest_RequestId",
+                        name: "FK_RequestComments_ServiceRequests_RequestId",
                         column: x => x.RequestId,
-                        principalTable: "ServiceRequest",
+                        principalTable: "ServiceRequests",
                         principalColumn: "RequestId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RequestComment_Users_CommentBy",
+                        name: "FK_RequestComments_Users_CommentBy",
                         column: x => x.CommentBy,
                         principalTable: "Users",
                         principalColumn: "UserId",
@@ -154,28 +154,28 @@ namespace Easrms.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RequestStatusHistory",
+                name: "RequestStatusHistories",
                 columns: table => new
                 {
                     HistoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OldStatus = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    NewStatus = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    OldStatus = table.Column<int>(type: "int", maxLength: 30, nullable: true),
+                    NewStatus = table.Column<int>(type: "int", maxLength: 30, nullable: false),
                     ChangedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ChangedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Remarks = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RequestStatusHistory", x => x.HistoryId);
+                    table.PrimaryKey("PK_RequestStatusHistories", x => x.HistoryId);
                     table.ForeignKey(
-                        name: "FK_RequestStatusHistory_ServiceRequest_RequestId",
+                        name: "FK_RequestStatusHistories_ServiceRequests_RequestId",
                         column: x => x.RequestId,
-                        principalTable: "ServiceRequest",
+                        principalTable: "ServiceRequests",
                         principalColumn: "RequestId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RequestStatusHistory_Users_ChangedBy",
+                        name: "FK_RequestStatusHistories_Users_ChangedBy",
                         column: x => x.ChangedBy,
                         principalTable: "Users",
                         principalColumn: "UserId",
@@ -194,54 +194,54 @@ namespace Easrms.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_RequestCategory_CategoryName",
-                table: "RequestCategory",
+                name: "IX_RequestCategories_CategoryName",
+                table: "RequestCategories",
                 column: "CategoryName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RequestComment_CommentBy",
-                table: "RequestComment",
+                name: "IX_RequestComments_CommentBy",
+                table: "RequestComments",
                 column: "CommentBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RequestComment_RequestId",
-                table: "RequestComment",
+                name: "IX_RequestComments_RequestId",
+                table: "RequestComments",
                 column: "RequestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RequestStatusHistory_ChangedBy",
-                table: "RequestStatusHistory",
+                name: "IX_RequestStatusHistories_ChangedBy",
+                table: "RequestStatusHistories",
                 column: "ChangedBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RequestStatusHistory_RequestId",
-                table: "RequestStatusHistory",
+                name: "IX_RequestStatusHistories_RequestId",
+                table: "RequestStatusHistories",
                 column: "RequestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServiceRequest_AssignedTo",
-                table: "ServiceRequest",
+                name: "IX_ServiceRequests_AssignedTo",
+                table: "ServiceRequests",
                 column: "AssignedTo");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServiceRequest_CategoryId",
-                table: "ServiceRequest",
+                name: "IX_ServiceRequests_CategoryId",
+                table: "ServiceRequests",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServiceRequest_ClosedBy",
-                table: "ServiceRequest",
+                name: "IX_ServiceRequests_ClosedBy",
+                table: "ServiceRequests",
                 column: "ClosedBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServiceRequest_EmployeeId",
-                table: "ServiceRequest",
+                name: "IX_ServiceRequests_EmployeeId",
+                table: "ServiceRequests",
                 column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ServiceRequest_RequestNumber",
-                table: "ServiceRequest",
+                name: "IX_ServiceRequests_RequestNumber",
+                table: "ServiceRequests",
                 column: "RequestNumber",
                 unique: true);
 
@@ -260,16 +260,16 @@ namespace Easrms.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "RequestComment");
+                name: "RequestComments");
 
             migrationBuilder.DropTable(
-                name: "RequestStatusHistory");
+                name: "RequestStatusHistories");
 
             migrationBuilder.DropTable(
-                name: "ServiceRequest");
+                name: "ServiceRequests");
 
             migrationBuilder.DropTable(
-                name: "RequestCategory");
+                name: "RequestCategories");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -1,79 +1,45 @@
-// Easrms.Application/DTOs/Dashboard/DashboardQueryParams.cs
-
 namespace Easrms.Application.DTOs.Dashboard;
 
 /// <summary>
-/// Role-scoping parameter object passed into all <c>IDashboardRepository</c> methods.
+/// Encapsulates role-scoping filter parameters passed to <see cref="IDashboardRepository"/>.
 ///
-/// Dashboard has no pagination, no search, and no free-text filter.
-/// Its only variable is WHO is asking — which determines which subset of
-/// ServiceRequest records the aggregation runs against.
+/// Only ONE of the scope fields should be set at a time — the handler sets the relevant
+/// field based on the caller's role. The repository builds the WHERE clause from whichever
+/// field is non-null.
 ///
-/// Scoping rules (applied by the handler before calling the repo):
-/// ┌─────────────────┬──────────────────────────────────────────────────────┐
-/// │ Role            │ Which param to set                                   │
-/// ├─────────────────┼──────────────────────────────────────────────────────┤
-/// │ Admin           │ All nulls — no scope filter, sees everything         │
-/// │ Manager         │ Set ManagerId — sees only their team's requests      │
-/// │ Employee        │ Set EmployeeId — sees only their own requests        │
-/// │ Support User    │ Set AssignedToUserId — sees only their assigned work │
-/// └─────────────────┴──────────────────────────────────────────────────────┘
-///
-/// The repository applies whichever non-null param it receives as a WHERE clause.
-/// Only one scoping param should be non-null per call — validation enforced at handler level.
+/// When all fields are null (Admin), the repository returns global unscoped aggregations.
 /// </summary>
-public sealed class DashboardQueryParams
+public class DashboardQueryParams
 {
-    // ─────────────────────────────────────────────────────────────────────────
-    // ROLE SCOPE FILTERS
-    // ─────────────────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Set when the caller is an Employee.
+    /// Scopes all aggregations to requests created by this employee.
+    /// </summary>
+    public Guid? EmployeeId { get; set; }
 
     /// <summary>
-    /// Scope to requests created by a specific employee.
-    /// Set this when the caller's role is Employee.
-    /// Maps to ServiceRequest.EmployeeId.
+    /// Set when the caller is a Manager.
+    /// Scopes all aggregations to requests created by employees under this manager.
     /// </summary>
-    public Guid? EmployeeId { get; init; }
+    public Guid? ManagerId { get; set; }
 
     /// <summary>
-    /// Scope to requests created by employees who report to this manager.
-    /// Set this when the caller's role is Manager.
-    /// Maps to Users.ManagerId — the query joins Users on EmployeeId to check ManagerId.
+    /// Set when the caller is a Support User.
+    /// Scopes all aggregations to requests assigned to this support user.
     /// </summary>
-    public Guid? ManagerId { get; init; }
+    public Guid? AssignedToUserId { get; set; }
 
     /// <summary>
-    /// Scope to requests assigned to a specific support user.
-    /// Set this when the caller's role is Support User.
-    /// Maps to ServiceRequest.AssignedTo.
+    /// True when all scope fields are null — used by the repository to skip WHERE clause
+    /// filtering and return global counts. Computed property for readability.
     /// </summary>
-    public Guid? AssignedToUserId { get; init; }
+    /// 
+    public DateTime? FromDate { get; set; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // OPTIONAL DATE RANGE
-    // ─────────────────────────────────────────────────────────────────────────
+    public DateTime? ToDate { get; set; }
 
-    /// <summary>
-    /// Restrict aggregations to requests created on or after this date (inclusive).
-    /// Null means no lower date bound — all historical records included.
-    /// Useful for time-boxed dashboard views (e.g. this month's summary).
-    /// </summary>
-    public DateTime? FromDate { get; init; }
-
-    /// <summary>
-    /// Restrict aggregations to requests created on or before this date (inclusive).
-    /// Null means no upper date bound.
-    /// </summary>
-    public DateTime? ToDate { get; init; }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // HELPERS
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Returns true if no role scope filter is set — indicating an Admin caller
-    /// who sees all requests with no WHERE clause restriction on ownership.
-    /// Used by the Dapper query builder to skip the scope JOIN entirely for performance.
-    /// </summary>
-    public bool IsGlobalScope => EmployeeId is null && ManagerId is null && AssignedToUserId is null;
+    public bool IsGlobalScope =>
+        EmployeeId is null &&
+        ManagerId is null &&
+        AssignedToUserId is null;
 }

@@ -94,4 +94,6 @@ public sealed class RequestQueryParams
     /// Defaults to <c>false</c> (newest first).
     /// </summary>
     public bool SortAscending { get; init; } = false;
+
+    public Guid? ManagerId { get; set; }
 }

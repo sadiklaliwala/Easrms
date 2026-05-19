@@ -1,4 +1,6 @@
-﻿namespace Easrms.Application.DTOs.Dashboard;
+﻿using Easrms.Application.Features.Dashboard.Queries;
+
+namespace Easrms.Application.DTOs.Dashboard;
 
 public class DashboardSummaryDto
 {
@@ -13,5 +15,6 @@ public class DashboardSummaryDto
     public int ClosedCount { get; set; }
     public List<PriorityCountDto> ByPriority { get; set; } = new List<PriorityCountDto>();
     public List<CategoryCountDto> ByCategory { get; set; } = new List<CategoryCountDto>();
+    public List<AssignedUserCountDto> ByAssignedUser { get; set; } = new();
 }
 

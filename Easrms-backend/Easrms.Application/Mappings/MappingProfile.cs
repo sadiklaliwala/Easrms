@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using Easrms.Domain.Entities;
-using Easrms.Application.DTOs.User;
+using Easrms.Application.DTOs.Auth;
 using Easrms.Application.DTOs.Category;
-using Easrms.Application.DTOs.Request;
 using Easrms.Application.DTOs.Comment;
+using Easrms.Application.DTOs.Request;
+using Easrms.Application.DTOs.User;
+using Easrms.Domain.Entities;
 
 namespace Easrms.Application.Mappings;
 
@@ -18,6 +19,10 @@ public class MappingProfile : Profile
         CreateMap<User, UserDetailDto>()
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName))
             .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager != null ? src.Manager.FullName : string.Empty));
+
+        CreateMap<User, CurrentUserDto>()
+             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
+             //.ForMember(dest => dest.ManagerId, opt => opt.MapFrom(src => src.ManagerId!=null ? src.ManagerId : string.Empty));
 
         // Category mappings
         CreateMap<RequestCategory, CategoryListDto>();
