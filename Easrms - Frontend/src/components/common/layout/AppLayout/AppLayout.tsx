@@ -43,11 +43,9 @@ const AppLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          ml: sidebarOpen ? `${DRAWER_WIDTH}px` : 0,
-          transition: "margin 0.2s ease",
+          p: { xs: 2, sm: 3, md: 4 },
           minHeight: "100vh",
-          bgcolor: "grey.50",
+          bgcolor: "background.default",
         }}
       >
         <Toolbar />

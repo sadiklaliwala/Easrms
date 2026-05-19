@@ -203,7 +203,7 @@ const RequestDetailPage = () => {
 
       <Grid container spacing={3}>
         {/* Left — Request Info */}
-        <Grid sx={{ item: { xs: 12, md: 8 } }}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Stack spacing={3}>
             <AppCard>
               <RequestDetailHeader
@@ -238,7 +238,7 @@ const RequestDetailPage = () => {
         </Grid>
 
         {/* Right — History */}
-        <Grid sx={{ item: { xs: 12, md: 4 } }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <AppCard>
             <RequestHistoryTimeline history={history} />
           </AppCard>

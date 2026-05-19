@@ -28,11 +28,11 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
                .HasMaxLength(1000);
 
         builder.Property(x => x.Priority)
-               .IsRequired()
+               //.IsRequired()
                .HasMaxLength(20);
 
         builder.Property(x => x.Status)
-               .IsRequired()
+               //.IsRequired()
                .HasMaxLength(30);
 
         builder.Property(x => x.RejectionReason)

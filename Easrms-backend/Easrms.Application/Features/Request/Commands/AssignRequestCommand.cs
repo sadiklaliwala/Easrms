@@ -56,10 +56,10 @@ public sealed class AssignRequestCommandHandler(
                 $"Service request with id '{request.RequestId}' was not found.");
 
         var assignableStatuses = new[]
-{
-    RequestStatusEnum.Open,
-    RequestStatusEnum.Approved
-};
+            {
+                RequestStatusEnum.Open,
+                RequestStatusEnum.Approved
+            };
 
         if (!assignableStatuses.Contains(entity.Status))
             throw new InvalidOperationException(

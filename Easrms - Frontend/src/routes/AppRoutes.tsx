@@ -94,9 +94,9 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
 
-          {/* Dashboard — Admin and Manager only */}
+          {/* Dashboard — Admin, Manager and Employee */}
           <Route
-            element={<RoleBasedRoute allowedRoles={[ROLES.ADMIN, ROLES.MANAGER]} />}
+            element={<RoleBasedRoute allowedRoles={[ROLES.ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE]} />}
           >
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>

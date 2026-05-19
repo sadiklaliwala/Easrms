@@ -5,22 +5,33 @@ interface AppPriorityBadgeProps {
   priority: PriorityType | string;
 }
 
-const priorityColorMap: Record<
-  string,
-  "default" | "warning" | "error" | "success"
-> = {
-  Low: "success",
-  Medium: "warning",
-  High: "error",
+const getPriorityStyles = (priority: string) => {
+  switch (priority) {
+    case "Low":
+      return { bgcolor: "success.light", color: "success.dark" };
+    case "Medium":
+      return { bgcolor: "warning.light", color: "warning.dark" };
+    case "High":
+      return { bgcolor: "error.light", color: "error.dark" };
+    default:
+      return { bgcolor: "grey.100", color: "grey.700" };
+  }
 };
 
 const AppPriorityBadge = ({ priority }: AppPriorityBadgeProps) => {
+  const styles = getPriorityStyles(priority as string);
   return (
     <Chip
       label={priority}
-      color={priorityColorMap[priority] ?? "default"}
       size="small"
-      variant="outlined"
+      sx={{
+        bgcolor: styles.bgcolor,
+        color: styles.color,
+        fontWeight: 600,
+        fontSize: "0.75rem",
+        borderRadius: "6px",
+        height: 22,
+      }}
     />
   );
 };

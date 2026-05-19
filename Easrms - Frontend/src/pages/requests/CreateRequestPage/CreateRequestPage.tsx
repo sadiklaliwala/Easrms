@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Stack, Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import toast from "react-hot-toast";
+import Stack from "@mui/material/Stack";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 import { useCreateRequestMutation } from "../../../store/api/request.endpoints";
 import { useGetCategoriesQuery } from "../../../store/api/category.endpoints";
@@ -51,6 +55,7 @@ const schema = Joi.object({
 // ─── Component ────────────────────────────────────────────────────────────────
 const CreateRequestPage = () => {
   const navigate = useNavigate();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { data: categoriesResponse } = useGetCategoriesQuery({
     pageNumber: 1,
@@ -183,13 +188,79 @@ const CreateRequestPage = () => {
             <AppFormError message={errors.description?.message} />
           </Box>
 
+          {/* Attachment (Placeholder only) */}
+          <Box>
+            <AppLabel label="Attachment (Optional)" />
+            <Box
+              sx={{
+                border: "2px dashed",
+                borderColor: "divider",
+                borderRadius: 2,
+                p: 3,
+                textAlign: "center",
+                cursor: "pointer",
+                bgcolor: "grey.50",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  borderColor: "primary.main",
+                  bgcolor: "rgba(79, 70, 229, 0.02)",
+                },
+              }}
+              component="label"
+            >
+              <input
+                type="file"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedFile(file);
+                  }
+                }}
+              />
+              <Stack spacing={1} sx={{ alignItems: "center" }}>
+                <CloudUploadIcon
+                  sx={{ fontSize: 36, color: "text.secondary" }}
+                />
+                <Typography
+                  variant="body2"
+                  color="text.primary"
+                  sx={{ fontWeight: 600 }}
+                >
+                  {selectedFile ? selectedFile.name : "Click to select a file"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Placeholder only (Max size 5MB)
+                </Typography>
+              </Stack>
+            </Box>
+            {selectedFile && (
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center", mt: 1, color: "text.secondary" }}
+              >
+                <AttachFileIcon sx={{ fontSize: 18 }} />
+                <Typography variant="caption" sx={{ flexGrow: 1 }}>
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </Typography>
+                <AppButton
+                  label="Remove"
+                  variant="text"
+                  color="error"
+                  size="small"
+                  onClick={() => setSelectedFile(null)}
+                  sx={{ minWidth: "auto", p: 0 }}
+                />
+              </Stack>
+            )}
+          </Box>
+
           {/* Actions */}
           <Stack
-            sx={{
-              direction: "row",
-              spacing: 2,
-              justifyContent: "flex-end",
-            }}
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "flex-end" }}
           >
             <AppButton
               label="Cancel"

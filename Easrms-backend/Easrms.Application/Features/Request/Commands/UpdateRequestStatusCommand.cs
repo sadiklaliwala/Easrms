@@ -2,6 +2,7 @@
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
+using Easrms.Infrastructure.Services;
 using MediatR;
 
 namespace Easrms.Application.Features.Request.Commands;
@@ -41,11 +42,15 @@ public sealed class UpdateRequestStatusCommand : IRequest
 /// </summary>
 public sealed class UpdateRequestStatusCommandHandler(
     IRequestRepository requestRepository,
-    ICommentRepository commentRepository) : IRequestHandler<UpdateRequestStatusCommand>
+    ICommentRepository commentRepository,
+    IUserRepository userRepository,
+    IEmailService emailService
+    ) : IRequestHandler<UpdateRequestStatusCommand>
 {
     private readonly IRequestRepository _requestRepository = requestRepository;
     private readonly ICommentRepository _commentRepository = commentRepository;
-
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IEmailService _emailService = emailService;
     // Valid transitions: key = current status, value = expected new status
     private static readonly Dictionary<RequestStatusEnum, RequestStatusEnum> AllowedTransitions = new()
 {
@@ -113,5 +118,24 @@ public sealed class UpdateRequestStatusCommandHandler(
 
         // 6. Single commit — request update + history in one transaction
         await _requestRepository.SaveChangesAsync(cancellationToken);
+
+
+        // 6. Fire-and-forget email when status becomes Resolved
+        //    Employee gets notified that they can now close the request.
+        if (request.NewStatus == RequestStatusEnum.Resolved)
+        {
+            var employee = await _userRepository.GetByIdAsync(entity.EmployeeId);
+            if (!string.IsNullOrWhiteSpace(employee?.Email))
+            {
+                var capturedEmail = employee.Email;
+                var capturedNumber = entity.RequestNumber;
+                var capturedTitle = entity.Title;
+
+                _ = Task.Run(async () =>
+                {
+                    await _emailService.SendRequestResolvedAsync(capturedEmail, capturedNumber, capturedTitle);
+                }, CancellationToken.None); // CancellationToken.None — must NOT be cancelled when request ends
+            }
+        }
     }
 }

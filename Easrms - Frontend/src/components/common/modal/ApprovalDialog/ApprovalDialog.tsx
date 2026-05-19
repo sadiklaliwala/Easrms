@@ -58,9 +58,9 @@ const ApprovalDialog = ({
     >
       <DialogContent sx={{ px: 0, pt: 1 }}>
         <Typography
+          variant="body2"
           sx={{
-            fontSize: 12,
-            variant: "body2 ",
+            fontSize: 13,
             color: "text.secondary",
             mb: 2,
           }}

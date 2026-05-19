@@ -26,7 +26,8 @@ namespace Easrms.Infrastructure
             services.AddScoped<ILookupRepository, LookupRepository>();
             services.AddScoped<IRequestRepository, RequestRepository>();
             services.AddScoped<IJwtService, JwtService>();
-
+            services.AddScoped<IEmailService, EmailService>();
+            
 
 
 

@@ -1,0 +1,1285 @@
+Employee Asset &
+
+Service Request Management System
+
+Software Requirement Specification (SRS)
+
+Field
+
+Details
+
+Project Name
+
+Employee Asset & Service Request Management System
+
+Author
+
+Sadik Laliwala
+
+Date
+
+11-05-2026
+
+Version
+
+v1.0
+
+Duration
+
+15 Working Days
+
+Technology Stack
+
+.NET 8 Web API, EF Core, Dapper, SQL Server, React, TypeScript, Redux Toolkit, Git
+
+Revision History
+
+Version
+
+Date
+
+Author
+
+Description
+
+v1.0
+
+11-05-2026
+
+Sadik Laliwala
+
+Initial Draft
+
+Table of Contents
+
+1.  Introduction
+
+2.  Glossary
+
+3.  Assumptions and Dependencies
+
+4.  Roles and Permissions
+
+5.  Functional Requirements
+
+6.  Non Functional Requirements
+
+7.  User Stories
+
+8.  Wireframe Requirements
+
+9.  Database Schema
+
+10. Status Transition Flow
+
+11. API List
+
+12. API Response Format
+
+13. Error Code List
+
+14. Technology Stack
+
+15. Project Plan
+
+16. Diagrams
+
+1.  Introduction
+
+1.1  Purpose
+
+This document defines the software requirements for the Employee Asset and Service Request Management System. It serves as the single reference for development, testing, and evaluation of the system.
+
+1.2  Project Overview
+
+The system is an internal enterprise portal where employees can raise asset and service requests, managers can approve eligible requests, admins can manage categories and assignments, and support users can resolve assigned requests.
+
+1.3  Scope
+
+In Scope
+
+Authentication simulation with JWT in HttpOnly cookies
+
+Role-based navigation and access control
+
+Request creation, listing, detail view
+
+Category management by admin
+
+Approval flow by manager
+
+Support assignment by admin
+
+Status tracking through 8 defined statuses
+
+Dashboard with role-based metrics
+
+Audit trail and status history
+
+Search, filter, and pagination on listings
+
+Change Request implementation on Day 8
+
+Out of Scope
+
+Real SSO integration
+
+Production email or SMS notifications
+
+File storage in cloud
+
+Complex reporting engine
+
+Background workers (optional only)
+
+User self-registration
+
+1.4  Intended Audience
+
+Interns, Evaluators, Senior Tech Lead, Project Coordinator
+
+2.  Glossary
+
+Term
+
+Definition
+
+JWT
+
+JSON Web Token, used for authentication stored in HttpOnly cookies
+
+EF Core
+
+Entity Framework Core, ORM used to interact with SQL Server from .NET
+
+Dapper
+
+Lightweight ORM used for complex queries like dashboard and filtered listing
+
+React
+
+Frontend JavaScript library for building UI
+
+TypeScript
+
+Typed superset of JavaScript used with React
+
+SQL Server
+
+Relational database used to store all application data
+
+.NET 8
+
+Microsoft backend framework used to build the Web API
+
+Swagger
+
+Tool to document and test APIs automatically
+
+CR
+
+Change Request, a new requirement introduced mid-project on Day 8
+
+SRS
+
+Software Requirement Specification, this document
+
+SSO
+
+Single Sign On, out of scope for this project
+
+ORM
+
+Object Relational Mapper, maps DB tables to C# classes
+
+DTO
+
+Data Transfer Object, model used to send and receive API data
+
+REST
+
+Representational State Transfer, API design standard followed
+
+CRUD
+
+Create Read Update Delete, basic database operations
+
+Redux Toolkit
+
+State management library for React applications
+
+RTK Query
+
+API fetching and caching tool built into Redux Toolkit
+
+MUI
+
+Material UI, React component library used for UI elements
+
+FluentValidation
+
+.NET library for clean DTO level validation
+
+Serilog
+
+Structured logging library for .NET
+
+BCrypt
+
+Password hashing algorithm used to securely store passwords
+
+AutoMapper
+
+.NET library for mapping between entity and DTO objects
+
+HttpOnly Cookie
+
+Secure cookie not accessible via JavaScript, used to store JWT
+
+3.  Assumptions and Dependencies
+
+JWT will be stored in HttpOnly cookies, not localStorage
+
+Seeded users will be used for login simulation, no registration screen
+
+File attachments are placeholder only, no actual file upload in scope
+
+Email and SMS notifications are out of scope
+
+All users are pre-created by Admin, no self-registration
+
+SQL Server is available as local instance during development
+
+Manager-employee relationship is defined by ManagerId in Users table
+
+Priority values are static and hardcoded on frontend: High, Medium, Low
+
+Status values are static and hardcoded on frontend
+
+Role values are static and hardcoded on frontend
+
+4.  Roles and Permissions
+
+Role
+
+Permissions
+
+Employee
+
+Create request, view own requests, view request status and comments
+
+Manager
+
+View team requests requiring approval, approve or reject, view dashboard summary
+
+Admin
+
+Manage users and categories, assign support users, view all requests, update priority, access dashboard
+
+Support User
+
+View assigned requests, update status, add resolution comments
+
+5.  Functional Requirements
+
+Area
+
+Requirement
+
+Login and Roles
+
+Role-based access using JWT stored in HttpOnly cookies
+
+Category Management
+
+Admin can create, edit, activate and deactivate request categories
+
+Request Creation
+
+Employee can raise request with category, priority, and description
+
+Approval Flow
+
+Approval-required requests go to manager before support assignment
+
+Assignment
+
+Admin can assign approved or open requests to support users
+
+Status Tracking
+
+Request status moves through 8 defined statuses
+
+Comments
+
+Manager, support, and admin can add comments on request detail
+
+Dashboard
+
+Role-based summary with request counts by status and priority
+
+Audit Trail
+
+Important actions stored in status history table
+
+6.  Non Functional Requirements
+
+Requirement
+
+Standard
+
+Security
+
+Role-based API authorization, JWT in HttpOnly cookies, no sensitive data exposure
+
+Validation
+
+All fields validated on frontend using Joi and on backend using FluentValidation
+
+Error Handling
+
+Consistent Custom ApiResponse wrapper model, no raw exception messages shown
+
+Performance
+
+Listing APIs support pagination, search, and filter
+
+Maintainability
+
+Layered backend architecture and reusable MUI React components
+
+Logging
+
+Serilog used for API errors and important action logging
+
+Testing
+
+Test cases and evidence required for primary flows and CR regression
+
+7.  User Stories
+
+ID
+
+Title
+
+User Story
+
+Priority
+
+Acceptance Criteria
+
+US-01
+
+Login and role-based landing
+
+As a user I want to login and see role specific menus so that I can access only relevant functionality
+
+High
+
+Valid login, invalid login, role based menus, token handling
+
+US-02
+
+Admin category management
+
+As an Admin I want to manage request categories so that employees can classify requests correctly
+
+High
+
+Create, edit, list, activate, deactivate categories with validation
+
+US-03
+
+Employee request creation
+
+As an Employee I want to raise an asset or service request so that my issue can be tracked
+
+High
+
+Required fields, category, priority, description, generated request number
+
+US-04
+
+Employee request tracking
+
+As an Employee I want to view my requests and status so that I know progress
+
+High
+
+List with filters, detail view, comments and status history
+
+US-05
+
+Manager approval
+
+As a Manager I want to approve or reject approval-based requests so that only valid requests proceed
+
+High
+
+Approve or reject with comments, status history updated
+
+US-06
+
+Admin assignment
+
+As an Admin I want to assign requests to support users so that ownership is clear
+
+High
+
+Assign eligible requests, show assignee, prevent invalid assignment
+
+US-07
+
+Support resolution
+
+As a Support User I want to update assigned request status so that work progress is visible
+
+High
+
+Update In Progress and Resolved, resolution note mandatory
+
+US-08
+
+Dashboard
+
+As an Admin or Manager I want request summary metrics so that I can monitor workload
+
+Medium
+
+Counts by status, priority, category, and assigned user
+
+US-09
+
+Search filter pagination
+
+As a user I want to search and filter requests so that I can find records quickly
+
+Medium
+
+Search by request number, status, category, priority, pagination
+
+US-10
+
+Audit trail
+
+As an Admin I want status history so that request actions are traceable
+
+Medium
+
+History for create, approval, assignment, status changes, close
+
+8.  Wireframe Requirements
+
+Screen
+
+Main Elements
+
+Expected Behavior
+
+Login
+
+Email, password, login button, validation messages
+
+Redirect by role on successful login
+
+Employee Dashboard
+
+My open requests, resolved requests, create request button, recent activity
+
+Employee sees only own data
+
+Create Request
+
+Category, priority, title, description, attachment placeholder
+
+Submit creates request and shows generated request number
+
+Request List
+
+Filters, grid columns, status badges, action buttons
+
+Role-based data visibility, pagination required
+
+Request Detail
+
+Request data, comments, status history, action buttons
+
+Available actions change by role and status
+
+Manager Approval Queue
+
+Pending approvals list, approve or reject popup
+
+Comment mandatory on rejection
+
+Admin Category Master
+
+Category list, add and edit popup, active flag
+
+Validation and duplicate prevention
+
+Admin Assignment Screen
+
+Unassigned requests, support user dropdown, assign button
+
+Only eligible requests can be assigned
+
+Support My Tasks
+
+Assigned requests, due status, update status action
+
+Support user can update assigned requests only
+
+Dashboard
+
+Cards and charts for status, priority, category
+
+Role-specific metrics
+
+9.  Database Schema
+
+Table
+
+Columns
+
+Users
+
+UserId (PK), FullName, Email, PasswordHash, RoleId (FK), ManagerId (FK self-reference), IsActive, CreatedOn, UpdatedOn, LastLoginOn
+
+Roles
+
+RoleId (PK), RoleName
+
+RequestCategory
+
+CategoryId (PK), CategoryName, IsApprovalRequired, IsActive, CreatedOn, UpdatedOn
+
+ServiceRequest
+
+RequestId (PK), RequestNumber, EmployeeId (FK), CategoryId (FK), Title, Description, Priority, Status, AssignedTo (FK), CreatedOn, UpdatedOn, ResolvedOn, ClosedOn, ClosedBy (FK), RejectionReason
+
+RequestComment
+
+CommentId (PK), RequestId (FK), CommentBy (FK), CommentText, CommentType, CreatedOn, IsDeleted
+
+RequestStatusHistory
+
+HistoryId (PK), RequestId (FK), OldStatus, NewStatus, ChangedBy (FK), ChangedOn, Remarks
+
+Table Relationships
+
+Roles → Users (one role has many users)
+
+Users → Users (self-reference, ManagerId)
+
+Users → ServiceRequest (one employee creates many requests)
+
+Users → ServiceRequest (one support user assigned many requests)
+
+RequestCategory → ServiceRequest (one category has many requests)
+
+ServiceRequest → RequestComment (one request has many comments)
+
+ServiceRequest → RequestStatusHistory (one request has many history records)
+
+Users → RequestComment (one user adds many comments)
+
+Users → RequestStatusHistory (one user triggers many history entries)
+
+[ER DIAGRAM — Insert ER Diagram image here]
+
+10.  Status Transition Flow
+
+Current Status
+
+Next Possible Status
+
+Who Triggers
+
+Open
+
+Pending Approval
+
+System automatically when category needs approval
+
+Open
+
+Assigned
+
+Admin when category does not need approval
+
+Pending Approval
+
+Approved
+
+Manager
+
+Pending Approval
+
+Rejected
+
+Manager, comment mandatory
+
+Approved
+
+Assigned
+
+Admin
+
+Assigned
+
+In Progress
+
+Support User
+
+In Progress
+
+Resolved
+
+Support User, resolution note mandatory
+
+Resolved
+
+Closed
+
+Admin or Employee
+
+Rejected
+
+No further transition
+
+Dead end
+
+Static Status Values (hardcoded on frontend)
+
+Open, Pending Approval, Approved, Rejected, Assigned, In Progress, Resolved, Closed
+
+[STATUS TRANSITION DIAGRAM — Insert State Machine Diagram image here]
+
+11.  API List
+
+#
+
+Group
+
+Method
+
+Route
+
+Purpose
+
+1
+
+Auth
+
+POST
+
+/api/auth/login
+
+Login and return token in cookie
+
+2
+
+Auth
+
+POST
+
+/api/auth/logout
+
+Clear cookie and end session
+
+3
+
+Auth
+
+GET
+
+/api/auth/me
+
+Get current logged in user details
+
+4
+
+Users
+
+GET
+
+/api/users
+
+List all users, Admin only
+
+5
+
+Users
+
+GET
+
+/api/users/{id}
+
+Get single user detail
+
+6
+
+Users
+
+POST
+
+/api/users
+
+Create new user, Admin only
+
+7
+
+Users
+
+PUT
+
+/api/users/{id}
+
+Edit user details
+
+8
+
+Users
+
+PUT
+
+/api/users/{id}/activate-deactivate
+
+Toggle user active status
+
+9
+
+Categories
+
+GET
+
+/api/categories
+
+List all categories
+
+10
+
+Categories
+
+GET
+
+/api/categories/{id}
+
+Get single category detail
+
+11
+
+Categories
+
+POST
+
+/api/categories
+
+Create new category
+
+12
+
+Categories
+
+PUT
+
+/api/categories/{id}
+
+Edit category
+
+13
+
+Categories
+
+PUT
+
+/api/categories/{id}/activate-deactivate
+
+Toggle category active status
+
+14
+
+Requests
+
+POST
+
+/api/requests
+
+Create new request
+
+15
+
+Requests
+
+GET
+
+/api/requests
+
+List requests with filters and pagination
+
+16
+
+Requests
+
+GET
+
+/api/requests/{id}
+
+Get request detail
+
+17
+
+Requests
+
+POST
+
+/api/requests/{id}/approval
+
+Manager approve or reject
+
+18
+
+Requests
+
+POST
+
+/api/requests/{id}/assign
+
+Admin assign to support user
+
+19
+
+Requests
+
+POST
+
+/api/requests/{id}/status
+
+Support or admin update status
+
+20
+
+Requests
+
+PUT
+
+/api/requests/{id}/close
+
+Close a resolved request
+
+21
+
+Comments
+
+POST
+
+/api/requests/{id}/comments
+
+Add comment to request
+
+22
+
+Comments
+
+GET
+
+/api/requests/{id}/comments
+
+Get all comments for request
+
+23
+
+History
+
+GET
+
+/api/requests/{id}/history
+
+Get status history for request
+
+24
+
+Dashboard
+
+GET
+
+/api/dashboard/summary
+
+Role-based dashboard metrics
+
+25
+
+Lookup
+
+GET
+
+/api/lookup/support-users
+
+List active support users for dropdown
+
+26
+
+Lookup
+
+GET
+
+/api/lookup/managers
+
+List managers for dropdown
+
+12.  API Response Format
+
+All APIs return the same consistent response structure.
+
+Success Response
+
+{
+
+"success": true,
+
+"statusCode": 200,
+
+"message": "Request created successfully",
+
+"data": {},
+
+"errors": null
+
+}
+
+Error Response
+
+{
+
+"success": false,
+
+"statusCode": 400,
+
+"message": "Validation failed",
+
+"data": null,
+
+"errors": ["Title is required", "Category is required"]
+
+}
+
+Backend C# Wrapper Class
+
+public class ApiResponse<T>
+
+{
+
+public bool Success { get; set; }
+
+public int StatusCode { get; set; }
+
+public string Message { get; set; }
+
+public T Data { get; set; }
+
+public List<string> Errors { get; set; }
+
+}
+
+13.  Error Code List
+
+Code
+
+Meaning
+
+When Used
+
+200
+
+OK
+
+Successful GET and PUT
+
+201
+
+Created
+
+Successful POST, new record created
+
+400
+
+Bad Request
+
+Validation failed, missing required fields
+
+401
+
+Unauthorized
+
+User not logged in or token expired
+
+403
+
+Forbidden
+
+User logged in but does not have permission
+
+404
+
+Not Found
+
+Request, user, or category ID does not exist
+
+409
+
+Conflict
+
+Duplicate category name or invalid status transition
+
+500
+
+Internal Server Error
+
+Unexpected server side error
+
+14.  Technology Stack
+
+Backend
+
+Purpose
+
+Library or Tool
+
+Framework
+
+.NET 8 Web API
+
+Validation
+
+FluentValidation
+
+Authentication
+
+JWT in HttpOnly Cookies
+
+ORM
+
+EF Core 8
+
+Complex Queries
+
+Dapper
+
+API Documentation
+
+Swagger (Swashbuckle)
+
+Logging
+
+Serilog
+
+Exception Handling
+
+Global Exception Middleware
+
+Password Hashing
+
+BCrypt.Net
+
+Object Mapping
+
+AutoMapper
+
+CORS
+
+Built-in .NET CORS Middleware
+
+IDE
+
+Visual Studio 2022
+
+DB Management
+
+SQL Server Management Studio (SSMS)
+
+Frontend
+
+Purpose
+
+Library or Tool
+
+Framework
+
+React with TypeScript
+
+Routing
+
+React Router v6
+
+State Management
+
+Redux Toolkit
+
+API Calls and Caching
+
+RTK Query with createApi and fetchBaseQuery
+
+Form Handling
+
+React Hook Form
+
+Validation
+
+Joi
+
+UI Components
+
+MUI (Material UI)
+
+Table and Grid
+
+MUI DataGrid
+
+Notifications
+
+React Hot Toast
+
+Charts
+
+Recharts
+
+Date Handling
+
+date-fns
+
+IDE
+
+VS Code
+
+API Testing
+
+Postman
+
+RTK Query Important Note
+
+credentials: 'include' must be set in fetchBaseQuery because JWT is stored in HttpOnly cookies. Without this setting cookies will not be sent with API requests.
+
+15.  Project Plan
+
+Day
+
+Activity
+
+Output
+
+Day 1
+
+Requirement walkthrough and clarifications
+
+Clarification log
+
+Day 2
+
+Task breakdown and estimation
+
+Task sheet with estimates
+
+Day 3
+
+Technical design
+
+DB design, API contracts, React plan
+
+Day 4
+
+Base setup
+
+Git repo, project structure, DB migration, React shell
+
+Day 5
+
+Core backend
+
+Auth, Category, Request APIs
+
+Day 6
+
+Core frontend
+
+Login, role routing, category screen, create request screen
+
+Day 7
+
+First review
+
+Demo, review comments, revised plan
+
+Day 8
+
+CR received
+
+Read CR, do not start coding
+
+Day 9
+
+CR impact analysis
+
+Impact document and revised estimates
+
+Day 10
+
+Approval and assignment flows
+
+Manager and admin screens and APIs
+
+Day 11
+
+CR implementation
+
+CR code in separate branch, CR test cases
+
+Day 12
+
+Support, dashboard, integration
+
+All screens connected end to end
+
+Day 13
+
+Testing and bug fixes
+
+Test evidence and regression results
+
+Day 14
+
+Cleanup and demo preparation
+
+Clean code, demo script, known issues list
+
+Day 15
+
+Final demo
+
+Working demo, code walkthrough, Q&A
+
+16.  Diagrams
+
+16.1  ER Diagram
+
+[ER DIAGRAM — Insert ER Diagram image here]
+
+16.2  Status Transition Diagram
+
+[STATUS TRANSITION DIAGRAM — Insert State Machine Diagram image here]
+
+16.3  System Architecture Diagram
+
+[SYSTEM ARCHITECTURE DIAGRAM — Insert Architecture Diagram image here]
+
+16.4  Use Case Diagram
+
+[USE CASE DIAGRAM — Insert Use Case Diagram image here]
+
+16.5  Sequence Diagrams
+
+[LOGIN SEQUENCE DIAGRAM — Insert Login Flow Diagram image here]
+
+[APPROVAL SEQUENCE DIAGRAM — Insert Approval Flow Diagram image here]
+
+End of Document  —  Version 1.0  |  Sadik Laliwala  |  11-05-2026

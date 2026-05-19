@@ -1,6 +1,6 @@
-﻿// Easrms.Infrastructure/Repositories/Implementations/DashboardRepository.cs
-using Dapper;
+﻿using Dapper;
 using Easrms.Application.DTOs.Dashboard;
+using Easrms.Application.Features.Dashboard.Queries;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Infrastructure.Data;
@@ -12,7 +12,6 @@ namespace Easrms.Infrastructure.Repositories.Implementations;
 /// and execute parameterized SQL aggregations for performance.
 /// </summary>
 public class DashboardRepository : IDashboardRepository
-
 {
     private readonly DapperContext _dapperContext;
 
@@ -23,23 +22,26 @@ public class DashboardRepository : IDashboardRepository
 
     /// <summary>
     /// Returns full dashboard summary by composing smaller aggregation queries.
-    /// Executes the component queries in parallel for performance.
+    /// Executes all component queries in parallel for performance.
     /// </summary>
-    public async Task<DashboardSummaryDto> GetSummaryAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default)
+    public async Task<DashboardSummaryDto> GetSummaryAsync(
+        DashboardQueryParams queryParams,
+        CancellationToken cancellationToken = default)
     {
         if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
 
         var statusTask = GetStatusCountsAsync(queryParams, cancellationToken);
         var priorityTask = GetPriorityCountsAsync(queryParams, cancellationToken);
         var categoryTask = GetCategoryCountsAsync(queryParams, cancellationToken);
+        var assignedUserTask = GetAssignedUserCountsAsync(queryParams, cancellationToken);
 
-        await Task.WhenAll(statusTask, priorityTask, categoryTask);
+        await Task.WhenAll(statusTask, priorityTask, categoryTask, assignedUserTask);
 
         var statusCounts = await statusTask;
         var priorityCounts = await priorityTask;
         var categoryCounts = await categoryTask;
+        var assignedUserCounts = await assignedUserTask;
 
-        // DB stores int — key the dictionary by enum int value
         return new DashboardSummaryDto
         {
             TotalRequests = statusCounts.Values.Sum(),
@@ -52,14 +54,17 @@ public class DashboardRepository : IDashboardRepository
             ResolvedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Resolved),
             ClosedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Closed),
             ByPriority = priorityCounts.ToList(),
-            ByCategory = categoryCounts.ToList()
+            ByCategory = categoryCounts.ToList(),
+            ByAssignedUser = assignedUserCounts.ToList()
         };
     }
 
     /// <summary>
     /// Returns counts per status as a dictionary keyed by int (enum value).
     /// </summary>
-    public async Task<IReadOnlyDictionary<int, int>> GetStatusCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyDictionary<int, int>> GetStatusCountsAsync(
+        DashboardQueryParams queryParams,
+        CancellationToken cancellationToken = default)
     {
         if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
 
@@ -72,9 +77,9 @@ public class DashboardRepository : IDashboardRepository
             GROUP BY sr.Status;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = await conn.QueryAsync(new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+        var rows = await conn.QueryAsync(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
 
-        // Status column is int in DB — cast directly, no string parsing
         return rows.ToDictionary(
             row => (int)row.Status,
             row => (int)row.Count
@@ -84,7 +89,9 @@ public class DashboardRepository : IDashboardRepository
     /// <summary>
     /// Returns counts grouped by priority.
     /// </summary>
-    public async Task<IReadOnlyList<PriorityCountDto>> GetPriorityCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PriorityCountDto>> GetPriorityCountsAsync(
+        DashboardQueryParams queryParams,
+        CancellationToken cancellationToken = default)
     {
         if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
 
@@ -98,7 +105,8 @@ public class DashboardRepository : IDashboardRepository
             ORDER BY sr.Priority ASC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = (await conn.QueryAsync(new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
+        var rows = (await conn.QueryAsync(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
 
         return rows.Select(row =>
         {
@@ -118,7 +126,9 @@ public class DashboardRepository : IDashboardRepository
     /// <summary>
     /// Returns counts grouped by category name ordered by count desc.
     /// </summary>
-    public async Task<IReadOnlyList<CategoryCountDto>> GetCategoryCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CategoryCountDto>> GetCategoryCountsAsync(
+        DashboardQueryParams queryParams,
+        CancellationToken cancellationToken = default)
     {
         if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
 
@@ -134,7 +144,8 @@ public class DashboardRepository : IDashboardRepository
             ORDER BY COUNT(1) DESC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = (await conn.QueryAsync(new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
+        var rows = (await conn.QueryAsync(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
 
         return rows.Select(row => new CategoryCountDto
         {
@@ -143,8 +154,53 @@ public class DashboardRepository : IDashboardRepository
         }).ToList();
     }
 
-    // Helper: build WHERE clause and DynamicParameters based on DashboardQueryParams
-    private static (string whereClause, DynamicParameters parameters) BuildWhereClause(DashboardQueryParams queryParams)
+    /// <summary>
+    /// Returns request counts grouped by assigned support user.
+    /// Only includes requests where AssignedTo is not null.
+    /// </summary>
+    public async Task<IReadOnlyList<AssignedUserCountDto>> GetAssignedUserCountsAsync(
+        DashboardQueryParams queryParams,
+        CancellationToken cancellationToken = default)
+    {
+        if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
+
+        var (where, parameters) = BuildWhereClause(queryParams);
+
+        // Extend WHERE to only include assigned requests
+        var extendedWhere = string.IsNullOrEmpty(where)
+            ? "WHERE sr.AssignedTo IS NOT NULL"
+            : where + " AND sr.AssignedTo IS NOT NULL";
+
+        var sql = $@"
+            SELECT
+                u.UserId   AS UserId,
+                u.FullName AS FullName,
+                COUNT(1)   AS Count
+            FROM ServiceRequests sr
+            INNER JOIN Users u ON sr.AssignedTo = u.UserId
+            {extendedWhere}
+            GROUP BY u.UserId, u.FullName
+            HAVING COUNT(1) > 0
+            ORDER BY COUNT(1) DESC;";
+
+        using var conn = _dapperContext.CreateConnection();
+        var rows = (await conn.QueryAsync(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
+
+        return rows.Select(row => new AssignedUserCountDto
+        {
+            UserId = (Guid)row.UserId,
+            FullName = row.FullName ?? string.Empty,
+            Count = (int)row.Count
+        }).ToList();
+    }
+
+    /// <summary>
+    /// Helper: builds WHERE clause and DynamicParameters from DashboardQueryParams.
+    /// Role scoping: only one of EmployeeId, AssignedToUserId, ManagerId is set by the handler.
+    /// </summary>
+    private static (string whereClause, DynamicParameters parameters) BuildWhereClause(
+        DashboardQueryParams queryParams)
     {
         var where = new List<string>();
         var parameters = new DynamicParameters();
@@ -177,7 +233,10 @@ public class DashboardRepository : IDashboardRepository
             parameters.Add("@ManagerId", queryParams.ManagerId.Value);
         }
 
-        var whereClause = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : string.Empty;
+        var whereClause = where.Count > 0
+            ? "WHERE " + string.Join(" AND ", where)
+            : string.Empty;
+
         return (whereClause, parameters);
     }
 }

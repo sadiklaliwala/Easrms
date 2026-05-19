@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import {
   Bar,
   BarChart,
@@ -20,25 +20,37 @@ interface AppCategoryChartProps {
 
 const AppCategoryChart = ({ data }: AppCategoryChartProps) => {
   return (
-    <Box>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-        Requests by Category
-      </Typography>
-      <ResponsiveContainer width="100%" height={250}>
+    <Box sx={{ width: "100%", height: 250 }}>
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 5, right: 20, left: 80, bottom: 5 }}
+          margin={{ top: 5, right: 5, left: 15, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <XAxis
+            type="number"
+            allowDecimals={false}
+            tick={{ fontSize: 11, fill: "#64748b" }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis
             type="category"
             dataKey="categoryName"
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 11, fill: "#64748b" }}
+            axisLine={false}
+            tickLine={false}
+            width={75}
           />
-          <Tooltip />
-          <Bar dataKey="count" fill="#9c27b0" radius={[0, 4, 4, 0]} />
+          <Tooltip
+            contentStyle={{
+              borderRadius: 8,
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+            }}
+          />
+          <Bar dataKey="count" fill="#0f172a" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </Box>

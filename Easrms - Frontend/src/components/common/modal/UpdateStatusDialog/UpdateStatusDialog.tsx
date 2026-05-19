@@ -87,8 +87,8 @@ const UpdateStatusDialog = ({
     >
       <DialogContent sx={{ px: 0, pt: 1 }}>
         <Typography
+          variant="body2"
           sx={{
-            variant: "body2",
             color: "text.secondary",
             mb: 2,
           }}

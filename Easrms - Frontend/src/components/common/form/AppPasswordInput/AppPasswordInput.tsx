@@ -20,7 +20,7 @@ const AppPasswordInput = ({
 
   return (
     <TextField
-      label={label}
+      // label={label}
       type={show ? "text" : "password"}
       fullWidth
       slotProps={{

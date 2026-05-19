@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import {
   Cell,
   Legend,
@@ -18,18 +18,15 @@ interface AppPriorityChartProps {
 }
 
 const COLORS: Record<string, string> = {
-  Low: "#4caf50",
-  Medium: "#ff9800",
-  High: "#f44336",
+  Low: "#10b981", // Emerald 500
+  Medium: "#f59e0b", // Amber 500
+  High: "#ef4444", // Red 500
 };
 
 const AppPriorityChart = ({ data }: AppPriorityChartProps) => {
   return (
-    <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, ml: 2 }}>
-        Requests by Priority
-      </Typography>
-      <ResponsiveContainer width="100%" height={250}>
+    <Box sx={{ width: "100%", height: 250 }}>
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
@@ -37,15 +34,22 @@ const AppPriorityChart = ({ data }: AppPriorityChartProps) => {
             nameKey="priority"
             cx="50%"
             cy="50%"
+            innerRadius={60}
             outerRadius={80}
-            label
+            paddingAngle={4}
           >
             {data.map((entry, index) => (
-              <Cell key={index} fill={COLORS[entry.priority] ?? "#8884d8"} />
+              <Cell key={index} fill={COLORS[entry.priority] ?? "#cbd5e1"} />
             ))}
           </Pie>
-          <Tooltip />
-          <Legend />
+          <Tooltip
+            contentStyle={{
+              borderRadius: 8,
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+            }}
+          />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
         </PieChart>
       </ResponsiveContainer>
     </Box>

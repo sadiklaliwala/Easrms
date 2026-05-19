@@ -1,0 +1,599 @@
+Project 1 Requirement Package
+
+Employee Asset & Service Request Management System
+
+Document Field
+
+Details
+
+Audience
+
+Interns, Evaluators, Senior Tech Lead, Project Coordinator
+
+Technology Stack
+
+.NET 8 Web API, EF Core/Dapper, SQL Server, React, TypeScript/JavaScript, Git
+
+Duration
+
+15 working days including planning, development, CR handling, testing and demo
+
+Purpose
+
+Simulate a real-world project to evaluate development quality, ownership, estimation, communication and delivery behavior
+
+Important Rule
+
+Interns must prepare tasks, estimates, technical design, implementation, testing evidence and final demo artifacts.
+
+1. Statement of Work (SOW)
+
+The objective is to design and develop an internal enterprise-style portal where employees can raise asset and service requests, managers can approve eligible requests, admins can manage categories and assignments, and support users can resolve assigned requests. The project is intentionally scoped for a 15-day live project simulation but must be approached with real project discipline.
+
+Scope Area
+
+Description
+
+Business Objective
+
+Improve tracking of employee asset/service requests with transparent status, ownership and approval flow.
+
+Primary Users
+
+Employee, Manager, Admin, Support User
+
+In Scope
+
+Authentication simulation, role-based navigation, request creation, request listing/detail, category management, approval flow, support assignment, status tracking, dashboard, audit trail, CR implementation.
+
+Out of Scope
+
+Real SSO integration, production email/SMS, file storage in cloud, complex reporting engine, background workers unless implemented optionally.
+
+Deliverables
+
+Working React app, .NET API, SQL database schema/scripts, API collection, technical design notes, test cases, demo script, final code repository.
+
+Constraints
+
+Complete in 15 working days, follow Git discipline, submit impact analysis before implementing CR, demonstrate working flows.
+
+2. SRS - Software Requirement Specification
+
+Role
+
+Permissions
+
+Employee
+
+Create request, view own requests, view request status and comments.
+
+Manager
+
+View team requests requiring approval, approve/reject, view dashboard summary.
+
+Admin
+
+Manage users/categories, assign support users, view all requests, update priority, access dashboard.
+
+Support User
+
+View assigned requests, update status, add resolution comments.
+
+Functional Area
+
+Requirement
+
+Login & Roles
+
+System should allow role-based access using seeded users or JWT-based authentication.
+
+Category Management
+
+Admin can create, edit, activate/deactivate request categories.
+
+Request Creation
+
+Employee can raise request with category, priority, description and optional attachment placeholder.
+
+Approval Flow
+
+Requests marked approval-required should go to manager before support assignment.
+
+Assignment
+
+Admin can assign approved/open requests to support users.
+
+Status Tracking
+
+Request status should move through Open, Pending Approval, Approved, Rejected, Assigned, In Progress, Resolved, Closed.
+
+Comments
+
+Manager/support/admin can add comments on request detail.
+
+Dashboard
+
+Role-based summary with request counts by status and priority.
+
+Audit Trail
+
+Important actions should be stored in status/history table.
+
+Non-Functional Requirement
+
+Expected Standard
+
+Security
+
+Role-based API authorization should be implemented or simulated cleanly. Sensitive data should not be exposed unnecessarily.
+
+Validation
+
+All required fields validated on frontend and backend.
+
+Error Handling
+
+Consistent error response model. No raw exception messages shown to users.
+
+Performance
+
+Listing APIs should support pagination/search/filter.
+
+Maintainability
+
+Layered backend and reusable React components.
+
+Logging
+
+API errors and important actions should be logged using a standard approach.
+
+Testing
+
+Interns should provide test cases and evidence for primary flows and CR regression.
+
+3. Modules and User Stories
+
+ID
+
+Title
+
+User Story
+
+Priority
+
+Acceptance Criteria Summary
+
+US-01
+
+Login and role-based landing
+
+As a user, I want to login and see role-specific menus, so that I can access only relevant functionality.
+
+High
+
+Valid login, invalid login, role-based menus, token/session handling.
+
+US-02
+
+Admin category management
+
+As an Admin, I want to manage request categories, so that employees can classify requests correctly.
+
+High
+
+Create/edit/list/activate/deactivate categories with validation.
+
+US-03
+
+Employee request creation
+
+As an Employee, I want to raise an asset/service request, so that my issue can be tracked.
+
+High
+
+Required fields, category, priority, description, generated request number.
+
+US-04
+
+Employee request tracking
+
+As an Employee, I want to view my requests and status, so that I know progress.
+
+High
+
+List with filters, detail view, comments/status history.
+
+US-05
+
+Manager approval
+
+As a Manager, I want to approve/reject approval-based requests, so that only valid requests proceed.
+
+High
+
+Approve/reject with comments; status history updated.
+
+US-06
+
+Admin assignment
+
+As an Admin, I want to assign requests to support users, so that ownership is clear.
+
+High
+
+Assign eligible requests, show assignee, prevent invalid assignment.
+
+US-07
+
+Support resolution
+
+As a Support User, I want to update assigned request status, so that work progress is visible.
+
+High
+
+Update In Progress/Resolved, add resolution note.
+
+US-08
+
+Dashboard
+
+As an Admin/Manager, I want request summary metrics, so that I can monitor workload.
+
+Medium
+
+Counts by status, priority, category and assigned user.
+
+US-09
+
+Search/filter/pagination
+
+As a user, I want to search and filter requests, so that I can find records quickly.
+
+Medium
+
+Search by request number, status, category, priority; pagination.
+
+US-10
+
+Audit trail
+
+As an Admin, I want status history, so that request actions are traceable.
+
+Medium
+
+History for create, approval, assignment, status changes, close.
+
+4. Wireframe Requirements
+
+Screen
+
+Main Elements
+
+Expected Behavior
+
+Login
+
+Email, password, login button, validation messages
+
+On successful login redirect by role. Show clean validation messages.
+
+Employee Dashboard
+
+My open requests, resolved requests, create request button, recent activity
+
+Employee sees only own data.
+
+Create Request
+
+Category, priority, title, description, optional attachment placeholder
+
+Submit creates request and shows generated request number.
+
+Request List
+
+Filters, grid columns, status badges, action buttons
+
+Role-based data visibility; pagination required.
+
+Request Detail
+
+Request data, comments, status history, action buttons
+
+Available actions change by role and status.
+
+Manager Approval Queue
+
+Pending approvals list, approve/reject popup
+
+Comment mandatory on rejection.
+
+Admin Category Master
+
+Category list, add/edit popup, active flag
+
+Validation and duplicate prevention.
+
+Admin Assignment Screen
+
+Unassigned requests, support user dropdown, assign button
+
+Only eligible requests can be assigned.
+
+Support My Tasks
+
+Assigned requests, due/status, update status action
+
+Support user can update assigned requests only.
+
+Dashboard
+
+Cards/charts for status, priority, category
+
+Role-specific metrics.
+
+5. TDD - Technical Design Document
+
+Recommended backend structure: API Controllers, Application Services, Domain/Entities, Infrastructure/Repositories, DTOs/ViewModels, Validators, Middleware, Common response/error models. Recommended frontend structure: pages, components, services/api clients, hooks, context/store, routes, utils and validation schemas.
+
+Layer/Area
+
+Design Expectation
+
+Backend Architecture
+
+Layered .NET 8 Web API with controller-service-repository separation. Clean Architecture is preferred if interns are trained for it.
+
+Authentication
+
+JWT or simulated token-based login with role claims.
+
+Database
+
+SQL Server with normalized tables, FK relationships, audit fields, status history.
+
+Validation
+
+DTO-level validation and frontend validation.
+
+Exception Handling
+
+Global exception middleware returning common error response.
+
+API Documentation
+
+Swagger/OpenAPI enabled. API collection optional but recommended.
+
+React Architecture
+
+Route-based pages, reusable form/grid components, service layer for API calls.
+
+State Management
+
+Local state or context/store depending on complexity. Loading/error states mandatory.
+
+Git
+
+Feature branches, meaningful commits, PR/code review comments.
+
+Table
+
+Key Columns
+
+Users
+
+UserId, FullName, Email, PasswordHash/Password, RoleId, ManagerId, IsActive, CreatedOn
+
+Roles
+
+RoleId, RoleName
+
+RequestCategory
+
+CategoryId, CategoryName, IsApprovalRequired, IsActive, CreatedOn, UpdatedOn
+
+ServiceRequest
+
+RequestId, RequestNumber, EmployeeId, CategoryId, Title, Description, Priority, Status, AssignedTo, CreatedOn, UpdatedOn, ClosedOn
+
+RequestComment
+
+CommentId, RequestId, CommentBy, CommentText, CreatedOn
+
+RequestStatusHistory
+
+HistoryId, RequestId, OldStatus, NewStatus, ChangedBy, ChangedOn, Remarks
+
+API
+
+Method/Route
+
+Purpose
+
+Login
+
+POST /api/auth/login
+
+Authenticate user and return token/user details.
+
+Categories
+
+GET/POST/PUT /api/categories
+
+Manage request categories.
+
+Create Request
+
+POST /api/requests
+
+Create employee request.
+
+List Requests
+
+GET /api/requests?status=&category=&page=
+
+Role-based request listing with filters.
+
+Request Detail
+
+GET /api/requests/{id}
+
+View request details, comments and history.
+
+Approve/Reject
+
+POST /api/requests/{id}/approval
+
+Manager approval action.
+
+Assign
+
+POST /api/requests/{id}/assign
+
+Admin assigns request to support user.
+
+Update Status
+
+POST /api/requests/{id}/status
+
+Support/admin status update.
+
+Dashboard
+
+GET /api/dashboard/summary
+
+Role-based dashboard metrics.
+
+15-Day Live Project Simulation Plan
+
+Day
+
+Primary Activity
+
+Expected Output / Evidence
+
+Day 1
+
+Requirement walkthrough, SOW/SRS review, clarification round
+
+Clarification log, understanding notes, initial risk list
+
+Day 2
+
+Task breakdown and estimation
+
+Task sheet with estimates, dependencies, assumptions, planned delivery order
+
+Day 3
+
+Technical design
+
+DB design, API contracts, React routing/component plan, architecture notes
+
+Day 4
+
+Base setup
+
+Git repository, branch strategy, solution structure, DB migration/init script, React shell
+
+Day 5-6
+
+Core module development
+
+Primary CRUD, validations, listing/detail screens, API integration
+
+Day 7
+
+First review
+
+Demo of completed scope, review comments, defect list, revised plan
+
+Day 8
+
+Mid-project Change Request introduced
+
+Formal CR document received and analyzed before coding
+
+Day 9
+
+CR impact analysis and re-estimation
+
+Affected modules, updated DB/API/UI plan, revised estimates, questions
+
+Day 10-11
+
+CR implementation
+
+CR functionality, updated tests, regression fixes
+
+Day 12
+
+Integration and testing
+
+End-to-end testing, bug fixes, test evidence
+
+Day 13
+
+Regression, cleanup and code review closure
+
+Review comment closure, validation, logging, exception handling
+
+Day 14
+
+Demo preparation and documentation
+
+Demo script, deployment notes, known issues, final checklist
+
+Day 15
+
+Final demo and evaluation
+
+Working demo, Q&A, code walkthrough, evaluator scorecard
+
+The CR must be introduced on Day 8 and treated as mandatory. Interns should not start coding the CR until they submit impact analysis and revised estimates.
+
+Evaluator Focus Areas
+
+Area
+
+What to Observe
+
+Requirement Understanding
+
+Do they ask meaningful questions? Do they translate SOW/SRS into tasks correctly?
+
+Estimation
+
+Are estimates realistic? Do they identify dependencies and risks?
+
+Architecture
+
+Do they create a maintainable API, service, repository and frontend structure?
+
+Code Quality
+
+Clean code, naming, validation, error handling, reusable components, low duplication
+
+Database Design
+
+Proper normalization, relationships, required fields, status history, audit fields
+
+API Quality
+
+RESTful design, proper response models, HTTP status handling, validation, exception strategy
+
+Frontend Quality
+
+Wireframe alignment, responsive layout, component structure, state handling, UX feedback
+
+Testing
+
+Manual test cases, API testing, regression after CR, bug tracking
+
+CR Handling
+
+Impact analysis before coding, communication, re-estimation, careful regression
+
+Behavior
+
+Ownership, dedication, response to pressure, communication, collaboration

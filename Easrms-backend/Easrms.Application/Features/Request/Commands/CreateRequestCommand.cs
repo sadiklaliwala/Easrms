@@ -3,6 +3,7 @@ using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Common.Helpers;
 using Easrms.Domain.Entities;
+using Easrms.Infrastructure.Services;
 using MediatR;
 
 namespace Easrms.Application.Features.Request.Commands;
@@ -45,15 +46,23 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
     private readonly IRequestRepository _requestRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ICommentRepository _commentRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IEmailService _emailService;
 
     public CreateRequestCommandHandler(
         IRequestRepository requestRepository,
         ICategoryRepository categoryRepository,
-        ICommentRepository commentRepository)
+        ICommentRepository commentRepository,
+        IUserRepository userRepository,
+        IEmailService emailService
+    )
     {
         _requestRepository = requestRepository;
         _categoryRepository = categoryRepository;
         _commentRepository = commentRepository;
+        _userRepository = userRepository;
+        _emailService = emailService;
+
     }
 
     public async Task<string> Handle(
@@ -81,9 +90,9 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
 
         // 3. Determine initial status from category approval flag
         var initialStatus = category.IsApprovalRequired
-            ? StatusConstants.PendingApproval
-            : StatusConstants.Open;
-
+    ? RequestStatusEnum.PendingApproval
+    : RequestStatusEnum.Open;
+        Console.WriteLine(initialStatus);
         // 4. Build entity
         var entity = new ServiceRequest
         {
@@ -94,12 +103,12 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             Title = request.Title,
             Description = request.Description,
             Priority = request.Priority,
-            Status = RequestStatusEnum.Open,
+            Status = initialStatus,
             CreatedOn = DateTime.UtcNow
         };
-
+        Console.WriteLine(entity.Status);
         await _requestRepository.AddAsync(entity, cancellationToken);
-
+        Console.WriteLine(entity.Status);
         // 5. Seed the first history entry — OldStatus is null on creation
         var history = new RequestStatusHistory
         {
@@ -117,6 +126,21 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
         // 6. Single SaveChanges — both AddAsync and AddStatusHistoryAsync share
         //    the same DbContext instance, so one commit covers both inserts
         await _requestRepository.SaveChangesAsync(cancellationToken);
+
+        // 6. Fire-and-forget email — runs after response is already on its way
+        //    We capture what we need; do NOT pass DbContext or scoped services into the lambda.
+        var employeeEmail = (await _userRepository.GetByIdAsync(request.CurrentUserId))?.Email;
+        if (!string.IsNullOrWhiteSpace(employeeEmail))
+        {
+            var capturedEmail = employeeEmail;
+            var capturedNumber = requestNumber;
+            var capturedTitle = request.Title;
+
+            //_ = Task.Run(async () =>
+            //{
+                await _emailService.SendRequestOpenedAsync(capturedEmail, capturedNumber, capturedTitle);
+            //}, CancellationToken.None); // CancellationToken.None so it is NOT cancelled when the request ends
+        }
 
         // 7. Return the human-readable number — controller wraps in 201
         return requestNumber;

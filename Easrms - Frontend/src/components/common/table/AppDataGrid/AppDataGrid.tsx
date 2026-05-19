@@ -7,7 +7,6 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Typography,
 } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import AppEmptyState from "../../../common/feedback/AppEmptyState";
@@ -57,10 +56,10 @@ function AppDataGrid<T>({
   });
 
   return (
-    <TableContainer component={Paper} elevation={1}>
+    <TableContainer component={Paper} elevation={0}>
       <Table size="small">
         <TableHead>
-          <TableRow sx={{ bgcolor: "grey.50" }}>
+          <TableRow>
             {columns.map((col) => (
               <TableCell
                 key={String(col.key)}
@@ -73,24 +72,10 @@ function AppDataGrid<T>({
                     direction={orderBy === String(col.key) ? order : "asc"}
                     onClick={() => handleSort(String(col.key))}
                   >
-                    <Typography
-                      sx={{
-                        variant: "body2",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {col.label}
-                    </Typography>
+                    {col.label}
                   </TableSortLabel>
                 ) : (
-                  <Typography
-                    sx={{
-                      variant: "body2",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {col.label}
-                  </Typography>
+                  col.label
                 )}
               </TableCell>
             ))}
@@ -109,7 +94,10 @@ function AppDataGrid<T>({
                 key={String(row[keyField])}
                 hover
                 onClick={() => onRowClick?.(row)}
-                sx={{ cursor: onRowClick ? "pointer" : "default" }}
+                sx={{
+                  cursor: onRowClick ? "pointer" : "default",
+                  transition: "background-color 0.15s ease-in-out",
+                }}
               >
                 {columns.map((col) => (
                   <TableCell key={String(col.key)}>

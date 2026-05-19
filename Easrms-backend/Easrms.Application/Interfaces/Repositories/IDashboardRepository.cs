@@ -2,11 +2,13 @@
 
 // Easrms.Infrastructure/Repositories/Implementations/DashboardRepository.cs
 using Easrms.Application.DTOs.Dashboard;
+using Easrms.Application.Features.Dashboard.Queries;
 
 namespace Easrms.Application.Interfaces.Repositories
 {
     public interface IDashboardRepository
     {
+        Task<IReadOnlyList<AssignedUserCountDto>> GetAssignedUserCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<CategoryCountDto>> GetCategoryCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<PriorityCountDto>> GetPriorityCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
         Task<IReadOnlyDictionary<int, int>> GetStatusCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);

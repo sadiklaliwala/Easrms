@@ -38,15 +38,22 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
   return (
     <AppBar
       position="fixed"
-      elevation={1}
-      sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      elevation={0}
+      sx={{
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        bgcolor: "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(8px)",
+        color: "text.primary",
+        borderBottom: "1px solid",
+        borderColor: "divider",
+      }}
     >
       <Toolbar>
         <IconButton
           color="inherit"
           edge="start"
           onClick={onMenuToggle}
-          sx={{ mr: 2 }}
+          sx={{ mr: 2, color: "text.secondary" }}
         >
           <MenuIcon />
         </IconButton>
@@ -55,6 +62,8 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
           sx={{
             fontWeight: 700,
             flexGrow: 1,
+            color: "primary.main",
+            letterSpacing: "-0.01em",
           }}
         >
           EASRMS
@@ -78,7 +87,7 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
             >
               {fullName}
             </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8 }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 500 }}>
               {roleName}
             </Typography>
           </Box>
