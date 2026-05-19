@@ -1,5 +1,5 @@
 import { Step, StepLabel, Stepper } from "@mui/material";
-import { STATUS } from "../../../constants/status.constants";
+import { STATUS, type StatusType } from "../../../constants/status.constants";
 
 const STATUS_STEPS = [
   STATUS.OPEN,
@@ -12,7 +12,7 @@ const STATUS_STEPS = [
 ];
 
 interface RequestStatusStepperProps {
-  currentStatus: string;
+  currentStatus: StatusType;
 }
 
 const RequestStatusStepper = ({ currentStatus }: RequestStatusStepperProps) => {

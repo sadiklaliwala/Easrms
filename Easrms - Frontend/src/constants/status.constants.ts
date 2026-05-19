@@ -16,18 +16,18 @@ export const STATUS_OPTIONS = Object.values(STATUS).map((s) => ({
   value: s,
 }));
 
-export const STATUS_ENUM: Record<string, number> = {
-  Open: 1,
-  PendingApproval: 2,
-  Approved: 3,
-  Rejected: 4,
-  Assigned: 5,
-  InProgress: 6,
-  Resolved: 7,
-  Closed: 8,
+export const STATUS_ENUM: Record<StatusType, number> = {
+  [STATUS.OPEN]: 1,
+  [STATUS.PENDING_APPROVAL]: 2,
+  [STATUS.APPROVED]: 3,
+  [STATUS.REJECTED]: 4,
+  [STATUS.ASSIGNED]: 5,
+  [STATUS.IN_PROGRESS]: 6,
+  [STATUS.RESOLVED]: 7,
+  [STATUS.CLOSED]: 8,
 };
 
-export const STATUS_ENUM_REVERSE: Record<number, string> = {
+export const STATUS_ENUM_REVERSE: Record<number, StatusType> = {
   1: STATUS.OPEN,
   2: STATUS.PENDING_APPROVAL,
   3: STATUS.APPROVED,

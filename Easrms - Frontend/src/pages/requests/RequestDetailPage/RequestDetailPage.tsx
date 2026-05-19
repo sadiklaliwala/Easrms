@@ -38,7 +38,10 @@ import CloseRequestDialog from "../../../components/common/modal/CloseRequestDia
 
 import type { ApprovalRequestDto } from "../../../types/request.types";
 import type { AddCommentDto } from "../../../types/comment.types";
-import { STATUS_ENUM_REVERSE } from "../../../constants/status.constants";
+import {
+  STATUS_ENUM_REVERSE,
+  type StatusType,
+} from "../../../constants/status.constants";
 import {
   // PRIORITY_ENUM_REVERSE
   PRIORITY_LABEL,
@@ -194,7 +197,7 @@ const RequestDetailPage = () => {
       {/* Status Stepper */}
       <AppCard>
         <RequestStatusStepper
-          currentStatus={STATUS_ENUM_REVERSE[request.status].toString()}
+          currentStatus={STATUS_ENUM_REVERSE[request.status] as StatusType}
         />
       </AppCard>
 

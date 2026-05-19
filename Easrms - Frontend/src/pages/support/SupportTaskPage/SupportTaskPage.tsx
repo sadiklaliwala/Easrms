@@ -134,8 +134,8 @@ const SupportTaskPage = () => {
               label: "View Details",
               onClick: () => navigate(`/requests/${row.requestId}`),
             },
-            ...(row.status === STATUS_ENUM.ASSIGNED ||
-            row.status === STATUS_ENUM.IN_PROGRESS
+            ...(row.status === STATUS_ENUM.Assigned ||
+            row.status === STATUS_ENUM["In Progress"]
               ? [
                   {
                     label: "Update Status",
@@ -212,7 +212,9 @@ const SupportTaskPage = () => {
           setStatusOpen(false);
           setSelectedRequest(null);
         }}
-        currentStatus={selectedRequest ? STATUS_ENUM_REVERSE[selectedRequest.status] : ""}
+        currentStatus={
+          selectedRequest ? STATUS_ENUM_REVERSE[selectedRequest.status] : ""
+        }
         onUpdate={handleStatusUpdate}
         isSubmitting={updatingStatus}
       />
