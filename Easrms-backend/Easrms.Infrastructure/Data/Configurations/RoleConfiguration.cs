@@ -20,7 +20,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             new Role { RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7043"), RoleName = "Admin" },
             new Role { RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7044"), RoleName = "Manager" },
             new Role { RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7045"), RoleName = "Employee" },
-            new Role { RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7046"), RoleName = "Support User" }
+            new Role { RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7046"), RoleName = "Support" }
         );
     }
 }

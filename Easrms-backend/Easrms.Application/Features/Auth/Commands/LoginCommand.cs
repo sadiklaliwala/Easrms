@@ -54,18 +54,21 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         if (!PasswordHelper.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Invalid email or password.");
 
-        //4. genrate AccessToken and RefreshToken here, so that we can set them in the response DTO before returning to controller. This way, we avoid having to set them in the controller later
-        //and keeps the logic related to token generation within the handler where it belongs.
-        
         var AccessToken = _jwtService.GenerateAccessToken(user);
         var RefreshToken = _jwtService.GenerateRefreshToken();
         _jwtService.SetTokenCookie(AccessToken);
+        _jwtService.SetRefreshTokenCookie(RefreshToken);
         user.RefreshToken = RefreshToken;
         user.RefreshTokenExpiryOn = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
         // 5. Stamp LastLoginOn — direct ExecuteUpdateAsync, no SaveChanges needed
-        await _userRepository.UpdateRefreshTokenAsync(user.UserId, RefreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
-        await _userRepository.UpdateLastLoginAsync(user.UserId, cancellationToken);
-        // 6. Map → DTO. AccessToken + RefreshToken populated by controller.
+        //await _userRepository.UpdateRefreshTokenAsync(user.UserId, RefreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+        //await _userRepository.UpdateLastLoginAsync(user.UserId, cancellationToken);
+
+        await _userRepository.UpdateLoginMetaAsync(
+            user.UserId,
+            RefreshToken,
+            DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays),
+            cancellationToken);
 
         return new LoginResponseDto
         {
@@ -73,9 +76,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             FullName = user.FullName,
             Email = user.Email,
             RoleName = user.Role.RoleName,
-            ManagerId = user.ManagerId,
-            //AccessToken = AccessToken,
-            //RefreshToken = RefreshToken
+            ManagerId = user.ManagerId,           
         };
     }
 }

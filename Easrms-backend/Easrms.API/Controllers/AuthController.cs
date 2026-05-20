@@ -1,9 +1,10 @@
-﻿using Easrms.Application.Features.Auth.Commands;
+﻿using Easrms.Application.DTOs.Auth;
+using Easrms.Application.Features.Auth.Commands;
 using Easrms.Application.Features.Auth.Queries;
-using Easrms.Application.DTOs.Auth;
 using Easrms.Common.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -89,35 +90,27 @@ public class AuthController : ControllerBase
 
     // POST /api/auth/refresh-token
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken(
-        [FromBody] RefreshTokenRequestDto dto,
-        CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RefreshToken(CancellationToken ct)
     {
-        var command = new RefreshTokenCommand
-        {
-            RefreshToken = dto.RefreshToken
-        };
+        var refreshToken = Request.Cookies["CookieNameRefresh"]; // pick a name
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return Unauthorized(ApiResponse<object>.FailResponse("Missing refresh token.", 401));
 
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await _mediator.Send(new RefreshTokenCommand { RefreshToken = refreshToken }, ct);
 
-        return Ok(new ApiResponse<object>
-        {
-            Success = true,
-            StatusCode = 200,
-            Message = "Token refreshed successfully.",
-            Data = result,
-            Errors = null
-        });
+        return Ok(ApiResponse<object>.SuccessResponse(result, "Token refreshed successfully."));
     }
 
     // POST /api/auth/revoke-token
     [HttpPost("revoke-token")]
     [Authorize]
-    public async Task<IActionResult> RevokeToken(
-        [FromBody] RevokeTokenRequestDto dto,
-        CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RevokeToken(CancellationToken cancellationToken = default)
     {
-        var command = new RevokeTokenCommand { RefreshToken = dto.RefreshToken };
+        var refreshToken = Request.Cookies["easrms_access_token_refresh"]; // pick a name
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return Unauthorized(ApiResponse<object>.FailResponse("Missing refresh token.", 401));
+
+        var command = new RevokeTokenCommand { RefreshToken = refreshToken };
 
         await _mediator.Send(command, cancellationToken);
 

@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
-import { type StatusHistoryDto } from "../../../types/comment.types";
 import { formatDate } from "../../../utils/formatDate";
+import { STATUS_ENUM_REVERSE } from "../../../constants/status.constants";
+import type { StatusHistoryDto } from "../../../types/common.types";
 
 interface RequestHistoryTimelineProps {
   history: StatusHistoryDto[];
@@ -105,7 +106,7 @@ const RequestHistoryTimeline = ({ history }: RequestHistoryTimelineProps) => {
                     mb: 0.5,
                   }}
                 >
-                  {item.oldStatus ? (
+                  {item.oldStatus !== null && item.oldStatus !== undefined ? (
                     <>
                       <Typography
                         variant="caption"
@@ -118,7 +119,9 @@ const RequestHistoryTimeline = ({ history }: RequestHistoryTimelineProps) => {
                           fontWeight: 500,
                         }}
                       >
-                        {item.oldStatus}
+                        {item.oldStatus !== null && item.oldStatus !== undefined
+                          ? STATUS_ENUM_REVERSE[item.oldStatus]
+                          : "N/A"}
                       </Typography>
                       <Typography
                         variant="caption"
@@ -137,7 +140,7 @@ const RequestHistoryTimeline = ({ history }: RequestHistoryTimelineProps) => {
                           fontWeight: 600,
                         }}
                       >
-                        {item.newStatus}
+                        {STATUS_ENUM_REVERSE[item.newStatus as number]}
                       </Typography>
                     </>
                   ) : (
@@ -152,7 +155,7 @@ const RequestHistoryTimeline = ({ history }: RequestHistoryTimelineProps) => {
                         fontWeight: 600,
                       }}
                     >
-                      {item.newStatus}
+                      {STATUS_ENUM_REVERSE[item.newStatus as number]}
                     </Typography>
                   )}
                 </Box>

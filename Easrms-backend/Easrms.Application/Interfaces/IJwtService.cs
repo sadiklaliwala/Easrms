@@ -43,20 +43,7 @@ public interface IJwtService
     /// <returns>A Base64-encoded random refresh token string.</returns>
     string GenerateRefreshToken();
 
-    /// <summary>
-    /// Validates the signature and structure of a JWT access token and extracts its claims.
-    /// IMPORTANT: This method deliberately does NOT validate token expiry —
-    /// it is used specifically during the refresh-token flow where the access token
-    /// is expected to be expired. Lifetime validation is skipped intentionally.
-    /// Returns null if the token signature is invalid or the token is malformed.
-    /// </summary>
-    /// <param name="accessToken">The expired or active JWT access token string.</param>
-    /// <returns>
-    /// A <see cref="ClaimsPrincipal"/> containing the token's claims if valid;
-    /// null if the token cannot be validated.
-    /// </returns>
-    ClaimsPrincipal? GetPrincipalFromExpiredToken(string accessToken);
-
+    
     /// <summary>
     /// Writes the JWT access token into an HttpOnly, Secure, SameSite=Strict cookie
     /// on the HTTP response. The cookie name is driven by JwtSettings.CookieName.
@@ -74,27 +61,23 @@ public interface IJwtService
     void ClearTokenCookie();
 
     /// <summary>
-    /// Extracts the authenticated user's ID from the current HTTP request's JWT claims.
-    /// Reads the NameIdentifier claim embedded during token generation.
-    /// Throws <see cref="UnauthorizedAccessException"/> if the claim is missing or unparseable —
-    /// this should never happen on a correctly authenticated request.
+    /// Writes the refresh token into an HttpOnly, Secure, SameSite=Strict cookie
+    /// on the HTTP response. The cookie name is driven by JwtSettings.RefreshCookieName.
+    /// Cookie expiry matches the refresh token expiry (persisted on the User entity).
+    /// HttpOnly = true ensures the token is inaccessible from JavaScript.
     /// </summary>
-    /// <returns>The current user's <see cref="Guid"/> UserId.</returns>
-    Guid GetCurrentUserId();
+    /// <param name="token">The refresh token string to store in the cookie.</param>
+    void SetRefreshTokenCookie(string token);
 
     /// <summary>
-    /// Extracts the authenticated user's role name from the current HTTP request's JWT claims.
-    /// Reads the Role claim embedded during token generation.
-    /// Returns null if the role claim is not present (should not happen on authenticated requests).
+    /// Reads the refresh token from the HTTP request's cookies.
+    /// Uses the cookie name configured in JwtSettings.RefreshCookieName.
+    /// Returns null if the cookie is not present or cannot be parsed.
     /// </summary>
-    /// <returns>The current user's role name string, or null if claim is absent.</returns>
-    string? GetCurrentUserRole();
-
-    /// <summary>
-    /// Extracts the authenticated user's ManagerId from the current HTTP request's JWT claims.
-    /// Returns null if the user has no manager (Admin, top-level Manager).
-    /// Used by the approval handler to verify the caller is the employee's direct manager.
-    /// </summary>
-    /// <returns>The current user's ManagerId as <see cref="Guid"/>, or null if not set.</returns>
-    Guid? GetCurrentUserManagerId();
+    /// <returns>
+    /// The refresh token string if the cookie is present and valid;
+    /// null if the cookie is not set or invalid.
+    /// </returns>
+    string? GetRefreshTokenFromCookie();
+    void ClearRefreshTokenCookie();
 }

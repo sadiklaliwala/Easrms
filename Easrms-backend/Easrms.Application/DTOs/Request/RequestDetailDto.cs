@@ -20,5 +20,11 @@ public class RequestDetailDto
     public DateTime? ResolvedOn { get; set; }
     public DateTime? ClosedOn { get; set; }
     public string? RejectionReason { get; set; }
+    public DateTime? DueDate { get; set; }
+    public string SLAStatus { get; set; } = string.Empty;
+    public bool IsEscalated { get; set; }
+    public DateTime? EscalatedOn { get; set; }
+    public string? EscalatedByName { get; set; }
+    public string? EscalationReason { get; set; }
 }
 

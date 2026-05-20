@@ -135,7 +135,7 @@ const SupportTaskPage = () => {
               onClick: () => navigate(`/requests/${row.requestId}`),
             },
             ...(row.status === STATUS_ENUM.Assigned ||
-            row.status === STATUS_ENUM["In Progress"]
+            row.status === STATUS_ENUM.InProgress
               ? [
                   {
                     label: "Update Status",

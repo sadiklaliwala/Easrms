@@ -12,6 +12,8 @@ public sealed class CreateCategoryCommand : IRequest<Guid>
 {
     public string CategoryName { get; init; } = string.Empty;
     public bool IsApprovalRequired { get; init; }
+
+    public int SLAHours { get; set; }
 }
 
 
@@ -46,6 +48,9 @@ public sealed class CreateCategoryCommandHandler : IRequestHandler<CreateCategor
             throw new InvalidOperationException(
                 $"A category named '{request.CategoryName}' already exists.");
 
+        if (request.SLAHours <= 0)
+            throw new InvalidOperationException("SLA hours must be positive.");
+
         // 2. Build entity
         var category = new RequestCategory
         {
@@ -53,7 +58,8 @@ public sealed class CreateCategoryCommandHandler : IRequestHandler<CreateCategor
             CategoryName = request.CategoryName,
             IsApprovalRequired = request.IsApprovalRequired,
             IsActive = true,
-            CreatedOn = DateTime.UtcNow
+            CreatedOn = DateTime.UtcNow,
+            SLAHours = request.SLAHours,
         };
 
         // 3. Persist

@@ -246,6 +246,16 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
             .Where(u => u.UserId == userId)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.IsActive, u => !u.IsActive), cancellationToken);
     }
+    public async Task UpdateLoginMetaAsync(Guid userId, string refreshToken, DateTime expiryOn, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.Users
+            .Where(u => u.UserId == userId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.RefreshToken, u => refreshToken)
+                .SetProperty(u => u.RefreshTokenExpiryOn, u => expiryOn.ToUniversalTime())
+                .SetProperty(u => u.LastLoginOn, u => DateTime.UtcNow),
+            cancellationToken);
+    }
 
     public async Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default)
     {

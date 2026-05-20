@@ -103,54 +103,7 @@ public sealed class JwtService : IJwtService
         return Convert.ToBase64String(randomBytes);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET PRINCIPAL FROM EXPIRED TOKEN
-    // ─────────────────────────────────────────────────────────────────────────
 
-    /// <inheritdoc/>
-    public ClaimsPrincipal? GetPrincipalFromExpiredToken(string accessToken)
-    {
-        // ValidateLifetime = false is intentional here.
-        // This method is ONLY called during the refresh-token flow
-        // where the access token is expected to be expired.
-        // We validate signature and structure only.
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = false, // ← intentional, see summary
-            ValidIssuer = _jwtSettings.Issuer,
-            ValidAudience = _jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                                           Encoding.UTF8.GetBytes(_jwtSettings.Secret)),
-            ClockSkew = TimeSpan.Zero,
-        };
-
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var principal = handler.ValidateToken(accessToken, tokenValidationParameters, out var validatedToken);
-
-            // Extra guard: ensure the token was signed with our expected algorithm.
-            // Prevents algorithm confusion attacks (e.g. "none" algorithm).
-            if (validatedToken is not JwtSecurityToken jwtToken ||
-                !jwtToken.Header.Alg.Equals(
-                    SecurityAlgorithms.HmacSha256,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            return principal;
-        }
-        catch
-        {
-            // Token is malformed, tampered, or uses wrong signature.
-            // Return null — caller will respond with 401.
-            return null;
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // COOKIE MANAGEMENT
@@ -162,7 +115,7 @@ public sealed class JwtService : IJwtService
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,                    // Not accessible via JavaScript
-            Secure = true,                    // HTTPS only
+            Secure = _jwtSettings.CookieSecure,                    // HTTPS only
             SameSite = SameSiteMode.None,     // No cross-site requests
             Expires = DateTimeOffset.UtcNow
                             .AddMinutes(_jwtSettings.AccessTokenExpiryMinutes),
@@ -184,7 +137,7 @@ public sealed class JwtService : IJwtService
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = _jwtSettings.CookieSecure,
             SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddDays(-1), // expired = deleted
             Path = "/",
@@ -196,43 +149,48 @@ public sealed class JwtService : IJwtService
             cookieOptions);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CURRENT USER CLAIM EXTRACTION
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// <inheritdoc/>
-    public Guid GetCurrentUserId()
+    public void ClearRefreshTokenCookie()
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?
-            .User.FindFirst(ClaimUserId)?.Value;
+        // Overwrite the cookie with an empty value and an already-expired date.
+        // This is the correct way to delete a cookie — Delete() alone is unreliable
+        // across some browsers when the original cookie had explicit options set.
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _jwtSettings.CookieSecure,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1), // expired = deleted
+            Path = "/",
+        };
 
-        if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            throw new UnauthorizedAccessException(
-                "UserId claim is missing or invalid. Ensure the request is authenticated.");
-
-        return userId;
+        _httpContextAccessor.HttpContext!.Response.Cookies.Append(
+            _jwtSettings.CookieNameRefresh,
+            string.Empty,
+            cookieOptions);
     }
 
     /// <inheritdoc/>
-    public string? GetCurrentUserRole()
+    public void SetRefreshTokenCookie(string token)
     {
-        //return _httpContextAccessor.HttpContext?
-        //    .User.FindFirstValue(ClaimRole);
-        return _httpContextAccessor.HttpContext?
-    .User.FindFirst(ClaimRole)?.Value;
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _jwtSettings.CookieSecure,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays),
+            Path = "/",
+        };
+
+        _httpContextAccessor.HttpContext!.Response.Cookies.Append(
+            _jwtSettings.CookieNameRefresh,
+            token,
+            cookieOptions);
     }
 
     /// <inheritdoc/>
-    public Guid? GetCurrentUserManagerId()
+    public string? GetRefreshTokenFromCookie()
     {
-        var managerIdClaim = _httpContextAccessor.HttpContext?
-            .User.FindFirst(ClaimManagerId)?.Value;
-
-        if (string.IsNullOrWhiteSpace(managerIdClaim))
-            return null;
-
-        return Guid.TryParse(managerIdClaim, out var managerId)
-            ? managerId
-            : null;
+        return _httpContextAccessor.HttpContext?.Request.Cookies[_jwtSettings.CookieNameRefresh];
     }
+
 }

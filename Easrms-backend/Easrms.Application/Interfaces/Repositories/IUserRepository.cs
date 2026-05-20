@@ -137,6 +137,12 @@ public interface IUserRepository
         Guid userId,
         CancellationToken cancellationToken = default);
 
+    Task UpdateLoginMetaAsync(
+    Guid userId,
+    string refreshToken,
+    DateTime expiryOn,
+    CancellationToken cancellationToken = default);
+
     Task UpdateRefreshTokenAsync(
         Guid userId,
         string refreshToken,

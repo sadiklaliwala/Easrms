@@ -48,5 +48,6 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
 
         // 3. Cookie removed by AuthController after this returns
         _jwtService.ClearTokenCookie();
+        _jwtService.ClearRefreshTokenCookie();
     }
 }

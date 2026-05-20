@@ -9,7 +9,7 @@ import { useAppDispatch } from "../../../../hooks/useAppSelector";
 import { clearCredentials } from "../../../../store/slices/authSlice";
 import { api } from "../../../../store/api/api";
 
-const DRAWER_WIDTH = 240;
+// const DRAWER_WIDTH = 240;
 
 const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -20,7 +20,6 @@ const AppLayout = () => {
   const handleLogout = async () => {
     try {
       await logout().unwrap();
-      console.log("logged out and navigated");
       navigate("/login");
     } catch {
       // ignore

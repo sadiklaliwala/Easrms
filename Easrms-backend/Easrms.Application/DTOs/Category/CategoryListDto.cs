@@ -7,5 +7,6 @@ public class CategoryListDto
     public bool IsApprovalRequired { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedOn { get; set; }
+    public int SLAHours { get; set; }
 }
 

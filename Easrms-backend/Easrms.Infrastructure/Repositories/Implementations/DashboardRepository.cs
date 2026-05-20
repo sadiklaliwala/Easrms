@@ -20,6 +20,30 @@ public class DashboardRepository : IDashboardRepository
         _dapperContext = dapperContext ?? throw new ArgumentNullException(nameof(dapperContext));
     }
 
+    public async Task<DashboardSummaryDto> GetSLASummaryAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default)
+    {
+        var (where, parameters) = BuildWhereClause(queryParams);
+        var slaSql = $@"
+    SELECT
+        SUM(CASE WHEN sr.IsEscalated = 1 THEN 1 ELSE 0 END) AS EscalatedCount,
+        SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > sr.DueDate THEN 1 ELSE 0 END) AS BreachedCount,
+        SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) AND GETUTCDATE() <= sr.DueDate THEN 1 ELSE 0 END) AS NearingBreachCount,
+        SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() <= DATEADD(HOUR,-2,sr.DueDate) THEN 1 ELSE 0 END) AS WithinSLACount
+    FROM ServiceRequests sr
+    {where};";
+
+        using var conn = _dapperContext.CreateConnection();
+        var slaRow = await conn.QueryFirstAsync(new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken));
+
+        return new DashboardSummaryDto
+        {
+            WithinSLACount = (int)slaRow.WithinSLACount,
+            NearingBreachCount = (int)slaRow.NearingBreachCount,
+            BreachedCount = (int)slaRow.BreachedCount,
+            EscalatedCount = (int)slaRow.EscalatedCount
+        };
+    }
+
     /// <summary>
     /// Returns full dashboard summary by composing smaller aggregation queries.
     /// Executes all component queries in parallel for performance.
@@ -42,6 +66,20 @@ public class DashboardRepository : IDashboardRepository
         var categoryCounts = await categoryTask;
         var assignedUserCounts = await assignedUserTask;
 
+        // Retrieve SLA / escalation totals in one query
+        var (where, parameters) = BuildWhereClause(queryParams);
+        var slaSql = $@"
+        SELECT
+            SUM(CASE WHEN sr.IsEscalated = 1 THEN 1 ELSE 0 END) AS EscalatedCount,
+            SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > sr.DueDate THEN 1 ELSE 0 END) AS BreachedCount,
+            SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) AND GETUTCDATE() <= sr.DueDate THEN 1 ELSE 0 END) AS NearingBreachCount,
+            SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() <= DATEADD(HOUR,-2,sr.DueDate) THEN 1 ELSE 0 END) AS WithinSLACount
+        FROM ServiceRequests sr
+        {where};";
+
+        using var conn = _dapperContext.CreateConnection();
+        var slaRow = await conn.QueryFirstAsync(new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken));
+
         return new DashboardSummaryDto
         {
             TotalRequests = statusCounts.Values.Sum(),
@@ -53,6 +91,10 @@ public class DashboardRepository : IDashboardRepository
             InProgressCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.InProgress),
             ResolvedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Resolved),
             ClosedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Closed),
+            WithinSLACount = (int)slaRow.WithinSLACount,
+            NearingBreachCount = (int)slaRow.NearingBreachCount,
+            BreachedCount = (int)slaRow.BreachedCount,
+            EscalatedCount = (int)slaRow.EscalatedCount,
             ByPriority = priorityCounts.ToList(),
             ByCategory = categoryCounts.ToList(),
             ByAssignedUser = assignedUserCounts.ToList()

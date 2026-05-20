@@ -10,7 +10,7 @@ public class AppDbContext : DbContext
     {
         
     }
-
+    public DbSet<RequestEscalationHistory> RequestEscalationHistories { get; set; }
     public DbSet<User> Users{ get; set; }
     public DbSet<Role> Roles{ get; set; }
     public DbSet<RequestCategory> RequestCategories { get; set; }

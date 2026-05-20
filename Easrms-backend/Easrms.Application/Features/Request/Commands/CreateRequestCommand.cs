@@ -1,9 +1,9 @@
-﻿using Easrms.Application.Interfaces.Repositories;
+﻿using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Common.Helpers;
 using Easrms.Domain.Entities;
-using Easrms.Infrastructure.Services;
 using MediatR;
 
 namespace Easrms.Application.Features.Request.Commands;
@@ -80,6 +80,9 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             throw new InvalidOperationException(
                 $"Category '{category.CategoryName}' is not active and cannot accept new requests.");
 
+        var createdOn = DateTime.UtcNow;
+        var dueDate = createdOn.AddHours(category.SLAHours);
+
         // 2. Generate a unique request number
         string requestNumber;
         do
@@ -104,7 +107,8 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             Description = request.Description,
             Priority = request.Priority,
             Status = initialStatus,
-            CreatedOn = DateTime.UtcNow
+            CreatedOn = createdOn,
+            DueDate = dueDate
         };
         Console.WriteLine(entity.Status);
         await _requestRepository.AddAsync(entity, cancellationToken);
@@ -138,7 +142,7 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
 
             //_ = Task.Run(async () =>
             //{
-                await _emailService.SendRequestOpenedAsync(capturedEmail, capturedNumber, capturedTitle);
+            await _emailService.SendRequestOpenedAsync(capturedEmail, capturedNumber, capturedTitle);
             //}, CancellationToken.None); // CancellationToken.None so it is NOT cancelled when the request ends
         }
 

@@ -1,3 +1,4 @@
+using Easrms.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Resend;
@@ -30,6 +31,33 @@ public class EmailService : IEmailService
             toEmail,
             EmailTemplates.RequestResolvedSubject(),
             EmailTemplates.RequestResolvedBody(requestNumber, requestTitle)
+        );
+    }
+
+    public async Task SendSLANearingBreachAsync(string toEmail, string requestNumber, string requestTitle)
+    {
+        await SendAsync(
+            toEmail,
+            EmailTemplates.SLANearingBreachSubject(),
+            EmailTemplates.SLANearingBreachBody(requestNumber, requestTitle)
+        );
+    }
+
+    public async Task SendSLABreachedAsync(string toEmail, string requestNumber, string requestTitle)
+    {
+        await SendAsync(
+            toEmail,
+            EmailTemplates.SLABreachedSubject(),
+            EmailTemplates.SLABreachedBody(requestNumber, requestTitle)
+        );
+    }
+
+    public async Task SendRequestEscalatedAsync(string toEmail, string requestNumber, string requestTitle, string escalationReason)
+    {
+        await SendAsync(
+            toEmail,
+            EmailTemplates.RequestEscalatedSubject(),
+            EmailTemplates.RequestEscalatedBody(requestNumber, requestTitle, escalationReason)
         );
     }
 

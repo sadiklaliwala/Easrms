@@ -18,6 +18,8 @@ public sealed class GetAllRequestsQuery : IRequest<RequestListWithPaginationDto>
     // Injected by controller from JWT claims
     public Guid CurrentUserId { get; init; }
     public string CurrentUserRole { get; init; } = string.Empty;
+    public DateTime? FromDate { get; init; }
+    public DateTime? ToDate { get; init; }
 }
 
 public sealed class GetAllRequestsQueryHandler(IRequestRepository requestRepository)
@@ -54,7 +56,9 @@ public sealed class GetAllRequestsQueryHandler(IRequestRepository requestReposit
             CategoryId = request.CategoryId,
             EmployeeId = scopedEmployeeId,
             AssignedTo = scopedAssignedTo,
-            ManagerId = scopedManagerId,   // new
+            ManagerId = scopedManagerId,
+            FromDate = request.FromDate,
+            ToDate = request.ToDate,
         };
 
         return await _requestRepository.GetPagedRequestsAsync(

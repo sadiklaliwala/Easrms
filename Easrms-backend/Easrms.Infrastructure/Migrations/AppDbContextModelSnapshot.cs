@@ -46,6 +46,11 @@ namespace Easrms.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("SLAHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(24);
+
                     b.Property<DateTime?>("UpdatedOn")
                         .HasColumnType("datetime2");
 
@@ -94,6 +99,38 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasIndex("RequestId");
 
                     b.ToTable("RequestComments", (string)null);
+                });
+
+            modelBuilder.Entity("Easrms.Domain.Entities.RequestEscalationHistory", b =>
+                {
+                    b.Property<Guid>("EscalationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("EscalatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EscalatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EscalationReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("EscalationId");
+
+                    b.HasIndex("EscalatedBy");
+
+                    b.HasIndex("RequestId");
+
+                    b.ToTable("RequestEscalationHistory", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestStatusHistory", b =>
@@ -196,8 +233,26 @@ namespace Easrms.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("EscalatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EscalatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EscalationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsEscalated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<int>("Priority")
                         .HasMaxLength(20)
@@ -236,6 +291,8 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasIndex("ClosedBy");
 
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("EscalatedBy");
 
                     b.HasIndex("RequestNumber")
                         .IsUnique();
@@ -318,6 +375,25 @@ namespace Easrms.Infrastructure.Migrations
                     b.Navigation("ServiceRequest");
                 });
 
+            modelBuilder.Entity("Easrms.Domain.Entities.RequestEscalationHistory", b =>
+                {
+                    b.HasOne("Easrms.Domain.Entities.User", "EscalatedByUser")
+                        .WithMany()
+                        .HasForeignKey("EscalatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Easrms.Domain.Entities.ServiceRequest", "Request")
+                        .WithMany("EscalationHistories")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EscalatedByUser");
+
+                    b.Navigation("Request");
+                });
+
             modelBuilder.Entity("Easrms.Domain.Entities.RequestStatusHistory", b =>
                 {
                     b.HasOne("Easrms.Domain.Entities.User", "ChangedByUser")
@@ -361,6 +437,11 @@ namespace Easrms.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Easrms.Domain.Entities.User", "Escalator")
+                        .WithMany()
+                        .HasForeignKey("EscalatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("AssignedUser");
 
                     b.Navigation("Category");
@@ -368,6 +449,8 @@ namespace Easrms.Infrastructure.Migrations
                     b.Navigation("ClosedByUser");
 
                     b.Navigation("Employee");
+
+                    b.Navigation("Escalator");
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.User", b =>
@@ -401,6 +484,8 @@ namespace Easrms.Infrastructure.Migrations
             modelBuilder.Entity("Easrms.Domain.Entities.ServiceRequest", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("EscalationHistories");
 
                     b.Navigation("StatusHistories");
                 });

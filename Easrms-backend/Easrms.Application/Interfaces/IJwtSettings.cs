@@ -10,5 +10,6 @@ namespace Easrms.Application.Interfaces
         string Issuer { get; init; }
         int RefreshTokenExpiryDays { get; init; }
         string Secret { get; init; }
+        bool CookieSecure { get; init; }
     }
 }

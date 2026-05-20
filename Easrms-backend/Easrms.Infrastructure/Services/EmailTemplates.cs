@@ -41,4 +41,66 @@ internal static class EmailTemplates
            </body>
            </html>
            """;
+
+    // ── SLA Nearing Breach ─────────────────────────────────────────────────────
+
+    public static string SLANearingBreachSubject()
+        => "SLA Nearing Breach - Action Required";
+
+    public static string SLANearingBreachBody(string requestNumber, string requestTitle)
+        => $"""
+           <!DOCTYPE html>
+           <html>
+           <body style="font-family:Arial,sans-serif;color:#333;font-size:15px;line-height:1.6;max-width:600px;margin:0 auto;padding:24px;">
+               <p>This support case is nearing its SLA breach time and requires immediate attention.</p>
+               <ul style="list-style:disc;padding-left:20px;margin:12px 0;">
+                   <li><strong>Case ID #:</strong> {requestNumber}</li>
+                   <li><strong>Title:</strong> {requestTitle}</li>
+               </ul>
+               <p>Please take immediate action to avoid SLA breach.<br/>Thanks,<br/>Support Team</p>
+           </body>
+           </html>
+           """;
+
+
+    // ── SLA Breached ──────────────────────────────────────────────────────────
+
+    public static string SLABreachedSubject()
+        => "SLA Breached";
+
+    public static string SLABreachedBody(string requestNumber, string requestTitle)
+        => $"""
+           <!DOCTYPE html>
+           <html>
+           <body style="font-family:Arial,sans-serif;color:#333;font-size:15px;line-height:1.6;max-width:600px;margin:0 auto;padding:24px;">
+               <p>This support case has breached its SLA. Please review and act immediately.</p>
+               <ul style="list-style:disc;padding-left:20px;margin:12px 0;">
+                   <li><strong>Case ID #:</strong> {requestNumber}</li>
+                   <li><strong>Title:</strong> {requestTitle}</li>
+               </ul>
+               <p>Thanks,<br/>Support Team</p>
+           </body>
+           </html>
+           """;
+
+    // ── Request Escalated ─────────────────────────────────────────────────────
+
+    public static string RequestEscalatedSubject()
+        => "Support Case Escalated";
+
+    public static string RequestEscalatedBody(string requestNumber, string requestTitle, string escalationReason)
+        => $"""
+           <!DOCTYPE html>
+           <html>
+           <body style="font-family:Arial,sans-serif;color:#333;font-size:15px;line-height:1.6;max-width:600px;margin:0 auto;padding:24px;">
+               <p>This support case has been escalated. See the reason below and take the necessary action.</p>
+               <ul style="list-style:disc;padding-left:20px;margin:12px 0;">
+                   <li><strong>Case ID #:</strong> {requestNumber}</li>
+                   <li><strong>Title:</strong> {requestTitle}</li>
+                   <li><strong>Reason:</strong> {escalationReason}</li>
+               </ul>
+               <p>Thanks,<br/>Support Team</p>
+           </body>
+           </html>
+           """;
 }

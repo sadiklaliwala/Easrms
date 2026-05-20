@@ -84,6 +84,9 @@ export interface RequestListDto {
   status: number;
   createdOn: string;
   assigneeName: string;
+  dueDate: string | null;
+  slaStatus: string;
+  isEscalated: boolean;
 }
 
 export interface RequestDetailDto {
@@ -101,6 +104,14 @@ export interface RequestDetailDto {
   resolvedOn: string | null;
   closedOn: string | null;
   rejectionReason: string;
+  dueDate: string | null;
+  slaStatus: string;
+  isEscalated: boolean;
+  escalatedOn: string | null;
+  escalatedByName: string | null;
+  escalationReason: string | null;
+  employeeId: string;
+  assignedTo: string | null;
 }
 
 export interface ApprovalRequestDto {
@@ -132,3 +143,7 @@ export interface RequestQueryParams {
   fromDate?: string;
   toDate?: string;
 }
+
+export type EscalateRequestDto = {
+  escalationReason: string;
+};

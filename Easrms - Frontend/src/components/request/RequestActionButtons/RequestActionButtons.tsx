@@ -1,7 +1,10 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Tooltip } from "@mui/material";
 import { useAppSelector } from "../../../hooks/useAppSelector";
 import { type RequestDetailDto } from "../../../types/request.types";
-import { STATUS_ENUM_REVERSE, STATUS } from "../../../constants/status.constants";
+import {
+  STATUS_ENUM_REVERSE,
+  STATUS,
+} from "../../../constants/status.constants";
 import { ROLES } from "../../../constants/role.constants";
 
 interface RequestActionButtonsProps {
@@ -11,6 +14,7 @@ interface RequestActionButtonsProps {
   onAssign?: () => void;
   onUpdateStatus?: () => void;
   onClose?: () => void;
+  onEscalate?: () => void;
 }
 
 const RequestActionButtons = ({
@@ -20,9 +24,10 @@ const RequestActionButtons = ({
   onAssign,
   onUpdateStatus,
   onClose,
+  onEscalate,
 }: RequestActionButtonsProps) => {
   const { roleName, userId } = useAppSelector((state) => state.auth);
-  const { status, assignedTo, employeeId } = request as any;
+  const { status, assignedTo, employeeId, isEscalated } = request;
 
   const isAdmin = roleName === ROLES.ADMIN;
   const isManager = roleName === ROLES.MANAGER;
@@ -34,7 +39,7 @@ const RequestActionButtons = ({
   const canApprove = isManager && statusLabel === STATUS.PENDING_APPROVAL;
   const canAssign =
     isAdmin && (statusLabel === STATUS.OPEN || statusLabel === STATUS.APPROVED);
-  console.log(assignedTo, userId, statusLabel, "assignedTo , userId");
+  const showDisabledAssign = isAdmin && statusLabel === STATUS.PENDING_APPROVAL;
   const canUpdateStatus =
     isSupport &&
     assignedTo === userId &&
@@ -42,8 +47,20 @@ const RequestActionButtons = ({
   const canClose =
     statusLabel === STATUS.RESOLVED &&
     (isAdmin || (isEmployee && employeeId === userId));
+  const canEscalate =
+    isAdmin &&
+    statusLabel !== STATUS.CLOSED &&
+    statusLabel !== STATUS.REJECTED &&
+    !isEscalated;
 
-  if (!canApprove && !canAssign && !canUpdateStatus && !canClose) {
+  if (
+    !canApprove &&
+    !canAssign &&
+    !showDisabledAssign &&
+    !canUpdateStatus &&
+    !canClose &&
+    !canEscalate
+  ) {
     return null;
   }
 
@@ -85,6 +102,15 @@ const RequestActionButtons = ({
           Assign Support
         </Button>
       )}
+      {showDisabledAssign && (
+        <Tooltip title="Waiting for manager approval before this request can be assigned.">
+          <span>
+            <Button variant="contained" color="primary" size="small" disabled>
+              Assign Support
+            </Button>
+          </span>
+        </Tooltip>
+      )}
       {canUpdateStatus && (
         <Button
           variant="contained"
@@ -98,6 +124,16 @@ const RequestActionButtons = ({
       {canClose && (
         <Button variant="outlined" color="error" size="small" onClick={onClose}>
           Close Request
+        </Button>
+      )}
+      {canEscalate && (
+        <Button
+          variant="contained"
+          color="error"
+          size="small"
+          onClick={onEscalate}
+        >
+          Escalate
         </Button>
       )}
     </Box>

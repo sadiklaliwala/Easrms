@@ -29,5 +29,10 @@ public class RequestCategoryConfiguration : IEntityTypeConfiguration<RequestCate
 
         builder.Property(x => x.CreatedOn)
                .IsRequired();
+
+        // CR-001 added
+        builder.Property(x => x.SLAHours)
+            .IsRequired()
+            .HasDefaultValue(24);
     }
 }

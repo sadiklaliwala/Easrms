@@ -10,7 +10,9 @@ const AppFilterBar = ({ children }: AppFilterBarProps) => {
     <Box
       sx={{
         display: "flex",
-        flexWrap: "wrap",
+        // flexWrap: "wrap",
+        flexWrap: "nowrap",
+        overflow: "auto",
         gap: 2,
         alignItems: "center",
         mb: 2,

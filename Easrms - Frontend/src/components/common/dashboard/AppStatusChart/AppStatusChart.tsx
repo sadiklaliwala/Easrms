@@ -32,6 +32,13 @@ const AppStatusChart = ({ data }: AppStatusChartProps) => {
             tick={{ fontSize: 11, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
+            interval={0}
+            angle={-35}
+            textAnchor="end"
+            height={60}
+            tickFormatter={(value: string) =>
+              value.replace(/([a-z])([A-Z])/g, "$1 $2")
+            }
           />
           <YAxis
             allowDecimals={false}

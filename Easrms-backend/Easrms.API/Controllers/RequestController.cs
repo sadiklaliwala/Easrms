@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Easrms.Application.Features.Dashboard.Queries;
 
 namespace Easrms.API.Controllers;
 
@@ -30,7 +31,9 @@ public class RequestController : ControllerBase
         [FromQuery] string? search = null,
         [FromQuery] string? status = null,
         [FromQuery] string? priority = null,
-        [FromQuery] Guid? categoryId = null,
+       [FromQuery] Guid? categoryId = null,
+[FromQuery] DateTime? fromDate = null,
+[FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
    {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -45,7 +48,9 @@ public class RequestController : ControllerBase
             Search = search,
             Status = status,
             Priority = priority,
-            CategoryId = categoryId
+            CategoryId = categoryId,
+            FromDate = fromDate,
+            ToDate = toDate
         };
 
         var result = await _mediator.Send(query, cancellationToken);
@@ -225,6 +230,61 @@ public class RequestController : ControllerBase
             StatusCode = 200,
             Message = "Request closed successfully.",
             Data = null,
+            Errors = null
+        });
+    }
+
+    // POST /api/requests/{id}/escalate
+    [HttpPost("{id:guid}/escalate")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> Escalate(
+        Guid id,
+        [FromBody] EscalateRequestDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var command = new EscalateRequestCommand
+        {
+            RequestId = id,
+            CurrentUserId = currentUserId,
+            Dto = dto
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Request escalated successfully.",
+            Data = null,
+            Errors = null
+        });
+    }
+
+    // GET /dashboard/sla-summary
+    [HttpGet("../dashboard/sla-summary")]
+    [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Manager)]
+    public async Task<IActionResult> GetSLASummary(CancellationToken cancellationToken = default)
+    {
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var roleName = User.FindFirstValue(ClaimTypes.Role)!;
+
+        var query = new GetSLADashboardQuery
+        {
+            CurrentUserId = currentUserId,
+            CurrentUserRole = roleName
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "SLA summary retrieved successfully.",
+            Data = result,
             Errors = null
         });
     }

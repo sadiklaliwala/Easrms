@@ -82,7 +82,8 @@ public class CategoryController : ControllerBase
         var command = new CreateCategoryCommand
         {
             CategoryName = dto.CategoryName,
-            IsApprovalRequired = dto.IsApprovalRequired
+            IsApprovalRequired = dto.IsApprovalRequired,
+            SLAHours = dto.SLAHours,
         };
 
         var newId = await _mediator.Send(command, cancellationToken);
@@ -109,7 +110,8 @@ public class CategoryController : ControllerBase
         {
             CategoryId = id,
             CategoryName = dto.CategoryName,
-            IsApprovalRequired = dto.IsApprovalRequired
+            IsApprovalRequired = dto.IsApprovalRequired,
+            SLAHours= dto.SLAHours
         };
 
         await _mediator.Send(command, cancellationToken);

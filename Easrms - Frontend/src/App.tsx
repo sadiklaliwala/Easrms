@@ -40,7 +40,7 @@ const AppInitializer = () => {
           fullName: response.data.fullName,
           email: response.data.email,
           roleName: response.data.roleName,
-          managerId: null,
+          managerId: response.data.managerId ?? null,
           accessToken: "",
           refreshToken: "",
         }),
@@ -50,7 +50,7 @@ const AppInitializer = () => {
     if (isError) {
       dispatch(setInitializingDone());
     }
-  }, [isSuccess, isError]);
+  }, [isSuccess, isError, response, dispatch]);
 
   return <AppRoutes />;
 };

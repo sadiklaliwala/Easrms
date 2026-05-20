@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Stack, Grid } from "@mui/material";
+import { Stack, Grid, Alert } from "@mui/material";
 import toast from "react-hot-toast";
 
 import {
@@ -9,6 +9,7 @@ import {
   useAssignRequestMutation,
   useUpdateRequestStatusMutation,
   useCloseRequestMutation,
+  useEscalateRequestMutation,
 } from "../../../store/api/request.endpoints";
 import {
   useGetCommentsQuery,
@@ -30,6 +31,10 @@ import RequestStatusStepper from "../../../components/request/RequestStatusStepp
 import RequestHistoryTimeline from "../../../components/request/RequestHistoryTimeline";
 import RequestCommentBox from "../../../components/request/RequestCommentBox";
 import RequestActionButtons from "../../../components/request/RequestActionButtons";
+import RequestEscalationBanner from "../../../components/request/RequestEscalationBanner";
+import RequestSLAInfo from "../../../components/request/RequestSLAInfo";
+import EscalateRequestDialog from "../../../components/common/modal/EscalateRequestDialog";
+import { formatDate } from "../../../utils/formatDate";
 
 import ApprovalDialog from "../../../components/common/modal/ApprovalDialog";
 import AssignSupportDialog from "../../../components/common/modal/AssignSupportDialog";
@@ -37,15 +42,17 @@ import UpdateStatusDialog from "../../../components/common/modal/UpdateStatusDia
 import CloseRequestDialog from "../../../components/common/modal/CloseRequestDialog";
 
 import type { ApprovalRequestDto } from "../../../types/request.types";
-import type { AddCommentDto } from "../../../types/comment.types";
+// import type { AddCommentDto } from "../../../types/comment.types";
 import {
   STATUS_ENUM_REVERSE,
   type StatusType,
+  STATUS,
 } from "../../../constants/status.constants";
 import {
   // PRIORITY_ENUM_REVERSE
   PRIORITY_LABEL,
 } from "../../../constants/priority.constants";
+import type { AddCommentDto } from "../../../types/common.types";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const RequestDetailPage = () => {
@@ -58,6 +65,7 @@ const RequestDetailPage = () => {
   const [assignOpen, setAssignOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [escalateOpen, setEscalateOpen] = useState(false);
 
   // ─── Queries ──────────────────────────────────────────────────────────────────
   const {
@@ -77,6 +85,8 @@ const RequestDetailPage = () => {
     useUpdateRequestStatusMutation();
   const [closeRequest, { isLoading: closing }] = useCloseRequestMutation();
   const [addComment, { isLoading: commenting }] = useAddCommentMutation();
+  const [escalateRequest, { isLoading: escalating }] =
+    useEscalateRequestMutation();
 
   if (isLoading) return <AppLoader />;
   if (isError || !requestResponse?.success)
@@ -153,6 +163,23 @@ const RequestDetailPage = () => {
     }
   };
 
+  const handleEscalate = async (reason: string) => {
+    try {
+      const res = await escalateRequest({
+        id: id!,
+        body: { escalationReason: reason },
+      }).unwrap();
+      if (res.success) {
+        toast.success("Request escalated successfully");
+        setEscalateOpen(false);
+      } else {
+        toast.error(res.message ?? "Failed to escalate request");
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to escalate request");
+    }
+  };
+
   const handleAddComment = async (data: AddCommentDto) => {
     try {
       const res = await addComment({ requestId: id!, body: data }).unwrap();
@@ -185,13 +212,34 @@ const RequestDetailPage = () => {
             onAssign={() => setAssignOpen(true)}
             onUpdateStatus={() => setStatusOpen(true)}
             onClose={() => setCloseOpen(true)}
+            onReject={() => setApprovalOpen(true)}
+            onEscalate={() => setEscalateOpen(true)}
           />
         }
       />
 
+      {/* Pending Approval Banner */}
+      {STATUS_ENUM_REVERSE[request.status] === STATUS.PENDING_APPROVAL && (
+        <Alert severity="info">
+          This request is awaiting manager approval. The assign action will be
+          available once the manager approves it.
+        </Alert>
+      )}
+
       {/* Rejection Banner */}
       {request.rejectionReason && (
         <RequestRejectionBanner reason={request.rejectionReason} />
+      )}
+
+      {/* Escalation Banner */}
+      {request.isEscalated && (
+        <RequestEscalationBanner
+          escalatedOn={
+            request.escalatedOn ? formatDate(request.escalatedOn) : null
+          }
+          escalatedByName={request.escalatedByName}
+          escalationReason={request.escalationReason}
+        />
       )}
 
       {/* Status Stepper */}
@@ -223,6 +271,14 @@ const RequestDetailPage = () => {
                 updatedOn={request.updatedOn?.toString()}
                 resolvedOn={request.resolvedOn?.toString()}
                 closedOn={request.closedOn?.toString()}
+              />
+            </AppCard>
+
+            <AppCard>
+              <RequestSLAInfo
+                dueDate={request.dueDate}
+                slaStatus={request.slaStatus}
+                isEscalated={request.isEscalated}
               />
             </AppCard>
 
@@ -276,6 +332,15 @@ const RequestDetailPage = () => {
         onClose={() => setCloseOpen(false)}
         onConfirm={handleClose}
         isSubmitting={closing}
+      />
+
+      <EscalateRequestDialog
+        open={escalateOpen}
+        onClose={() => setEscalateOpen(false)}
+        requestNumber={request.requestNumber}
+        dueDate={request.dueDate ? formatDate(request.dueDate) : null}
+        onEscalate={handleEscalate}
+        isSubmitting={escalating}
       />
     </Stack>
   );

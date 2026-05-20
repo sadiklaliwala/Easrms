@@ -2,6 +2,7 @@
 using Dapper;
 using Easrms.Application.DTOs.Lookup;
 using Easrms.Application.Interfaces.Repositories;
+using Easrms.Common.Constants;
 using Easrms.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 
@@ -31,7 +32,7 @@ WHERE u.IsActive = 1 AND r.RoleName = @RoleName
 ORDER BY u.FullName ASC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = await conn.QueryAsync<SupportUserLookupDto>(new CommandDefinition(sql, new { RoleName = "Support" }, cancellationToken: cancellationToken));
+        var rows = await conn.QueryAsync<SupportUserLookupDto>(new CommandDefinition(sql, new { RoleName = RoleConstants.SupportUser}, cancellationToken: cancellationToken));
         return rows.AsList();
     }
 
@@ -44,7 +45,7 @@ WHERE u.IsActive = 1 AND r.RoleName = @RoleName
 ORDER BY u.FullName ASC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = await conn.QueryAsync<ManagerLookupDto>(new CommandDefinition(sql, new { RoleName = "Manager" }, cancellationToken: cancellationToken));
+        var rows = await conn.QueryAsync<ManagerLookupDto>(new CommandDefinition(sql, new { RoleName = RoleConstants.Manager }, cancellationToken: cancellationToken));
         return rows.AsList();
     }
 

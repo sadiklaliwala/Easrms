@@ -34,6 +34,14 @@ public class ServiceRequest
 
     public string? RejectionReason { get; set; }
 
+    // CR-001 added ──────────────────────────
+    public DateTime? DueDate { get; set; }
+    public bool IsEscalated { get; set; }
+    public DateTime? EscalatedOn { get; set; }
+    public Guid? EscalatedBy { get; set; }
+    public string? EscalationReason { get; set; }
+    // ────────────────────────────────────────
+
 
     // Navigation Properties
     public User Employee { get; set; } = null!;
@@ -44,7 +52,10 @@ public class ServiceRequest
 
     public User? ClosedByUser { get; set; }
 
+    public User? Escalator { get; set; }  // CR-001 added
+
     public ICollection<RequestComment> Comments { get; set; } = new List<RequestComment>();
+    public ICollection<RequestEscalationHistory> EscalationHistories { get; set; } = new List<RequestEscalationHistory>(); // CR-001 added
 
     public ICollection<RequestStatusHistory> StatusHistories { get; set; } = new List<RequestStatusHistory>();
 }

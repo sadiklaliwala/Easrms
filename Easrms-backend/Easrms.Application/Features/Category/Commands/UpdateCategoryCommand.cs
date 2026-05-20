@@ -12,6 +12,7 @@ public sealed class UpdateCategoryCommand : IRequest
     public Guid CategoryId { get; init; }
     public string CategoryName { get; init; } = string.Empty;
     public bool IsApprovalRequired { get; init; }
+    public int SLAHours { get; set; }
 }
 
 
@@ -54,10 +55,15 @@ public sealed class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategor
             throw new InvalidOperationException(
                 $"Another category named '{request.CategoryName}' already exists.");
 
+        if (request.SLAHours<= 0)
+            throw new InvalidOperationException("SLA hours must be positive.");
+
+
         // 3. Apply changes
         category.CategoryName = request.CategoryName;
         category.IsApprovalRequired = request.IsApprovalRequired;
         category.UpdatedOn = DateTime.UtcNow;
+        category.SLAHours = request.SLAHours;
 
         // 4. Mark dirty
         _categoryRepository.Update(category);

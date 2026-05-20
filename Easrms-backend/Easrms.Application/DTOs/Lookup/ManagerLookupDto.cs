@@ -1,8 +1,8 @@
-﻿namespace Easrms.Application.DTOs.Lookup;
+﻿//namespace Easrms.Application.DTOs.Lookup;
 
-public class ManagerLookupDto
-{
-    public Guid UserId { get; set; }
-    public string FullName { get; set; } = string.Empty;
-}
+//public class ManagerLookupDto
+//{
+//    public Guid UserId { get; set; }
+//    public string FullName { get; set; } = string.Empty;
+//}
 

@@ -64,3 +64,28 @@ export interface GridColumn<T> {
   sortable?: boolean;
   width?: string | number;
 }
+
+
+export interface AddCommentDto {
+  commentText: string;
+  commentType: string;
+}
+
+export interface CommentListDto {
+  commentId: string;
+  commentText: string;
+  commentType: number;
+  commentByName: string;
+  createdOn: string;
+}
+
+export interface StatusHistoryDto {
+  historyId: string;
+  oldStatus: number | null;
+  newStatus: number;
+  changedByName: string;
+  changedOn: string;
+  remarks: string;
+}
+
+export type SLAStatus = "Within SLA" | "Nearing Breach" | "Breached" | "N/A";

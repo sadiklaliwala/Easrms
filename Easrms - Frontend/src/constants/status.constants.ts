@@ -1,10 +1,10 @@
 export const STATUS = {
   OPEN: "Open",
-  PENDING_APPROVAL: "Pending Approval",
+  PENDING_APPROVAL: "PendingApproval",
   APPROVED: "Approved",
   REJECTED: "Rejected",
   ASSIGNED: "Assigned",
-  IN_PROGRESS: "In Progress",
+  IN_PROGRESS: "InProgress",
   RESOLVED: "Resolved",
   CLOSED: "Closed",
 } as const;

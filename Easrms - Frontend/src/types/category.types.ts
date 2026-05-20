@@ -40,6 +40,7 @@ export interface CategoryListDto {
   isApprovalRequired: boolean;
   isActive: boolean;
   createdOn: string;
+  slaHours: number;
 }
 
 export interface CategoryDetailDto {
@@ -49,16 +50,19 @@ export interface CategoryDetailDto {
   isActive: boolean;
   createdOn: string;
   updatedOn: string | null;
+  slaHours: number;
 }
 
 export interface CreateCategoryDto {
   categoryName: string;
   isApprovalRequired: boolean;
+  slaHours: number;
 }
 
 export interface UpdateCategoryDto {
   categoryName: string;
   isApprovalRequired: boolean;
+  slaHours: number;
 }
 
 export interface CategoryListWithPaginationDto {

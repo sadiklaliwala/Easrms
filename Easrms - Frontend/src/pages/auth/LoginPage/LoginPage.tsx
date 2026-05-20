@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
@@ -56,44 +56,50 @@ const LoginPage = () => {
     },
   });
 
+  // useCallback — stable reference, won't recreate on every render
+  const redirectByRole = useCallback(
+    (role: string) => {
+      if (role === ROLES.ADMIN || role === ROLES.MANAGER) {
+        navigate("/dashboard", { replace: true });
+      } else if (role === ROLES.EMPLOYEE) {
+        navigate("/dashboard", { replace: true });
+      } else if (role === ROLES.SUPPORT_USER) {
+        navigate("/my-tasks", { replace: true });
+      }
+    },
+    [navigate],
+  );
+
   // If already logged in, redirect to correct landing
   useEffect(() => {
     if (isAuthenticated && roleName) {
       redirectByRole(roleName);
     }
-  }, [isAuthenticated, roleName]);
+  }, [isAuthenticated, roleName, redirectByRole]);
 
-  const redirectByRole = (role: string) => {
-    if (role === ROLES.ADMIN || role === ROLES.MANAGER) {
-      navigate("/dashboard", { replace: true });
-    } else if (role === ROLES.EMPLOYEE) {
-      navigate("/dashboard", { replace: true });
-    } else if (role === ROLES.SUPPORT_USER) {
-      navigate("/my-tasks", { replace: true });
-    }
-  };
+  // useCallback — stable reference for form submit handler
+  const onSubmit = useCallback(
+    async (data: LoginRequestDto) => {
+      try {
+        const response = await login(data).unwrap();
 
-  const onSubmit = async (data: LoginRequestDto) => {
-    try {
-      const response = await login(data).unwrap();
-
-      if (response.success && response.data) {
-        dispatch(setCredentials(response.data));
-        toast.success(`Welcome back, ${response.data.fullName}!`);
-
-        redirectByRole(response.data.roleName);
-        console.log("my tasks");
-      } else {
-        toast.error(response.message ?? "Login failed");
+        if (response.success && response.data) {
+          dispatch(setCredentials(response.data));
+          toast.success(`Welcome back, ${response.data.fullName}!`);
+          redirectByRole(response.data.roleName);
+        } else {
+          toast.error(response.message ?? "Login failed");
+        }
+      } catch (err: any) {
+        const message =
+          err?.data?.message ??
+          err?.data?.errors?.[0] ??
+          "Invalid email or password";
+        toast.error(message);
       }
-    } catch (err: any) {
-      const message =
-        err?.data?.message ??
-        err?.data?.errors?.[0] ??
-        "Invalid email or password";
-      toast.error(message);
-    }
-  };
+    },
+    [login, dispatch, redirectByRole],
+  );
 
   return (
     <Box
@@ -231,7 +237,6 @@ const LoginPage = () => {
           {/* Password */}
           <Box>
             <AppLabel label="Password" required />
-
             <Controller
               name="password"
               control={control}

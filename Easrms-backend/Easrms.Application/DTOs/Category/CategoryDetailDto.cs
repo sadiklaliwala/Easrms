@@ -8,5 +8,6 @@ public class CategoryDetailDto
     public bool IsActive { get; set; }
     public DateTime CreatedOn { get; set; }
     public DateTime? UpdatedOn { get; set; }
+    public int SLAHours { get; set; }
 }
 

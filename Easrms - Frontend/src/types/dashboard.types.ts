@@ -26,5 +26,17 @@ export interface DashboardSummaryDto {
   closedCount: number;
   byPriority: PriorityCountDto[];
   byCategory: CategoryCountDto[];
-  byAssignedUser?: AssignedUserCountDto[];  // new
+  byAssignedUser?: AssignedUserCountDto[]; // new
+  withinSLACount: number;
+  nearingBreachCount: number;
+  breachedCount: number;
+  escalatedCount: number;
 }
+
+export type SLADashboardDto = {
+  totalOpen: number;
+  withinSLACount: number;
+  nearingBreachCount: number;
+  breachedCount: number;
+  escalatedCount: number;
+};

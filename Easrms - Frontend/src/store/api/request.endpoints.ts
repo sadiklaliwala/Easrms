@@ -100,6 +100,7 @@ import type {
   AssignRequestDto,
   UpdateStatusDto,
   RequestQueryParams,
+  EscalateRequestDto,
 } from "../../types/request.types";
 import { buildQueryParams } from "../../utils/buildQueryParams";
 
@@ -128,7 +129,7 @@ const requestEndpoints = api.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Request"],
+      invalidatesTags: ["Request", "Dashboard"],
     }),
 
     approveOrRejectRequest: builder.mutation<
@@ -143,6 +144,7 @@ const requestEndpoints = api.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Request", id },
         "Request",
+        "Dashboard",
       ],
     }),
 
@@ -158,6 +160,7 @@ const requestEndpoints = api.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Request", id },
         "Request",
+        "Dashboard",
       ],
     }),
 
@@ -173,6 +176,7 @@ const requestEndpoints = api.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Request", id },
         "Request",
+        "Dashboard",
       ],
     }),
 
@@ -182,6 +186,22 @@ const requestEndpoints = api.injectEndpoints({
         method: "PUT",
       }),
       invalidatesTags: (_result, _error, id) => [
+        { type: "Request", id },
+        "Request",
+        "Dashboard",
+      ],
+    }),
+
+    escalateRequest: builder.mutation<
+      ApiResponse<null>,
+      { id: string; body: EscalateRequestDto }
+    >({
+      query: ({ id, body }) => ({
+        url: `${ApiEndPoints.REQUESTS.BY_ID(id)}/escalate`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
         { type: "Request", id },
         "Request",
       ],
@@ -197,4 +217,5 @@ export const {
   useAssignRequestMutation,
   useUpdateRequestStatusMutation,
   useCloseRequestMutation,
+  useEscalateRequestMutation,
 } = requestEndpoints;

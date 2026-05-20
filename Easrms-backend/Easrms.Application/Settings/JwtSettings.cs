@@ -63,4 +63,8 @@ public sealed class JwtSettings : IJwtSettings
     /// Example value: "easrms_access_token"
     /// </summary>
     public string CookieName { get; init; } = string.Empty;
+    public string CookieNameRefresh { get; init; } = string.Empty;
+
+    public bool CookieSecure { get; init; } = true;
+
 }

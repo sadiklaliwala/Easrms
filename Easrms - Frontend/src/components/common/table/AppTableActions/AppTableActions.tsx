@@ -12,7 +12,7 @@ import { type MouseEvent, type ReactNode, useState } from "react";
 interface ActionItem {
   label: string;
   icon?: ReactNode;
-  onClick: () => void;
+  onClick: (even: React.MouseEvent<HTMLElement>) => void;
   color?: string;
   disabled?: boolean;
 }
@@ -42,8 +42,8 @@ const AppTableActions = ({ actions }: AppTableActionsProps) => {
           <MenuItem
             key={index}
             disabled={action.disabled}
-            onClick={() => {
-              action.onClick();
+            onClick={(e: MouseEvent<HTMLElement>) => {
+              action.onClick(e);
               handleClose();
             }}
           >

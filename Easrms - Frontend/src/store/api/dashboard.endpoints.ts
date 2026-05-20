@@ -21,7 +21,7 @@
 import { api } from './api';
 import ApiEndPoints from '../ApiEndPoints';
 import type { ApiResponse } from '../../types/common.types';
-import type { DashboardSummaryDto } from '../../types/dashboard.types';
+import type { DashboardSummaryDto, SLADashboardDto } from '../../types/dashboard.types';
 
 const dashboardEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -29,7 +29,11 @@ const dashboardEndpoints = api.injectEndpoints({
       query: () => ApiEndPoints.DASHBOARD.SUMMARY,
       providesTags: ['Dashboard'],
     }),
+    getSLADashboard: builder.query<ApiResponse<SLADashboardDto>, void>({
+      query: () => '/api/Dashboard/sla-summary',
+      providesTags: ['Dashboard'],
+    }),
   }),
 });
 
-export const { useGetDashboardSummaryQuery } = dashboardEndpoints;
+export const { useGetDashboardSummaryQuery, useGetSLADashboardQuery } = dashboardEndpoints;

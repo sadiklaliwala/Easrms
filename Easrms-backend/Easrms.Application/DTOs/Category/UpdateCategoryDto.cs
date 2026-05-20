@@ -4,5 +4,6 @@ public class UpdateCategoryDto
 {
     public string CategoryName { get; set; } = string.Empty;
     public bool IsApprovalRequired { get; set; }
+    public int SLAHours { get; set; }
 }
 

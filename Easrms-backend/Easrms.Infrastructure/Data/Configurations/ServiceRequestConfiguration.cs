@@ -45,6 +45,28 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
         builder.Property(x => x.ClosedOn)
                .IsRequired(false);
 
+        // CR-001 added
+        builder.Property(x => x.DueDate)
+            .IsRequired(false);
+
+        builder.Property(x => x.IsEscalated)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(x => x.EscalatedOn)
+            .IsRequired(false);
+
+        builder.Property(x => x.EscalationReason)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
+        // FK → Users (Escalator)
+        builder.HasOne(x => x.Escalator)
+            .WithMany()
+            .HasForeignKey(x => x.EscalatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
         // Employee relationship
         builder.HasOne(x => x.Employee)
                .WithMany(x => x.CreatedRequests)

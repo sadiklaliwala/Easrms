@@ -13,5 +13,6 @@ namespace Easrms.Application.Interfaces.Repositories
         Task<IReadOnlyList<PriorityCountDto>> GetPriorityCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
         Task<IReadOnlyDictionary<int, int>> GetStatusCountsAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
         Task<DashboardSummaryDto> GetSummaryAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
+        Task<DashboardSummaryDto> GetSLASummaryAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default);
     }
 }

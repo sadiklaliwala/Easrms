@@ -72,7 +72,7 @@ const categoryEndpoints = api.injectEndpoints({
       CategoryQueryParams
     >({
       query: (params) =>
-        `${ApiEndPoints.CATEGORIES.BASE}?${buildQueryParams(params)}`,
+        `${ApiEndPoints.CATEGORIES.BASE}${buildQueryParams(params)}`,
       providesTags: ["Category"],
     }),
 

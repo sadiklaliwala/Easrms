@@ -46,6 +46,11 @@ const schema = Joi.object({
     "string.min": "Must be at least 2 characters",
   }),
   isApprovalRequired: Joi.boolean().required(),
+  slaHours: Joi.number().min(1).required().messages({
+    "number.base": "SLA Hours must be a number",
+    "number.min": "SLA Hours must be greater than 0",
+    "any.required": "SLA Hours is required",
+  }),
 });
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ const CategoryPage = () => {
     formState: { errors: createErrors },
   } = useForm<CreateCategoryDto>({
     resolver: joiResolver(schema),
-    defaultValues: { categoryName: "", isApprovalRequired: false },
+    defaultValues: { categoryName: "", isApprovalRequired: false, slaHours: 1 },
   });
 
   // ─── Edit Form ───────────────────────────────────────────────────────────────
@@ -148,6 +153,7 @@ const CategoryPage = () => {
     resetEdit({
       categoryName: cat.categoryName,
       isApprovalRequired: cat.isApprovalRequired,
+      slaHours: cat.slaHours,
     });
   };
 
@@ -322,6 +328,27 @@ const CategoryFormFields = ({ control, errors }: CategoryFormFieldsProps) => (
         )}
       />
       <AppFormError message={errors.categoryName?.message} />
+    </Box>
+
+    <Box sx={{ mt: 2, mb: 2 }}>
+      <AppLabel label="SLA Hours" required />
+      <Controller
+        name="slaHours"
+        control={control}
+        render={({ field }) => (
+          <AppInput
+            {...field}
+            type="number"
+            placeholder="Enter SLA hours"
+            fullWidth
+            error={!!errors.slaHours}
+            onChange={(e) =>
+              field.onChange(e.target.value ? Number(e.target.value) : "")
+            }
+          />
+        )}
+      />
+      <AppFormError message={errors.slaHours?.message} />
     </Box>
 
     <Controller

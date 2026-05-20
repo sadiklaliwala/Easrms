@@ -151,10 +151,23 @@ public class RequestRepository : IRequestRepository
                 sr.Priority,
                 sr.Status,
                 sr.CreatedOn,
-                au.FullName AS AssigneeName
+                au.FullName AS AssigneeName,
+                sr.DueDate,
+                sr.IsEscalated,
+                sr.EscalatedOn,
+                sr.EscalationReason,
+                u_esc.FullName AS EscalatedByName,
+                CASE
+                  WHEN sr.Status IN (7, 8) THEN 'Within SLA'
+                  WHEN sr.DueDate IS NULL THEN 'N/A'
+                  WHEN GETUTCDATE() > sr.DueDate THEN 'Breached'
+                  WHEN GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) THEN 'Nearing Breach'
+                  ELSE 'Within SLA'
+                END AS SLAStatus
             FROM ServiceRequests sr
             LEFT JOIN RequestCategories rc ON sr.CategoryId  = rc.CategoryId
             LEFT JOIN Users            au ON sr.AssignedTo   = au.UserId
+            LEFT JOIN Users            u_esc ON u_esc.UserId = sr.EscalatedBy
             WHERE {where}
             ORDER BY {sortColumn} {sortDir}
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
@@ -178,6 +191,11 @@ public class RequestRepository : IRequestRepository
             DateTime createdOn = row.CreatedOn;
             string assigneeName = row.AssigneeName ?? string.Empty;
 
+            // New SLA / escalation fields
+            DateTime? dueDate = row.DueDate is null ? null : (DateTime?)row.DueDate;
+            bool isEscalated = row.IsEscalated is not null && (bool)row.IsEscalated;
+            string slaStatus = row.SLAStatus ?? string.Empty;
+
             // Safe cast: fall back to sensible defaults if the DB value is somehow out of range
             var priority = Enum.IsDefined(typeof(PriorityEnums), priorityInt)
                 ? (PriorityEnums)priorityInt
@@ -196,7 +214,10 @@ public class RequestRepository : IRequestRepository
                 Priority = priority,
                 Status = status,
                 CreatedOn = createdOn,
-                AssigneeName = assigneeName
+                AssigneeName = assigneeName,
+                DueDate = dueDate,
+                SLAStatus = slaStatus,
+                IsEscalated = isEscalated
             };
         }).ToList();
 
@@ -227,6 +248,7 @@ public class RequestRepository : IRequestRepository
             .Include(sr => sr.Category)
             .Include(sr => sr.AssignedUser)
             .Include(sr => sr.ClosedByUser)
+            .Include(sr => sr.Escalator)
             .FirstOrDefaultAsync(sr => sr.RequestId == requestId, cancellationToken);
     }
 

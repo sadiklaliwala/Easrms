@@ -10,6 +10,8 @@ public class RequestCategory
 
     public bool IsActive { get; set; } = true;
 
+    public int SLAHours { get; set; }
+
     public DateTime CreatedOn { get; set; }
 
     public DateTime? UpdatedOn { get; set; }

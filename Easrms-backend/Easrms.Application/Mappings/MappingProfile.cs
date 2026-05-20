@@ -4,6 +4,8 @@ using Easrms.Application.DTOs.Category;
 using Easrms.Application.DTOs.Comment;
 using Easrms.Application.DTOs.Request;
 using Easrms.Application.DTOs.User;
+using Easrms.Application.Helpers;
+using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 
 namespace Easrms.Application.Mappings;
@@ -36,7 +38,9 @@ public class MappingProfile : Profile
         CreateMap<ServiceRequest, RequestDetailDto>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName))
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FullName))
-            .ForMember(dest => dest.AssigneeName, opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.FullName : string.Empty));
+            .ForMember(dest => dest.AssigneeName, opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.FullName : string.Empty))
+            .ForMember(d => d.EscalatedByName, o => o.MapFrom(s => s.Escalator != null ? s.Escalator.FullName : null))
+            .ForMember(d => d.SLAStatus, o => o.MapFrom(s => SlaHelper.Calculate(s.Status, s.DueDate)));
 
         // Comment mappings
         CreateMap<RequestComment, CommentListDto>()

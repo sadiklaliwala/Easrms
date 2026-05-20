@@ -1,9 +1,9 @@
-﻿using Easrms.Application.Interfaces.Repositories;
-using Easrms.Common.Constants;
+﻿using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
-using Easrms.Infrastructure.Services;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Easrms.Application.Features.Request.Commands;
 
@@ -21,8 +21,6 @@ public sealed class UpdateRequestStatusCommand : IRequest
     /// <summary>Support user's UserId extracted from JWT claims by the controller.</summary>
     public Guid CurrentUserId { get; init; }
 }
-
-
 
 /// <summary>
 /// Step-by-step per HANDLER_REPO_REFERENCE_MAP:
@@ -44,13 +42,16 @@ public sealed class UpdateRequestStatusCommandHandler(
     IRequestRepository requestRepository,
     ICommentRepository commentRepository,
     IUserRepository userRepository,
-    IEmailService emailService
+    IEmailService emailService,
+    ILogger<UpdateRequestStatusCommandHandler> logger
     ) : IRequestHandler<UpdateRequestStatusCommand>
 {
     private readonly IRequestRepository _requestRepository = requestRepository;
     private readonly ICommentRepository _commentRepository = commentRepository;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IEmailService _emailService = emailService;
+    private readonly ILogger<UpdateRequestStatusCommandHandler> _logger = logger;
+
     // Valid transitions: key = current status, value = expected new status
     private static readonly Dictionary<RequestStatusEnum, RequestStatusEnum> AllowedTransitions = new()
 {
@@ -124,7 +125,7 @@ public sealed class UpdateRequestStatusCommandHandler(
         //    Employee gets notified that they can now close the request.
         if (request.NewStatus == RequestStatusEnum.Resolved)
         {
-            var employee = await _userRepository.GetByIdAsync(entity.EmployeeId);
+            var employee = entity.Employee; // navigation loaded
             if (!string.IsNullOrWhiteSpace(employee?.Email))
             {
                 var capturedEmail = employee.Email;
@@ -133,8 +134,70 @@ public sealed class UpdateRequestStatusCommandHandler(
 
                 _ = Task.Run(async () =>
                 {
-                    await _emailService.SendRequestResolvedAsync(capturedEmail, capturedNumber, capturedTitle);
+                    try
+                    {
+                        await _emailService.SendRequestResolvedAsync(capturedEmail, capturedNumber, capturedTitle);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed sending resolved email for {RequestNumber}", capturedNumber);
+                    }
                 }, CancellationToken.None); // CancellationToken.None — must NOT be cancelled when request ends
+            }
+        }
+
+        // SLA checks: compute nearing breach and breached based on DueDate and Category.SLAHours
+        if (entity.DueDate.HasValue && entity.Category != null)
+        {
+            var now = DateTime.UtcNow;
+            var slaHours = entity.Category.SLAHours;
+            if (slaHours > 0)
+            {
+                var due = entity.DueDate.Value;
+                var nearingThreshold = due - TimeSpan.FromHours(slaHours * 0.2);
+
+                if (now > due)
+                {
+                    var recipients = new List<string?> { entity.AssignedUser?.Email, entity.Employee?.Email };
+                    var capturedNumber = entity.RequestNumber;
+                    var capturedTitle = entity.Title;
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            foreach (var to in recipients.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
+                            {
+                                await _emailService.SendSLABreachedAsync(to!, capturedNumber, capturedTitle);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed sending SLA breached emails for {RequestNumber}", capturedNumber);
+                        }
+                    }, CancellationToken.None);
+                }
+                else if (now > nearingThreshold && now <= due)
+                {
+                    var recipients = new List<string?> { entity.AssignedUser?.Email };
+                    var capturedNumber = entity.RequestNumber;
+                    var capturedTitle = entity.Title;
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            foreach (var to in recipients.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
+                            {
+                                await _emailService.SendSLANearingBreachAsync(to!, capturedNumber, capturedTitle);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed sending SLA nearing breach emails for {RequestNumber}", capturedNumber);
+                        }
+                    }, CancellationToken.None);
+                }
             }
         }
     }
