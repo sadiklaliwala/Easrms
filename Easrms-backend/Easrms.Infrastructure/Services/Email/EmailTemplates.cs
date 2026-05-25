@@ -1,4 +1,4 @@
-namespace Easrms.Infrastructure.Services;
+namespace Easrms.Infrastructure.Services.Email;
 
 internal static class EmailTemplates
 {

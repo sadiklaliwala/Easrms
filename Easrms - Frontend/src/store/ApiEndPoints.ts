@@ -64,6 +64,10 @@ const ApiEndPoints = {
     ME: '/api/Auth/me',
     REFRESH_TOKEN: '/api/Auth/refresh-token',
     REVOKE_TOKEN: '/api/Auth/revoke-token',
+    OAUTH_LOGIN: '/api/Auth/oauth-login',
+    LINK_PROVIDER: '/api/Auth/link-provider',
+    UNLINK_PROVIDER: '/api/Auth/unlink-provider',
+    LINKED_PROVIDERS: '/api/Auth/linked-providers',
   },
 
   // Users
@@ -105,6 +109,19 @@ const ApiEndPoints = {
   LOOKUP: {
     SUPPORT_USERS: '/api/Lookup/support-users',
     MANAGERS: '/api/Lookup/managers',
+  },
+
+  // Cloudinary
+  CLOUDINARY: {
+    SIGN: '/api/Cloudinary/sign',
+  },
+
+  // Export
+  EXPORT: {
+    REQUESTS_EXCEL: '/api/export/requests/excel',
+    REQUESTS_PDF: '/api/export/requests/pdf',
+    REQUEST_DETAIL_EXCEL: (id: string) => `/api/export/requests/${id}/excel`,
+    REQUEST_DETAIL_PDF: (id: string) => `/api/export/requests/${id}/pdf`,
   },
 };
 

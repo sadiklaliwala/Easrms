@@ -40,6 +40,8 @@ public class ServiceRequest
     public DateTime? EscalatedOn { get; set; }
     public Guid? EscalatedBy { get; set; }
     public string? EscalationReason { get; set; }
+    // Attachment URL for uploaded file (Cloudinary)
+    public string? AttachmentUrl { get; set; }
     // ────────────────────────────────────────
 
 

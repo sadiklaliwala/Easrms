@@ -102,7 +102,8 @@ public class RequestController : ControllerBase
             Title = dto.Title,
             Description = dto.Description,
             Priority = dto.Priority,
-            CurrentUserId = currentUserId
+            CurrentUserId = currentUserId,
+            AttachmentUrl = dto.AttachmentUrl
         };
 
         var requestNumber = await _mediator.Send(command, cancellationToken);
@@ -126,7 +127,7 @@ public class RequestController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
+        
         var command = new ApprovalRequestCommand
         {
             RequestId = id,

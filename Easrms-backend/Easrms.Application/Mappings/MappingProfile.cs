@@ -40,7 +40,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FullName))
             .ForMember(dest => dest.AssigneeName, opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.FullName : string.Empty))
             .ForMember(d => d.EscalatedByName, o => o.MapFrom(s => s.Escalator != null ? s.Escalator.FullName : null))
-            .ForMember(d => d.SLAStatus, o => o.MapFrom(s => SlaHelper.Calculate(s.Status, s.DueDate)));
+            .ForMember(d => d.SLAStatus, o => o.MapFrom(s => SlaHelper.Calculate(s.Status, s.DueDate)))
+            .ForMember(dest => dest.AttachmentUrl, opt => opt.MapFrom(src => src.AttachmentUrl));
 
         // Comment mappings
         CreateMap<RequestComment, CommentListDto>()

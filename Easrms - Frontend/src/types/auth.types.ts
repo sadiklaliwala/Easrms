@@ -71,3 +71,28 @@ export interface RefreshTokenResponseDto {
   accessToken: string;
   refreshToken: string;
 }
+
+import { AuthProvider } from "./common.types";
+
+export interface OAuthLoginDto {
+  code: string;
+  provider: AuthProvider;
+  state?: string;
+}
+
+export interface LinkedProviderDto {
+  id: string;
+  authProvider: AuthProvider;
+  providerName: string;
+  linkedOn: string;
+}
+
+export interface LinkProviderDto {
+  code: string;
+  provider: AuthProvider;
+  state?: string;
+}
+
+export interface UnlinkProviderDto {
+  providerId: string;
+}

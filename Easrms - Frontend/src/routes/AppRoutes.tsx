@@ -26,6 +26,10 @@ const ApprovalQueuePage = lazy(
 );
 const AssignmentPage = lazy(() => import("../pages/assignment/AssignmentPage"));
 const SupportTaskPage = lazy(() => import("../pages/support/SupportTaskPage"));
+const OAuthCallbackPage = lazy(
+  () => import("../pages/auth/OAuthCallbackPage"),
+);
+const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
 
 const AppRoutes = () => {
   return (
@@ -33,6 +37,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<OAuthCallbackPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
         {/* Protected — all routes inside require authentication */}
@@ -96,6 +101,22 @@ const AppRoutes = () => {
               element={<RoleBasedRoute allowedRoles={[ROLES.SUPPORT_USER]} />}
             >
               <Route path="/my-tasks" element={<SupportTaskPage />} />
+            </Route>
+
+            {/* Profile — All roles */}
+            <Route
+              element={
+                <RoleBasedRoute
+                  allowedRoles={[
+                    ROLES.ADMIN,
+                    ROLES.MANAGER,
+                    ROLES.EMPLOYEE,
+                    ROLES.SUPPORT_USER,
+                  ]}
+                />
+              }
+            >
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
             {/* Default redirect */}

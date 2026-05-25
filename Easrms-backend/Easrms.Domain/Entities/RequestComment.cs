@@ -1,4 +1,6 @@
-﻿namespace Easrms.Domain.Entities;
+﻿using Easrms.Common.Enums;
+
+namespace Easrms.Domain.Entities;
 
 public class RequestComment
 {
@@ -10,7 +12,8 @@ public class RequestComment
 
     public string CommentText { get; set; } = string.Empty;
 
-    public string CommentType { get; set; } = string.Empty;
+    // Store the comment type as a strongly-typed enum in the domain model
+    public CommentTypeEnum CommentType { get; set; }
 
     public DateTime CreatedOn { get; set; }
 

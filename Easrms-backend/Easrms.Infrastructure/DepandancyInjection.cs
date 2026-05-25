@@ -1,8 +1,13 @@
 ﻿using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.OAuth;
 using Easrms.Application.Interfaces.Repositories;
+using Easrms.Infrastructure.BackgroundWorkers.Workers;
 using Easrms.Infrastructure.Data;
+using Easrms.Infrastructure.Export;
 using Easrms.Infrastructure.Repositories.Implementations;
 using Easrms.Infrastructure.Services;
+using Easrms.Infrastructure.Services.Email;
+using Easrms.Infrastructure.Services.OAuth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,12 +31,23 @@ namespace Easrms.Infrastructure
             services.AddScoped<ILookupRepository, LookupRepository>();
             services.AddScoped<IRequestRepository, RequestRepository>();
             services.AddScoped<IEscalationRepository, EscalationRepository>();
-
             services.AddScoped<IJwtService, JwtService>();
-            services.AddScoped<IEmailService, EmailService>();
-            
+            services.AddScoped<IAuthProviderRepository, AuthProviderRepository>();
+            services.AddScoped<IOAuthService, GoogleOAuthService>(); // default registration for IOAuthService is Google; specific services registered below
+            services.AddScoped<IOAuthService, GoogleOAuthService>();
+            services.AddScoped<IOAuthService, GitHubOAuthService>();
+            services.AddScoped<IOAuthService, AzureOAuthService>();
+            services.AddSingleton<IEmailService, EmailService>();
+            services.AddHostedService<RetryFailedEmailWorker>();
+            services.AddHostedService<ExpiredRefreshTokenCleanupWorker>();
+            // Register Cloudinary service and bind settings
+            services.Configure<Easrms.Application.Settings.CloudinarySettings>(configuration.GetSection("Cloudinary"));
+            services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Easrms.Application.Settings.CloudinarySettings>>().Value as Easrms.Application.Interfaces.ICloudinarySettings);
+            services.AddSingleton<IEmailQueue, EmailQueue>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-
+            services.AddScoped<ExcelExportService>();
+            services.AddScoped<PdfExportService>();
 
             services.AddScoped<DapperContext>();
             var connectionString =

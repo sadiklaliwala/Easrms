@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Easrms.Application.DTOs.Dashboard;
-using Easrms.Application.Features.Dashboard.Queries;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Infrastructure.Data;
@@ -69,12 +68,12 @@ public class DashboardRepository : IDashboardRepository
         // Retrieve SLA / escalation totals in one query
         var (where, parameters) = BuildWhereClause(queryParams);
         var slaSql = $@"
-        SELECT
-            SUM(CASE WHEN sr.IsEscalated = 1 THEN 1 ELSE 0 END) AS EscalatedCount,
-            SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > sr.DueDate THEN 1 ELSE 0 END) AS BreachedCount,
-            SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) AND GETUTCDATE() <= sr.DueDate THEN 1 ELSE 0 END) AS NearingBreachCount,
-            SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() <= DATEADD(HOUR,-2,sr.DueDate) THEN 1 ELSE 0 END) AS WithinSLACount
-        FROM ServiceRequests sr
+            SELECT
+            ISNULL(SUM(CASE WHEN sr.IsEscalated = 1 THEN 1 ELSE 0 END),0) AS EscalatedCount,
+            ISNULL(SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > sr.DueDate THEN 1 ELSE 0 END),0) AS BreachedCount,
+            ISNULL(SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) AND GETUTCDATE() <= sr.DueDate THEN 1 ELSE 0 END),0) AS NearingBreachCount,
+            ISNULL(SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() <= DATEADD(HOUR,-2,sr.DueDate) THEN 1 ELSE 0 END),0) AS WithinSLACount
+            FROM ServiceRequests sr
         {where};";
 
         using var conn = _dapperContext.CreateConnection();
@@ -91,7 +90,7 @@ public class DashboardRepository : IDashboardRepository
             InProgressCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.InProgress),
             ResolvedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Resolved),
             ClosedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Closed),
-            WithinSLACount = (int)slaRow.WithinSLACount,
+            WithinSLACount = Convert.ToInt32(slaRow.WithinSLACount ?? 0),
             NearingBreachCount = (int)slaRow.NearingBreachCount,
             BreachedCount = (int)slaRow.BreachedCount,
             EscalatedCount = (int)slaRow.EscalatedCount,

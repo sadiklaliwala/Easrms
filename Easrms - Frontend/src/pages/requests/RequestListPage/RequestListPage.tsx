@@ -225,8 +225,9 @@ import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import AppTableActions from "../../../components/common/table/AppTableActions";
 import AppSLABadge from "../../../components/common/table/AppSLABadge";
 import EscalateRequestDialog from "../../../components/common/modal/EscalateRequestDialog";
-import { useEscalateRequestMutation } from "../../../store/api/request.endpoints";
+import { useEscalateRequestMutation, useLazyExportRequestListExcelQuery, useLazyExportRequestListPdfQuery } from "../../../store/api/request.endpoints";
 import toast from "react-hot-toast";
+import { downloadBlob } from "../../../utils/exportFile";
 import { STATUS } from "../../../constants/status.constants";
 
 import { ROLES } from "../../../constants/role.constants";
@@ -266,6 +267,31 @@ const RequestListPage = () => {
   const [escalateRow, setEscalateRow] = useState<RequestListDto | null>(null);
   const [escalateRequest, { isLoading: escalating }] =
     useEscalateRequestMutation();
+
+  const [exportExcel, { isFetching: excelLoading }] =
+    useLazyExportRequestListExcelQuery();
+  const [exportPdf, { isFetching: pdfLoading }] =
+    useLazyExportRequestListPdfQuery();
+
+  const handleExportExcel = async () => {
+    try {
+      const blob = await exportExcel(params).unwrap();
+      downloadBlob(blob, `Requests_${Date.now()}.xlsx`);
+      toast.success("Excel exported successfully");
+    } catch (error) {
+      toast.error("Failed to export Excel");
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      const blob = await exportPdf(params).unwrap();
+      downloadBlob(blob, `Requests_${Date.now()}.pdf`);
+      toast.success("PDF exported successfully");
+    } catch (error) {
+      toast.error("Failed to export PDF");
+    }
+  };
 
   // useMemo — category options rebuilt only when categories response changes
   const categoryOptions = useMemo(
@@ -498,6 +524,22 @@ const RequestListPage = () => {
 
       {/* Filters */}
       <AppFilterBar>
+        {roleName === ROLES.ADMIN && (
+          <Box sx={{ display: 'flex', gap: 1, minWidth: 'max-content' }}>
+            <AppButton
+              label={excelLoading ? "Exporting..." : "Export Excel"}
+              onClick={handleExportExcel}
+              disabled={excelLoading || pdfLoading}
+              variant="outlined"
+            />
+            <AppButton
+              label={pdfLoading ? "Exporting..." : "Export PDF"}
+              onClick={handleExportPdf}
+              disabled={excelLoading || pdfLoading}
+              variant="outlined"
+            />
+          </Box>
+        )}
         <Box sx={{ flex: 1, minWidth: 200 }}>
           <AppSearchInput
             onSearch={(val) =>

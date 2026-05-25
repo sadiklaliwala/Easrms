@@ -125,32 +125,24 @@ public sealed class UpdateRequestStatusCommandHandler(
         //    Employee gets notified that they can now close the request.
         if (request.NewStatus == RequestStatusEnum.Resolved)
         {
-            var employee = entity.Employee; // navigation loaded
+            var employee = entity.Employee;
             if (!string.IsNullOrWhiteSpace(employee?.Email))
             {
-                var capturedEmail = employee.Email;
-                var capturedNumber = entity.RequestNumber;
-                var capturedTitle = entity.Title;
-
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await _emailService.SendRequestResolvedAsync(capturedEmail, capturedNumber, capturedTitle);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed sending resolved email for {RequestNumber}", capturedNumber);
-                    }
-                }, CancellationToken.None); // CancellationToken.None — must NOT be cancelled when request ends
+                await _emailService.SendRequestResolvedAsync(
+                    employee.Email,
+                    entity.RequestNumber,
+                    entity.Title);
             }
         }
 
         // SLA checks: compute nearing breach and breached based on DueDate and Category.SLAHours
+
+        // SLA checks
         if (entity.DueDate.HasValue && entity.Category != null)
         {
             var now = DateTime.UtcNow;
             var slaHours = entity.Category.SLAHours;
+
             if (slaHours > 0)
             {
                 var due = entity.DueDate.Value;
@@ -158,45 +150,27 @@ public sealed class UpdateRequestStatusCommandHandler(
 
                 if (now > due)
                 {
-                    var recipients = new List<string?> { entity.AssignedUser?.Email, entity.Employee?.Email };
-                    var capturedNumber = entity.RequestNumber;
-                    var capturedTitle = entity.Title;
+                    var recipients = new List<string?> { entity.AssignedUser?.Email, entity.Employee?.Email }
+                        .Where(e => !string.IsNullOrWhiteSpace(e))
+                        .Distinct()
+                        .ToList();
 
-                    _ = Task.Run(async () =>
+                    foreach (var to in recipients)
                     {
-                        try
-                        {
-                            foreach (var to in recipients.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
-                            {
-                                await _emailService.SendSLABreachedAsync(to!, capturedNumber, capturedTitle);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed sending SLA breached emails for {RequestNumber}", capturedNumber);
-                        }
-                    }, CancellationToken.None);
+                        await _emailService.SendSLABreachedAsync(to!, entity.RequestNumber, entity.Title);
+                    }
                 }
                 else if (now > nearingThreshold && now <= due)
                 {
-                    var recipients = new List<string?> { entity.AssignedUser?.Email };
-                    var capturedNumber = entity.RequestNumber;
-                    var capturedTitle = entity.Title;
+                    var recipients = new List<string?> { entity.AssignedUser?.Email }
+                        .Where(e => !string.IsNullOrWhiteSpace(e))
+                        .Distinct()
+                        .ToList();
 
-                    _ = Task.Run(async () =>
+                    foreach (var to in recipients)
                     {
-                        try
-                        {
-                            foreach (var to in recipients.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
-                            {
-                                await _emailService.SendSLANearingBreachAsync(to!, capturedNumber, capturedTitle);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed sending SLA nearing breach emails for {RequestNumber}", capturedNumber);
-                        }
-                    }, CancellationToken.None);
+                        await _emailService.SendSLANearingBreachAsync(to!, entity.RequestNumber, entity.Title);
+                    }
                 }
             }
         }

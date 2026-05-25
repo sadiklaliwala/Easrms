@@ -20,9 +20,10 @@ public class RequestCommentConfiguration : IEntityTypeConfiguration<RequestComme
                 .WithMany()
                 .HasForeignKey(x => x.CommentBy);
 
+        // Store enum as int in database
         builder.Property(x => x.CommentType)
                .IsRequired()
-               .HasMaxLength(50);
+               .HasConversion<int>();
 
         builder.Property(x => x.IsDeleted)
                .IsRequired()

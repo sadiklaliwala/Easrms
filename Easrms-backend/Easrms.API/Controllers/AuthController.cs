@@ -123,4 +123,84 @@ public class AuthController : ControllerBase
             Errors = null
         });
     }
+
+    // POST /api/auth/oauth-login
+    [HttpPost("oauth-login")]
+    public async Task<IActionResult> OAuthLogin(
+        [FromBody] OAuthLoginDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new Easrms.Application.Features.Auth.Commands.OAuthLogin.OAuthLoginCommand(dto);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Login successful.",
+            Data = result,
+            Errors = null
+        });
+    }
+
+    // POST /api/auth/link-provider
+    [HttpPost("link-provider")]
+    [Authorize]
+    public async Task<IActionResult> LinkProvider(
+        [FromBody] LinkProviderDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var command = new Easrms.Application.Features.Auth.Commands.LinkProvider.LinkProviderCommand(dto, currentUserId);
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Provider linked successfully.",
+            Data = null,
+            Errors = null
+        });
+    }
+
+    // DELETE /api/auth/unlink-provider
+    [HttpDelete("unlink-provider")]
+    [Authorize]
+    public async Task<IActionResult> UnlinkProvider(
+        [FromBody] UnlinkProviderDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var command = new Easrms.Application.Features.Auth.Commands.UnlinkProvider.UnlinkProviderCommand(dto.ProviderId, currentUserId);
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Provider unlinked successfully.",
+            Data = null,
+            Errors = null
+        });
+    }
+
+    // GET /api/auth/linked-providers
+    [HttpGet("linked-providers")]
+    [Authorize]
+    public async Task<IActionResult> GetLinkedProviders(CancellationToken cancellationToken = default)
+    {
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var query = new Easrms.Application.Features.Auth.Queries.GetLinkedProviders.GetLinkedProvidersQuery(currentUserId);
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Linked providers retrieved.",
+            Data = result,
+            Errors = null
+        });
+    }
 }

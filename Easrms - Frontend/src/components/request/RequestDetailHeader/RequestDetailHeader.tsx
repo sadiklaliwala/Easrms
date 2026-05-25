@@ -1,4 +1,5 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 import AppStatusBadge from "../../common/table/AppStatusBadge";
 import AppPriorityBadge from "../../common/table/AppPriorityBadge";
 import RequestNumberBadge from "../RequestNumberBadge";
@@ -9,6 +10,7 @@ interface RequestDetailHeaderProps {
   status: string;
   priority: string;
   categoryName: string;
+  attachmentUrl?: string | null;
 }
 
 const RequestDetailHeader = ({
@@ -17,9 +19,11 @@ const RequestDetailHeader = ({
   status,
   priority,
   categoryName,
+  attachmentUrl,
 }: RequestDetailHeaderProps) => {
   return (
-    <Box sx={{ mb: 3 }}>
+    <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 2 }}>
+      <Box>
       <Box
         sx={{
           display: "flex",
@@ -38,6 +42,21 @@ const RequestDetailHeader = ({
       <Typography variant="body2" color="text.secondary">
         Category: {categoryName}
       </Typography>
+      </Box>
+      
+      {attachmentUrl && (
+        <Button
+          variant="outlined"
+          startIcon={<AttachFileIcon />}
+          href={attachmentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          size="small"
+          sx={{ textTransform: 'none' }}
+        >
+          View Attachment
+        </Button>
+      )}
     </Box>
   );
 };

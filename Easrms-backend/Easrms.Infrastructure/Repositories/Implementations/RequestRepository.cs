@@ -163,7 +163,8 @@ public class RequestRepository : IRequestRepository
                   WHEN GETUTCDATE() > sr.DueDate THEN 'Breached'
                   WHEN GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) THEN 'Nearing Breach'
                   ELSE 'Within SLA'
-                END AS SLAStatus
+                END AS SLAStatus,
+                sr.AttachmentUrl
             FROM ServiceRequests sr
             LEFT JOIN RequestCategories rc ON sr.CategoryId  = rc.CategoryId
             LEFT JOIN Users            au ON sr.AssignedTo   = au.UserId
@@ -190,6 +191,7 @@ public class RequestRepository : IRequestRepository
             int statusInt = (int)row.Status;
             DateTime createdOn = row.CreatedOn;
             string assigneeName = row.AssigneeName ?? string.Empty;
+            string attachmentUrl = row.AttachmentUrl ?? string.Empty;
 
             // New SLA / escalation fields
             DateTime? dueDate = row.DueDate is null ? null : (DateTime?)row.DueDate;
@@ -217,7 +219,8 @@ public class RequestRepository : IRequestRepository
                 AssigneeName = assigneeName,
                 DueDate = dueDate,
                 SLAStatus = slaStatus,
-                IsEscalated = isEscalated
+                IsEscalated = isEscalated,
+                AttachmentUrl = attachmentUrl
             };
         }).ToList();
 

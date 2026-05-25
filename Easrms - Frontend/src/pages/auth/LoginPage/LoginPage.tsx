@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
-import { Box, Paper, Typography, Stack } from "@mui/material";
+import { Box, Paper, Typography, Stack, Divider } from "@mui/material";
 import toast from "react-hot-toast";
 
 import { useLoginMutation } from "../../../store/api/auth.endpoints";
@@ -17,6 +17,7 @@ import AppPasswordInput from "../../../components/common/form/AppPasswordInput";
 import AppLoadingButton from "../../../components/common/buttons/AppLoadingButton";
 import AppFormError from "../../../components/common/form/AppFormError";
 import AppLabel from "../../../components/common/form/AppLabel";
+import OAuthButtons from "../../../components/common/buttons/OAuthButtons";
 
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 
@@ -263,6 +264,14 @@ const LoginPage = () => {
             sx={{ py: 1.25, borderRadius: 2 }}
           />
         </Stack>
+
+        {/* OAuth Divider */}
+        <Divider sx={{ my: 3, color: "text.secondary", fontSize: "0.8rem" }}>
+          OR
+        </Divider>
+
+        {/* OAuth Buttons */}
+        <OAuthButtons mode="login" />
       </Paper>
     </Box>
   );

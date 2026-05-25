@@ -60,6 +60,11 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
             .IsRequired(false)
             .HasMaxLength(500);
 
+        // AttachmentUrl mapping
+        builder.Property(x => x.AttachmentUrl)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         // FK → Users (Escalator)
         builder.HasOne(x => x.Escalator)
             .WithMany()

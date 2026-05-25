@@ -7,4 +7,6 @@ public interface IEmailService
     Task SendSLANearingBreachAsync(string toEmail, string requestNumber, string requestTitle);
     Task SendSLABreachedAsync(string toEmail, string requestNumber, string requestTitle);
     Task SendRequestEscalatedAsync(string toEmail, string requestNumber, string requestTitle, string escalationReason);
+
+    Task SendAsync(string toEmail, string subject, string htmlBody);
 }

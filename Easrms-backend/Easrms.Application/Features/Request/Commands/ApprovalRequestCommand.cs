@@ -118,7 +118,7 @@ public sealed class ApprovalRequestCommandHandler(
                 RequestId = entity.RequestId,
                 CommentBy = request.CurrentUserId,
                 CommentText = request.Comment,
-                CommentType = CommentTypeConstants.Approval,
+                CommentType = CommentTypeEnum.Approval,
                 CreatedOn = DateTime.UtcNow,
                 IsDeleted = false
             };

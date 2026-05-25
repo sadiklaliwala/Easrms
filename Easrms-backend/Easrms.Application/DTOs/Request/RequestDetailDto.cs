@@ -26,5 +26,6 @@ public class RequestDetailDto
     public DateTime? EscalatedOn { get; set; }
     public string? EscalatedByName { get; set; }
     public string? EscalationReason { get; set; }
+    public string? AttachmentUrl { get; set; }
 }
 

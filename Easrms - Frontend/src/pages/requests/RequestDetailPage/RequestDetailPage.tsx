@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Stack, Grid, Alert } from "@mui/material";
+import { Stack, Alert, Box, Button, Grid } from "@mui/material";
 import toast from "react-hot-toast";
 
 import {
@@ -10,6 +10,8 @@ import {
   useUpdateRequestStatusMutation,
   useCloseRequestMutation,
   useEscalateRequestMutation,
+  useLazyExportRequestDetailExcelQuery,
+  useLazyExportRequestDetailPdfQuery,
 } from "../../../store/api/request.endpoints";
 import {
   useGetCommentsQuery,
@@ -17,6 +19,9 @@ import {
 } from "../../../store/api/comment.endpoints";
 import { useGetStatusHistoryQuery } from "../../../store/api/comment.endpoints";
 import { useGetSupportUsersQuery } from "../../../store/api/lookup.endpoints";
+import { useAppSelector } from "../../../hooks/useAppSelector";
+import { downloadBlob } from "../../../utils/exportFile";
+import { ROLES } from "../../../constants/role.constants";
 
 import AppPageHeader from "../../../components/common/layout/AppPageHeader";
 import AppCard from "../../../components/common/layout/AppCard";
@@ -58,7 +63,7 @@ import type { AddCommentDto } from "../../../types/common.types";
 const RequestDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // const { userId, roleName } = useAppSelector((state) => state.auth);
+  const { roleName } = useAppSelector((state) => state.auth);
 
   // ─── Dialog State ─────────────────────────────────────────────────────────────
   const [approvalOpen, setApprovalOpen] = useState(false);
@@ -87,6 +92,10 @@ const RequestDetailPage = () => {
   const [addComment, { isLoading: commenting }] = useAddCommentMutation();
   const [escalateRequest, { isLoading: escalating }] =
     useEscalateRequestMutation();
+  const [exportExcel, { isFetching: excelLoading }] =
+    useLazyExportRequestDetailExcelQuery();
+  const [exportPdf, { isFetching: pdfLoading }] =
+    useLazyExportRequestDetailPdfQuery();
 
   if (isLoading) return <AppLoader />;
   if (isError || !requestResponse?.success)
@@ -193,6 +202,26 @@ const RequestDetailPage = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const blob = await exportExcel(id!).unwrap();
+      downloadBlob(blob, `Request_${id}.xlsx`);
+      toast.success("Excel exported successfully");
+    } catch (error) {
+      toast.error("Failed to export Excel");
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      const blob = await exportPdf(id!).unwrap();
+      downloadBlob(blob, `Request_${id}.pdf`);
+      toast.success("PDF exported successfully");
+    } catch (error) {
+      toast.error("Failed to export PDF");
+    }
+  };
+
   return (
     <Stack spacing={3}>
       {/* Breadcrumb */}
@@ -206,15 +235,46 @@ const RequestDetailPage = () => {
       <AppPageHeader
         title="Request Details"
         actions={
-          <RequestActionButtons
-            request={request}
-            onApprove={() => setApprovalOpen(true)}
-            onAssign={() => setAssignOpen(true)}
-            onUpdateStatus={() => setStatusOpen(true)}
-            onClose={() => setCloseOpen(true)}
-            onReject={() => setApprovalOpen(true)}
-            onEscalate={() => setEscalateOpen(true)}
-          />
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            {roleName === ROLES.ADMIN && (
+              <>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={handleExportExcel}
+                  disabled={excelLoading || pdfLoading}
+                >
+                  {excelLoading ? "Exporting..." : "Export Excel"}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={handleExportPdf}
+                  disabled={excelLoading || pdfLoading}
+                >
+                  {pdfLoading ? "Exporting..." : "Export PDF"}
+                </Button>
+              </>
+            )}
+            <RequestActionButtons
+              request={request}
+              onApprove={() => setApprovalOpen(true)}
+              onAssign={() => setAssignOpen(true)}
+              onUpdateStatus={() => setStatusOpen(true)}
+              onClose={() => setCloseOpen(true)}
+              onReject={() => setApprovalOpen(true)}
+              onEscalate={() => setEscalateOpen(true)}
+            />
+          </Box>
         }
       />
 
@@ -260,6 +320,7 @@ const RequestDetailPage = () => {
                 status={STATUS_ENUM_REVERSE[request.status].toString()}
                 priority={PRIORITY_LABEL[request.priority]}
                 categoryName={request.categoryName}
+                attachmentUrl={request.attachmentUrl}
               />
             </AppCard>
 

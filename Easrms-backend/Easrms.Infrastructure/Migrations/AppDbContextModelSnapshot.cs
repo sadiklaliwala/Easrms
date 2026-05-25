@@ -76,10 +76,8 @@ namespace Easrms.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("CommentType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("CommentType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
@@ -203,7 +201,7 @@ namespace Easrms.Infrastructure.Migrations
                         new
                         {
                             RoleId = new Guid("90a5eb56-0ddc-4187-9f32-8870f8fc7046"),
-                            RoleName = "Support User"
+                            RoleName = "Support"
                         });
                 });
 
@@ -215,6 +213,10 @@ namespace Easrms.Infrastructure.Migrations
 
                     b.Property<Guid?>("AssignedTo")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
@@ -331,7 +333,6 @@ namespace Easrms.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshToken")
@@ -354,6 +355,31 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Easrms.Domain.Entities.UserAuthProvider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AuthProvider")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAuthProviders", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestComment", b =>
@@ -471,6 +497,17 @@ namespace Easrms.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Easrms.Domain.Entities.UserAuthProvider", b =>
+                {
+                    b.HasOne("Easrms.Domain.Entities.User", "User")
+                        .WithMany("AuthProviders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Easrms.Domain.Entities.RequestCategory", b =>
                 {
                     b.Navigation("ServiceRequests");
@@ -493,6 +530,8 @@ namespace Easrms.Infrastructure.Migrations
             modelBuilder.Entity("Easrms.Domain.Entities.User", b =>
                 {
                     b.Navigation("AssignedRequests");
+
+                    b.Navigation("AuthProviders");
 
                     b.Navigation("ClosedRequests");
 

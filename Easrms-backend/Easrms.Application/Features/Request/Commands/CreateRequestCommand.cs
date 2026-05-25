@@ -23,6 +23,7 @@ public sealed class CreateRequestCommand : IRequest<string>
     /// <summary>EmployeeId extracted from JWT claims by the controller.</summary>
     public Guid CurrentUserId { get; init; }
 
+    public string? AttachmentUrl { get; init; }
 
 }
 
@@ -108,7 +109,8 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             Priority = request.Priority,
             Status = initialStatus,
             CreatedOn = createdOn,
-            DueDate = dueDate
+            DueDate = dueDate,
+            AttachmentUrl = request.AttachmentUrl
         };
         Console.WriteLine(entity.Status);
         await _requestRepository.AddAsync(entity, cancellationToken);

@@ -35,6 +35,11 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.AddSingleton<IJwtSettings>(sp =>
     sp.GetRequiredService<IOptions<JwtSettings>>().Value);
 
+// Bind and expose Cloudinary settings as ICloudinarySettings
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
+builder.Services.AddSingleton<ICloudinarySettings>(sp =>
+    sp.GetRequiredService<IOptions<CloudinarySettings>>().Value);
+
 //builder.Services.AddAutoMapper(
 //    typeof(Easrms.Application.Mappings.MappingProfile).Assembly);
 

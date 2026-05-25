@@ -1,4 +1,5 @@
 ﻿using Easrms.Application.DTOs.User;
+using Easrms.Application.Interfaces.OAuth;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Helpers;
 using MediatR;
@@ -17,11 +18,14 @@ public sealed class CreateUserCommandHandler
     : IRequestHandler<CreateUserCommand, Guid>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IAuthProviderRepository _authProviderRepository;
 
     public CreateUserCommandHandler(
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IAuthProviderRepository authProviderRepository)
     {
         _userRepository = userRepository;
+        _authProviderRepository = authProviderRepository;
     }
 
     public async Task<Guid> Handle(
@@ -80,7 +84,7 @@ public sealed class CreateUserCommandHandler
             UserId = Guid.NewGuid(),
             FullName = dto.FullName.Trim(),
             Email = dto.Email.Trim().ToLower(),
-            PasswordHash = PasswordHelper.Hash(dto.Password),
+            PasswordHash = PasswordHelper.Hash(dto.Password!),
             RoleId = dto.RoleId,
             ManagerId = dto.ManagerId,
             IsActive = true,
@@ -94,6 +98,20 @@ public sealed class CreateUserCommandHandler
         await _userRepository.CreateAsync(
             user,
             cancellationToken);
+
+        // ---------------------------------------------------------------------
+        // Add default Local provider row
+        // ---------------------------------------------------------------------
+        var authProvider = new Easrms.Domain.Entities.UserAuthProvider
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.UserId,
+            AuthProvider = Easrms.Common.Constants.AuthProviderEnum.Local,
+            ExternalUserId = null,
+            CreatedOn = DateTime.UtcNow
+        };
+
+        await _authProviderRepository.AddAsync(authProvider);
 
         // ---------------------------------------------------------------------
         // RETURN CREATED USER ID

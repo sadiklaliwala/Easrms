@@ -12,6 +12,7 @@ export const api = createApi({
     "History",
     "Dashboard",
     "Lookup",
+    "LinkedProviders",
   ],
   refetchOnFocus: true,
   refetchOnReconnect: true,

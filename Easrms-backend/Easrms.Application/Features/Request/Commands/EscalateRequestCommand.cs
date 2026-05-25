@@ -72,19 +72,9 @@ public sealed class EscalateRequestCommandHandler : IRequestHandler<EscalateRequ
         var capturedTitle = entity.Title;
         var capturedReason = request.Dto.EscalationReason;
 
-        _ = Task.Run(async () =>
+        foreach (var to in recipients.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
         {
-            try
-            {
-                foreach (var to in recipients.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
-                {
-                    await _emailService.SendRequestEscalatedAsync(to!, capturedNumber, capturedTitle, capturedReason);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed sending escalation emails for {RequestNumber}", capturedNumber);
-            }
-        }, CancellationToken.None);
+            await _emailService.SendRequestEscalatedAsync(to!, capturedNumber, capturedTitle, capturedReason);
+        }
     }
 }

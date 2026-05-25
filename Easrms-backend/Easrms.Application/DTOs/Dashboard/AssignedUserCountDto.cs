@@ -1,4 +1,4 @@
-﻿namespace Easrms.Application.Features.Dashboard.Queries;
+﻿namespace Easrms.Application.DTOs.Dashboard;
 
 public class AssignedUserCountDto
 {

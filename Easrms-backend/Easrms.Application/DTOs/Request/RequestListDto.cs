@@ -17,5 +17,6 @@ public class RequestListDto
     public DateTime? DueDate { get; set; }
     public string SLAStatus { get; set; } = string.Empty;
     public bool IsEscalated { get; set; }
+    public string? AttachmentUrl { get; set; }
 }
 

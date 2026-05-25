@@ -27,7 +27,7 @@ public class CommentRepository : ICommentRepository
     /// <summary>
     /// Returns non-deleted comments for a request ordered by CreatedOn ASC.
     /// Uses Dapper to join the Users table and return DTOs.
-    /// CommentType is stored as string in DB — returned as-is in DTO.
+    /// CommentType is stored as int in DB — map to enum or string in DTO as needed.
     /// </summary>
     public async Task<IReadOnlyList<CommentListDto>> GetCommentsByRequestIdAsync(
         Guid requestId,
@@ -54,7 +54,10 @@ public class CommentRepository : ICommentRepository
         {
             CommentId = (Guid)row.CommentId,
             CommentText = row.CommentText ?? string.Empty,
-            CommentType = row.CommentType ?? string.Empty,  // string as-is
+            // map integer DB value to enum name for DTO
+            CommentType = Enum.IsDefined(typeof(CommentTypeEnum), (int)row.CommentType)
+                ? ((CommentTypeEnum)(int)row.CommentType).ToString()
+                : string.Empty,
             CommentByName = row.CommentByName ?? string.Empty,
             CreatedOn = (DateTime)row.CreatedOn
         }).ToList();

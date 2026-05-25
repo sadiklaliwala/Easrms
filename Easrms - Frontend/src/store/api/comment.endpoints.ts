@@ -37,8 +37,7 @@
 
 import { api } from './api';
 import ApiEndPoints from '../ApiEndPoints';
-import type { ApiResponse } from '../../types/common.types';
-import type { AddCommentDto, CommentListDto, StatusHistoryDto } from '../../types/comment.types';
+import type { AddCommentDto, ApiResponse, CommentListDto, StatusHistoryDto } from '../../types/common.types';
 
 const commentEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({

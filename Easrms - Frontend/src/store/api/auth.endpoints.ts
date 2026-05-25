@@ -51,24 +51,27 @@
 //     useRevokeTokenMutation,
 // } = authEndpoints
 
-
-import { api } from './api';
-import ApiEndPoints from '../ApiEndPoints';
-import type { ApiResponse } from '../../types/common.types';
+import { api } from "./api";
+import ApiEndPoints from "../ApiEndPoints";
+import type { ApiResponse } from "../../types/common.types";
 import type {
   LoginRequestDto,
   LoginResponseDto,
   CurrentUserDto,
   RefreshTokenRequestDto,
   RefreshTokenResponseDto,
-} from '../../types/auth.types';
+  OAuthLoginDto,
+  LinkedProviderDto,
+  LinkProviderDto,
+  UnlinkProviderDto,
+} from "../../types/auth.types";
 
 const authEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<ApiResponse<LoginResponseDto>, LoginRequestDto>({
       query: (body) => ({
         url: ApiEndPoints.AUTH.LOGIN,
-        method: 'POST',
+        method: "POST",
         body,
       }),
     }),
@@ -76,7 +79,7 @@ const authEndpoints = api.injectEndpoints({
     logout: builder.mutation<ApiResponse<null>, void>({
       query: () => ({
         url: ApiEndPoints.AUTH.LOGOUT,
-        method: 'POST',
+        method: "POST",
       }),
     }),
 
@@ -84,10 +87,13 @@ const authEndpoints = api.injectEndpoints({
       query: () => ApiEndPoints.AUTH.ME,
     }),
 
-    refreshToken: builder.mutation<ApiResponse<RefreshTokenResponseDto>, RefreshTokenRequestDto>({
+    refreshToken: builder.mutation<
+      ApiResponse<RefreshTokenResponseDto>,
+      RefreshTokenRequestDto
+    >({
       query: (body) => ({
         url: ApiEndPoints.AUTH.REFRESH_TOKEN,
-        method: 'POST',
+        method: "POST",
         body,
       }),
     }),
@@ -95,9 +101,40 @@ const authEndpoints = api.injectEndpoints({
     revokeToken: builder.mutation<ApiResponse<null>, { refreshToken: string }>({
       query: (body) => ({
         url: ApiEndPoints.AUTH.REVOKE_TOKEN,
-        method: 'POST',
+        method: "POST",
         body,
       }),
+    }),
+
+    oauthLogin: builder.mutation<ApiResponse<LoginResponseDto>, OAuthLoginDto>({
+      query: (body) => ({
+        url: ApiEndPoints.AUTH.OAUTH_LOGIN,
+        method: "POST",
+        body,
+      }),
+    }),
+
+    linkProvider: builder.mutation<ApiResponse<null>, LinkProviderDto>({
+      query: (body) => ({
+        url: ApiEndPoints.AUTH.LINK_PROVIDER,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["LinkedProviders"],
+    }),
+
+    unlinkProvider: builder.mutation<ApiResponse<null>, UnlinkProviderDto>({
+      query: (body) => ({
+        url: ApiEndPoints.AUTH.UNLINK_PROVIDER,
+        method: "DELETE",
+        body,
+      }),
+      invalidatesTags: ["LinkedProviders"],
+    }),
+
+    getLinkedProviders: builder.query<ApiResponse<LinkedProviderDto[]>, void>({
+      query: () => ApiEndPoints.AUTH.LINKED_PROVIDERS,
+      providesTags: ["LinkedProviders"],
     }),
   }),
 });
@@ -108,4 +145,8 @@ export const {
   useGetMeQuery,
   useRefreshTokenMutation,
   useRevokeTokenMutation,
+  useOauthLoginMutation,
+  useLinkProviderMutation,
+  useUnlinkProviderMutation,
+  useGetLinkedProvidersQuery,
 } = authEndpoints;

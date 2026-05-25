@@ -16,6 +16,7 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import TaskIcon from "@mui/icons-material/Task";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector } from "../../../../hooks/useAppSelector";
 import { ROLES } from "../../../../constants/role.constants";
@@ -81,6 +82,12 @@ const NAV_ITEMS: NavItem[] = [
     path: "/my-tasks",
     icon: <TaskIcon />,
     roles: [ROLES.SUPPORT_USER],
+  },
+  {
+    label: "Profile",
+    path: "/profile",
+    icon: <AccountCircleIcon />,
+    roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.SUPPORT_USER],
   },
 ];
 

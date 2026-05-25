@@ -2,7 +2,6 @@
 
 // Easrms.Infrastructure/Repositories/Implementations/DashboardRepository.cs
 using Easrms.Application.DTOs.Dashboard;
-using Easrms.Application.Features.Dashboard.Queries;
 
 namespace Easrms.Application.Interfaces.Repositories
 {

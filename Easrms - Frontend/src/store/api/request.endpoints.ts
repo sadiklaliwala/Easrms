@@ -206,6 +206,34 @@ const requestEndpoints = api.injectEndpoints({
         "Request",
       ],
     }),
+
+    exportRequestListExcel: builder.query<Blob, RequestQueryParams>({
+      query: (params) => ({
+        url: `${ApiEndPoints.EXPORT.REQUESTS_EXCEL}${buildQueryParams(params)}`,
+        responseHandler: (response: any) => response.blob(),
+      }),
+    }),
+
+    exportRequestListPdf: builder.query<Blob, RequestQueryParams>({
+      query: (params) => ({
+        url: `${ApiEndPoints.EXPORT.REQUESTS_PDF}${buildQueryParams(params)}`,
+        responseHandler: (response: any) => response.blob(),
+      }),
+    }),
+
+    exportRequestDetailExcel: builder.query<Blob, string>({
+      query: (id) => ({
+        url: ApiEndPoints.EXPORT.REQUEST_DETAIL_EXCEL(id),
+        responseHandler: (response: any) => response.blob(),
+      }),
+    }),
+
+    exportRequestDetailPdf: builder.query<Blob, string>({
+      query: (id) => ({
+        url: ApiEndPoints.EXPORT.REQUEST_DETAIL_PDF(id),
+        responseHandler: (response: any) => response.blob(),
+      }),
+    }),
   }),
 });
 
@@ -218,4 +246,8 @@ export const {
   useUpdateRequestStatusMutation,
   useCloseRequestMutation,
   useEscalateRequestMutation,
+  useLazyExportRequestListExcelQuery,
+  useLazyExportRequestListPdfQuery,
+  useLazyExportRequestDetailExcelQuery,
+  useLazyExportRequestDetailPdfQuery,
 } = requestEndpoints;

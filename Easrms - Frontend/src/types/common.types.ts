@@ -65,16 +65,30 @@ export interface GridColumn<T> {
   width?: string | number;
 }
 
+// export enum CommentTypeEnum {
+//   Approval = 1,
+//   Feedback = 2,
+//   Resolution = 3,
+// }
+
+export const CommentTypeEnum = {
+  Approval: 1,
+  Feedback: 2,
+  Resolution: 3,
+} as const;
+
+export type CommentTypeEnum =
+  (typeof CommentTypeEnum)[keyof typeof CommentTypeEnum];
 
 export interface AddCommentDto {
   commentText: string;
-  commentType: string;
+  commentType: CommentTypeEnum;
 }
 
 export interface CommentListDto {
   commentId: string;
   commentText: string;
-  commentType: number;
+  commentType: string;
   commentByName: string;
   createdOn: string;
 }
@@ -89,3 +103,12 @@ export interface StatusHistoryDto {
 }
 
 export type SLAStatus = "Within SLA" | "Nearing Breach" | "Breached" | "N/A";
+
+export const AuthProvider = {
+  Local: 1,
+  Google: 2,
+  GitHub: 3,
+  Azure: 4,
+} as const;
+
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider];

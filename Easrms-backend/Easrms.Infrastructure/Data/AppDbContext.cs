@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<RequestStatusHistory> RequestStatusHistories { get; set; }
     
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
+    public DbSet<UserAuthProvider> UserAuthProviders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -8,7 +8,7 @@ public class User
 
     public string Email { get; set; } = string.Empty;
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; } = string.Empty;
 
     public Guid RoleId { get; set; }
 
@@ -43,5 +43,8 @@ public class User
     public ICollection<RequestComment> Comments { get; set; } = new List<RequestComment>();
 
     public ICollection<RequestStatusHistory> StatusHistories { get; set; } = new List<RequestStatusHistory>();
+
+    // NEW: Auth providers
+    public ICollection<UserAuthProvider> AuthProviders { get; set; } = new List<UserAuthProvider>();
 }
 

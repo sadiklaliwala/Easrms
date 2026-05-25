@@ -73,6 +73,7 @@ export interface CreateRequestDto {
   title: string;
   description: string;
   priority: PriorityType;
+  attachmentUrl?: string | null;
 }
 
 export interface RequestListDto {
@@ -112,6 +113,7 @@ export interface RequestDetailDto {
   escalationReason: string | null;
   employeeId: string;
   assignedTo: string | null;
+  attachmentUrl?: string | null;
 }
 
 export interface ApprovalRequestDto {

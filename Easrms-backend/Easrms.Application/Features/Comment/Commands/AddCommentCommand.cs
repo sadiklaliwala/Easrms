@@ -1,6 +1,7 @@
 ﻿using Easrms.Application.Interfaces.Repositories;
 using Easrms.Domain.Entities;
 using MediatR;
+using Easrms.Common.Enums;
 
 namespace Easrms.Application.Features.Comment.Commands;
 
@@ -61,7 +62,7 @@ public sealed class AddCommentCommandHandler : IRequestHandler<AddCommentCommand
             RequestId = request.RequestId,
             CommentBy = request.CommentBy,
             CommentText = request.CommentText,
-            CommentType = request.CommentType.ToString(),   // stored as string in domain
+            CommentType = (CommentTypeEnum)request.CommentType,   // store as enum
             CreatedOn = DateTime.UtcNow,
             IsDeleted = false
         };

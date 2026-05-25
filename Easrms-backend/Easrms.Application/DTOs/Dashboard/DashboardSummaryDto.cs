@@ -1,6 +1,4 @@
-﻿using Easrms.Application.Features.Dashboard.Queries;
-
-namespace Easrms.Application.DTOs.Dashboard;
+﻿namespace Easrms.Application.DTOs.Dashboard;
 
 public class DashboardSummaryDto
 {
@@ -12,7 +10,7 @@ public class DashboardSummaryDto
     public int AssignedCount { get; set; }
     public int InProgressCount { get; set; }
     public int ResolvedCount { get; set; }
-    public int ClosedCount { get; set; }
+    public int? ClosedCount { get; set; }
 
     public int WithinSLACount { get; set; }
     public int NearingBreachCount { get; set; }

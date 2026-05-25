@@ -1,6 +1,7 @@
 ﻿using Easrms.Application.DTOs.Auth;
 using Easrms.Application.Interfaces;
 using Easrms.Application.Interfaces.Repositories;
+using Easrms.Common.Constants;
 using Easrms.Common.Helpers;
 using MediatR;
 
@@ -9,7 +10,7 @@ namespace Easrms.Application.Features.Auth.Commands;
 public sealed class LoginCommand : IRequest<LoginResponseDto>
 {
     public string Email { get; init; } = string.Empty;
-    public string Password { get; init; } = string.Empty;
+    public required string Password { get; init; } = string.Empty;
 }
 
 
@@ -49,9 +50,10 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         if (!user.IsActive)
             throw new UnauthorizedAccessException(
                 "Your account is inactive. Contact your administrator.");
+        
 
         // 3. Password verification
-        if (!PasswordHelper.Verify(request.Password, user.PasswordHash))
+        if (!PasswordHelper.Verify(request.Password, user.PasswordHash!))
             throw new UnauthorizedAccessException("Invalid email or password.");
 
         var AccessToken = _jwtService.GenerateAccessToken(user);
