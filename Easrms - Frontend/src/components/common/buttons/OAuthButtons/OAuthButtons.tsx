@@ -6,6 +6,7 @@ import {
   getGoogleOAuthUrl,
   getGitHubOAuthUrl,
   getAzureOAuthUrl,
+  getLinkedInOAuthUrl,
 } from "../../../../utils/getOAuthUrl";
 import type { LinkedProviderDto } from "../../../../types/auth.types";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -20,6 +21,7 @@ const OAUTH_PROVIDERS = [
   AuthProvider.Google,
   AuthProvider.GitHub,
   AuthProvider.Azure,
+  AuthProvider.LinkedIn,
 ];
 
 const getOAuthUrl = (provider: AuthProvider): string => {
@@ -30,6 +32,8 @@ const getOAuthUrl = (provider: AuthProvider): string => {
       return getGitHubOAuthUrl();
     case AuthProvider.Azure:
       return getAzureOAuthUrl();
+    case AuthProvider.LinkedIn:
+      return getLinkedInOAuthUrl();
     default:
       return "";
   }

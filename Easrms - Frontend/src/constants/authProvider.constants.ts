@@ -5,6 +5,7 @@ export const PROVIDER_LABELS: Record<number, string> = {
   [AuthProvider.Google]: "Google",
   [AuthProvider.GitHub]: "GitHub",
   [AuthProvider.Azure]: "Azure",
+  [AuthProvider.LinkedIn]: "LinkedIn",
 };
 
 export const PROVIDER_COLORS: Record<
@@ -15,10 +16,12 @@ export const PROVIDER_COLORS: Record<
   [AuthProvider.Google]: "error",
   [AuthProvider.GitHub]: "default",
   [AuthProvider.Azure]: "primary",
+  [AuthProvider.LinkedIn]: "info",
 };
 
 export const OAUTH_URLS = {
   Google: "https://accounts.google.com/o/oauth2/v2/auth",
   GitHub: "https://github.com/login/oauth/authorize",
   Azure: "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+  LinkedIn: "https://www.linkedin.com/oauth/v2/authorization",
 };

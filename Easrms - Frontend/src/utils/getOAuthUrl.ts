@@ -49,3 +49,16 @@ export const getAzureOAuthUrl = () => {
   const baseUrl = OAUTH_URLS.Azure.replace("{tenant}", tenantId);
   return `${baseUrl}?${params.toString()}`;
 };
+
+export const getLinkedInOAuthUrl = () => {
+  const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
+  const state = generateOAuthState();
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    state: state,
+    scope: "openid email profile",
+  });
+  return `${OAUTH_URLS.LinkedIn}?${params.toString()}`;
+};

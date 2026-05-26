@@ -1,4 +1,5 @@
 import { Box, Divider, Typography } from "@mui/material";
+import { formatDate } from "../../../utils/formatDate";
 
 interface RequestMetaInfoProps {
   employeeName: string;
@@ -43,13 +44,13 @@ const RequestMetaInfo = ({
       <Divider />
       <MetaRow label="Assigned To" value={assigneeName} />
       <Divider />
-      <MetaRow label="Created On" value={createdOn} />
+      <MetaRow label="Created On" value={formatDate(createdOn)} />
       <Divider />
-      <MetaRow label="Updated On" value={updatedOn} />
+      <MetaRow label="Last Updated On" value={formatDate(updatedOn)} />
       <Divider />
-      <MetaRow label="Resolved On" value={resolvedOn} />
+      <MetaRow label="Resolved On" value={formatDate(resolvedOn)} />
       <Divider />
-      <MetaRow label="Closed On" value={closedOn} />
+      <MetaRow label="Closed On" value={formatDate(closedOn)} />
     </Box>
   );
 };

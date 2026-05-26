@@ -15,7 +15,7 @@ public class AzureOAuthService : IOAuthService
     {
         _config = config;
     }
-    public AuthProviderEnum Provider => AuthProviderEnum.GitHub;
+    public AuthProviderEnum Provider => AuthProviderEnum.Azure;
     public async Task<OAuthUserInfo> GetUserInfoAsync(string code, CancellationToken cancellationToken = default)
     {
         var settings = _config.GetSection("OAuth:Azure");

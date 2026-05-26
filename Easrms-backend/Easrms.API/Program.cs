@@ -70,9 +70,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            context.Token = context.Request.Cookies[
-    builder.Configuration["JwtSettings:CookieName"]!
-];
+            context.Token = context.Request.Cookies[builder.Configuration["JwtSettings:CookieName"]!];
             return Task.CompletedTask;
         }
     };
@@ -94,7 +92,6 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -104,12 +101,14 @@ app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
 app.UseCors("FrontendPolicy");
+
 app.UseAuthentication();
 
 app.UseAuthorization();

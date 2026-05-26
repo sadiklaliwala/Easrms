@@ -3,6 +3,7 @@ import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import CloudIcon from '@mui/icons-material/Cloud';
 import LockIcon from '@mui/icons-material/Lock';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
 export const getAuthProviderIcon = (provider: AuthProvider) => {
   switch (provider) {
@@ -12,6 +13,8 @@ export const getAuthProviderIcon = (provider: AuthProvider) => {
       return <GitHubIcon />;
     case AuthProvider.Azure:
       return <CloudIcon />;
+    case AuthProvider.LinkedIn:
+      return <LinkedInIcon />;
     case AuthProvider.Local:
       return <LockIcon />;
     default:

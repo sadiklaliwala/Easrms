@@ -1,6 +1,10 @@
 ﻿using Easrms.Application.DTOs.Auth;
 using Easrms.Application.Features.Auth.Commands;
+using Easrms.Application.Features.Auth.Commands.LinkProvider;
+using Easrms.Application.Features.Auth.Commands.OAuthLogin;
+using Easrms.Application.Features.Auth.Commands.UnlinkProvider;
 using Easrms.Application.Features.Auth.Queries;
+using Easrms.Application.Features.Auth.Queries.GetLinkedProviders;
 using Easrms.Common.Response;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -130,7 +134,7 @@ public class AuthController : ControllerBase
         [FromBody] OAuthLoginDto dto,
         CancellationToken cancellationToken = default)
     {
-        var command = new Easrms.Application.Features.Auth.Commands.OAuthLogin.OAuthLoginCommand(dto);
+        var command = new OAuthLoginCommand(dto);
         var result = await _mediator.Send(command, cancellationToken);
 
         return Ok(new ApiResponse<object>
@@ -151,7 +155,7 @@ public class AuthController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var command = new Easrms.Application.Features.Auth.Commands.LinkProvider.LinkProviderCommand(dto, currentUserId);
+        var command = new LinkProviderCommand(dto, currentUserId);
         await _mediator.Send(command, cancellationToken);
 
         return Ok(new ApiResponse<object>
@@ -172,7 +176,7 @@ public class AuthController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var command = new Easrms.Application.Features.Auth.Commands.UnlinkProvider.UnlinkProviderCommand(dto.ProviderId, currentUserId);
+        var command = new UnlinkProviderCommand(dto.ProviderId, currentUserId);
         await _mediator.Send(command, cancellationToken);
 
         return Ok(new ApiResponse<object>
@@ -191,7 +195,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetLinkedProviders(CancellationToken cancellationToken = default)
     {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var query = new Easrms.Application.Features.Auth.Queries.GetLinkedProviders.GetLinkedProvidersQuery(currentUserId);
+        var query = new GetLinkedProvidersQuery(currentUserId);
         var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(new ApiResponse<object>

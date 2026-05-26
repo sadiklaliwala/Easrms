@@ -109,6 +109,7 @@ export const AuthProvider = {
   Google: 2,
   GitHub: 3,
   Azure: 4,
+  LinkedIn: 5,
 } as const;
 
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider];

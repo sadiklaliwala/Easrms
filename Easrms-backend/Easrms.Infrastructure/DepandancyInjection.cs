@@ -37,6 +37,7 @@ namespace Easrms.Infrastructure
             services.AddScoped<IOAuthService, GoogleOAuthService>();
             services.AddScoped<IOAuthService, GitHubOAuthService>();
             services.AddScoped<IOAuthService, AzureOAuthService>();
+            services.AddScoped<IOAuthService, LinkedInOAuthService>();
             services.AddSingleton<IEmailService, EmailService>();
             services.AddHostedService<RetryFailedEmailWorker>();
             services.AddHostedService<ExpiredRefreshTokenCleanupWorker>();
