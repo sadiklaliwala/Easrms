@@ -29,6 +29,9 @@ public class CategoryController : ControllerBase
         [FromQuery] string? search = null,
         [FromQuery] bool? isActive = null,
         [FromQuery] bool? isApprovalRequired = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortDirection = null,
+        [FromQuery] bool? sortAscending = null,
         CancellationToken cancellationToken = default)
     {
         var query = new GetAllCategoriesQuery
@@ -37,7 +40,10 @@ public class CategoryController : ControllerBase
             PageSize = pageSize,
             Search = search,
             IsActive = isActive,
-            IsApprovalRequired = isApprovalRequired
+            IsApprovalRequired = isApprovalRequired,
+            SortBy = sortBy,
+            SortDirection = sortDirection,
+            SortAscending = sortAscending
         };
 
         var result = await _mediator.Send(query, cancellationToken);
@@ -145,5 +151,26 @@ public class CategoryController : ControllerBase
             Data = null,
             Errors = null
         });
+    }
+
+    // POST /api/categories/bulk
+    [HttpPost("bulk")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    [RequestSizeLimit(5_242_880)]
+    public async Task<IActionResult> BulkUpload(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        if (file == null) return BadRequest(ApiResponse<object>.FailResponse("No file provided", 400));
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, cancellationToken);
+
+        var command = new Easrms.Application.Features.Category.Commands.BulkCreateCategories.BulkCreateCategoriesCommand
+        {
+            FileName = file.FileName,
+            FileContent = ms.ToArray()
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 }

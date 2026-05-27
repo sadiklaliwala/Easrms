@@ -144,6 +144,8 @@ export interface RequestQueryParams {
   categoryId?: string;
   fromDate?: string;
   toDate?: string;
+  sortBy?: string;
+  sortAscending?: boolean;
 }
 
 export type EscalateRequestDto = {

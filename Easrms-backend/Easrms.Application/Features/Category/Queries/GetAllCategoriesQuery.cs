@@ -16,6 +16,11 @@ public sealed class GetAllCategoriesQuery : IRequest<CategoryListWithPaginationD
     public bool? IsActive { get; init; }
 
     public bool? IsApprovalRequired { get; set; }
+
+    // Sorting
+    public string? SortBy { get; init; }
+    public bool? SortAscending { get; init; }
+    public string? SortDirection { get; init; }
 }
 
 
@@ -37,12 +42,18 @@ public sealed class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategor
         GetAllCategoriesQuery request,
         CancellationToken cancellationToken)
     {
+        // Determine SortAscending: prefer explicit SortAscending flag, otherwise derive from SortDirection
+        bool sortAsc = request.SortAscending ?? (string.Equals(request.SortDirection, "asc", StringComparison.OrdinalIgnoreCase));
+
         var queryparams = new CategoryQueryParams()
         {
             PageNumber = request.PageNumber,
             PageSize = request.PageSize,
             SearchTerm = request.Search,
             IsActive = request.IsActive,
+            SortBy = request.SortBy ?? "CreatedOn",
+            SortAscending = sortAsc,
+            IsApprovalRequired = request.IsApprovalRequired,
         };
 
         // 1. Delegate directly — Dapper handles projection + pagination

@@ -1,4 +1,4 @@
-﻿using Easrms.Application.Interfaces;
+﻿using Easrms.Application.Interfaces.Email;
 using Easrms.Infrastructure.Services.Email;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

@@ -113,3 +113,8 @@ export const AuthProvider = {
 } as const;
 
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider];
+
+export interface SortModel {
+  sortBy: string;
+  sortAscending: boolean;
+}

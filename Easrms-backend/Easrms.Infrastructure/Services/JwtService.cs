@@ -7,9 +7,9 @@ using System.Text;
 using Easrms.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Easrms.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Easrms.Application.Settings;
+using Easrms.Application.Interfaces.Jwt;
 
 namespace Easrms.Infrastructure.Services;
 
@@ -37,6 +37,7 @@ public sealed class JwtService : IJwtService
     private const string ClaimRole = ClaimTypes.Role;
     private const string ClaimFullName = "fullName";
     private const string ClaimManagerId = "managerId";
+    private const string ClaimPurpose = "purpose";
 
     private readonly JwtSettings _jwtSettings;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -103,7 +104,76 @@ public sealed class JwtService : IJwtService
         return Convert.ToBase64String(randomBytes);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // GENERATE PASSWORD TOKEN (short-lived)
+    // ─────────────────────────────────────────────────────────────────────────
 
+    public string GeneratePasswordToken(Guid userId, string purpose)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimPurpose, purpose)
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
+            Expires = DateTime.UtcNow.AddMinutes(15),
+            SigningCredentials = credentials,
+            NotBefore = DateTime.UtcNow,
+            IssuedAt = DateTime.UtcNow,
+        };
+
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // VALIDATE PASSWORD TOKEN
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public ClaimsPrincipal? ValidatePasswordToken(string token, string expectedPurpose)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = _jwtSettings.Issuer,
+            ValidateAudience = true,
+            ValidAudience = _jwtSettings.Audience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(5) // use same clock skew as rest of app
+        };
+
+        try
+        {
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var securityToken);
+            if (securityToken is not JwtSecurityToken jwtToken)
+                return null;
+
+            // Ensure purpose claim matches
+            var purposeClaim = principal.FindFirst(ClaimPurpose)?.Value;
+            if (string.IsNullOrWhiteSpace(purposeClaim) || !string.Equals(purposeClaim, expectedPurpose, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return principal;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // COOKIE MANAGEMENT

@@ -1,7 +1,6 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 
-
 import { formatDate } from "../../../utils/formatDate";
 import {
   type AddCommentDto,
@@ -23,7 +22,7 @@ const RequestCommentBox = ({
 }: RequestCommentBoxProps) => {
   const [text, setText] = useState("");
   const [commentType, setCommentType] = useState<CommentTypeEnum>(
-    CommentTypeEnum.Feedback
+    CommentTypeEnum.Feedback,
   );
 
   const handleSubmit = async () => {
@@ -96,6 +95,7 @@ const RequestCommentBox = ({
       </Box>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         <TextField
+          variant="outlined"
           placeholder="Write a comment..."
           multiline
           rows={3}
@@ -103,12 +103,32 @@ const RequestCommentBox = ({
           size="small"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          slotProps={{
+            htmlInput: {
+              maxLength: 990,
+            },
+          }}
+          helperText={
+            text.length >= 990 ? (
+              <span style={{ color: "#d32f2f" }}>Maximum limit of 990 characters reached</span>
+            ) : (
+              ""
+            )
+          }
         />
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Box sx={{ width: 200 }}>
             <AppSelect
               value={commentType}
-              onChange={(e) => setCommentType(e.target.value as CommentTypeEnum)}
+              onChange={(e) =>
+                setCommentType(e.target.value as CommentTypeEnum)
+              }
               options={[
                 { label: "Feedback", value: CommentTypeEnum.Feedback },
                 { label: "Approval", value: CommentTypeEnum.Approval },

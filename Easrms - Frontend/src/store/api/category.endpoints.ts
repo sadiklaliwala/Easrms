@@ -56,6 +56,7 @@
 import { api } from "./api";
 import ApiEndPoints from "../ApiEndPoints";
 import type { ApiResponse } from "../../types/common.types";
+import type { BulkUploadResult } from "../../types/bulkUpload.types";
 import type {
   CategoryListWithPaginationDto,
   CategoryDetailDto,
@@ -93,6 +94,15 @@ const categoryEndpoints = api.injectEndpoints({
       invalidatesTags: ["Category"],
     }),
 
+    bulkUploadCategories: builder.mutation<ApiResponse<BulkUploadResult>, FormData>({
+      query: (formData) => ({
+        url: `${ApiEndPoints.CATEGORIES.BASE}/bulk`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Category"],
+    }),
+
     updateCategory: builder.mutation<
       ApiResponse<CategoryDetailDto>,
       { id: string; body: UpdateCategoryDto }
@@ -124,4 +134,5 @@ export const {
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
   useToggleCategoryStatusMutation,
+  useBulkUploadCategoriesMutation,
 } = categoryEndpoints;

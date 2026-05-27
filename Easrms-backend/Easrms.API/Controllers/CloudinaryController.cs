@@ -1,5 +1,5 @@
 using Easrms.Application.DTOs.Cloudinary;
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Cloudinary;
 using Easrms.Common.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

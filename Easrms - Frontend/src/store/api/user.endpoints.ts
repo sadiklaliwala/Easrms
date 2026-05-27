@@ -9,6 +9,7 @@ import type {
   UserQueryParams,
 } from "../../types/user.types";
 import { buildQueryParams } from "../../utils/buildQueryParams";
+import type { BulkUploadResult } from "../../types/bulkUpload.types";
 
 const userEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -33,6 +34,15 @@ const userEndpoints = api.injectEndpoints({
         body,
       }),
       invalidatesTags: ["User", "Lookup"],
+    }),
+
+    bulkUploadUsers: builder.mutation<ApiResponse<BulkUploadResult>, FormData>({
+      query: (formData) => ({
+        url: `${ApiEndPoints.USERS.BASE}/bulk`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["User"],
     }),
 
     updateUser: builder.mutation<
@@ -67,4 +77,5 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useToggleUserStatusMutation,
+  useBulkUploadUsersMutation,
 } = userEndpoints;

@@ -66,7 +66,7 @@ public class CategoryRepository : ICategoryRepository
             { "CategoryName", "rc.CategoryName" }
         };
 
-        var sortColumn = allowedSort.ContainsKey(queryParams.SortBy) ? allowedSort[queryParams.SortBy] : "rc.CreatedOn";
+        var sortColumn = allowedSort.TryGetValue(queryParams.SortBy ?? string.Empty, out var col) ? col : "rc.CreatedOn";
         var sortDir = queryParams.SortAscending ? "ASC" : "DESC";
 
         parameters.Add("@Offset", offset);

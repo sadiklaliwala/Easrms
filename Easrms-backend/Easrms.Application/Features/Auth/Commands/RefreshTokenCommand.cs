@@ -1,5 +1,5 @@
 ﻿using Easrms.Application.DTOs.Auth;
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Jwt;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Application.Settings;
 using MediatR;

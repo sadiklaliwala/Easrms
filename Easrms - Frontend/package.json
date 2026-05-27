@@ -20,15 +20,18 @@
     "@mui/x-data-grid": "^9.1.0",
     "@mui/x-date-pickers": "^9.1.0",
     "@reduxjs/toolkit": "^2.11.2",
+    "@types/papaparse": "^5.5.2",
     "date-fns": "^4.1.0",
     "joi": "^18.2.1",
+    "papaparse": "^5.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.75.0",
     "react-hot-toast": "^2.6.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.15.0",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

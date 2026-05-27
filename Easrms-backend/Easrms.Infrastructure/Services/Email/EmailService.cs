@@ -1,4 +1,5 @@
-using Easrms.Application.Interfaces;
+using Easrms.Application.EmailTamplate;
+using Easrms.Application.Interfaces.Email;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Resend;
@@ -10,15 +11,17 @@ public class EmailService : IEmailService
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailService> _logger;
     private readonly IEmailQueue _emailQueue;           // ← NEW
+         // ← NEW
 
     public EmailService(
         IConfiguration configuration,
         ILogger<EmailService> logger,
-        IEmailQueue emailQueue)                         // ← NEW
+        IEmailQueue emailQueue
+    )
     {
         _configuration = configuration;
         _logger = logger;
-        _emailQueue = emailQueue;                    // ← NEW
+        _emailQueue = emailQueue;
     }
 
     public async Task SendRequestOpenedAsync(string toEmail, string requestNumber, string requestTitle)

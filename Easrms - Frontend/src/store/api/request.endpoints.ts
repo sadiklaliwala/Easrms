@@ -92,6 +92,7 @@
 import { api } from "./api";
 import ApiEndPoints from "../ApiEndPoints";
 import type { ApiResponse } from "../../types/common.types";
+import type { BulkUploadResult } from "../../types/bulkUpload.types";
 import type {
   RequestListWithPaginationDto,
   RequestDetailDto,
@@ -130,6 +131,15 @@ const requestEndpoints = api.injectEndpoints({
         body,
       }),
       invalidatesTags: ["Request", "Dashboard"],
+    }),
+
+    bulkUploadRequests: builder.mutation<ApiResponse<BulkUploadResult>, FormData>({
+      query: (formData) => ({
+        url: `${ApiEndPoints.REQUESTS.BASE}/bulk`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Request"],
     }),
 
     approveOrRejectRequest: builder.mutation<
@@ -250,4 +260,5 @@ export const {
   useLazyExportRequestListPdfQuery,
   useLazyExportRequestDetailExcelQuery,
   useLazyExportRequestDetailPdfQuery,
+  useBulkUploadRequestsMutation,
 } = requestEndpoints;

@@ -2,6 +2,7 @@
 using Easrms.Application.DTOs.Auth;
 using Easrms.Application.DTOs.Category;
 using Easrms.Application.DTOs.Comment;
+using Easrms.Application.DTOs.Profile;
 using Easrms.Application.DTOs.Request;
 using Easrms.Application.DTOs.User;
 using Easrms.Application.Helpers;
@@ -25,6 +26,10 @@ public class MappingProfile : Profile
         CreateMap<User, CurrentUserDto>()
              .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
              //.ForMember(dest => dest.ManagerId, opt => opt.MapFrom(src => src.ManagerId!=null ? src.ManagerId : string.Empty));
+
+        CreateMap<User, ProfileDetailDto>()
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName))
+            .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager != null ? src.Manager.FullName : null));
 
         // Category mappings
         CreateMap<RequestCategory, CategoryListDto>();

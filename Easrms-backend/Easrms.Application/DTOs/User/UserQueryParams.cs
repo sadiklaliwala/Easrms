@@ -11,7 +11,8 @@ namespace Easrms.Application.DTOs.User
         public string? Search { get; set; }
         public Guid? RoleId { get; set; }
         public bool? IsActive { get; set; }
-        public string? SortBy { get; set; }
+        public string SortBy { get; set; } = "CreatedOn";
+        public bool SortAscending { get; set; } = false;
         public string? SortDirection { get; set; } = null;
     }
 }

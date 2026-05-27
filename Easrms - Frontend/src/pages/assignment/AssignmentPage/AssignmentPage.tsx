@@ -58,6 +58,8 @@ const AssignmentPage = () => {
     pageNumber: 1,
     pageSize: 10,
     status: STATUS.OPEN,
+    sortBy: "createdOn",
+    sortAscending: false,
   });
 
   const [selectedRequest, setSelectedRequest] = useState<RequestListDto | null>(
@@ -94,6 +96,15 @@ const AssignmentPage = () => {
   const openAssignDialog = (row: RequestListDto) => {
     setSelectedRequest(row);
     setAssignOpen(true);
+  };
+
+  const handleSortChange = (sortBy: string, sortAscending: boolean) => {
+    setParams((prev) => ({
+      ...prev,
+      sortBy,
+      sortAscending,
+      pageNumber: 1,
+    }));
   };
 
   // ─── Table Columns ────────────────────────────────────────────────────────────
@@ -136,6 +147,7 @@ const AssignmentPage = () => {
     {
       key: "actions",
       label: "Actions",
+      sortable: false,
       render: (row) => (
         <AppTableActions
           actions={[
@@ -195,6 +207,9 @@ const AssignmentPage = () => {
         rows={requests}
         keyField="requestId"
         onRowClick={(row) => navigate(`/requests/${row.requestId}`)}
+        onSortChange={handleSortChange}
+        sortBy={params.sortBy}
+        sortAscending={params.sortAscending}
       />
 
       {/* Pagination */}

@@ -69,6 +69,7 @@ const ApprovalDialog = ({
           rejection.
         </Typography>
         <TextField
+          variant="outlined"
           label="Comment"
           multiline
           rows={4}
@@ -79,7 +80,18 @@ const ApprovalDialog = ({
             if (error) setError("");
           }}
           error={!!error}
-          helperText={error}
+          helperText={
+            comment.length >= 490 ? (
+              <span style={{ color: "#d32f2f" }}>Maximum limit of 490 characters reached</span>
+            ) : (
+              error
+            )
+          }
+          slotProps={{
+            htmlInput: {
+              maxLength: 490,
+            },
+          }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 0, pt: 2 }}>

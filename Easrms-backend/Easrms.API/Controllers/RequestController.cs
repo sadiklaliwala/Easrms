@@ -32,8 +32,10 @@ public class RequestController : ControllerBase
         [FromQuery] string? status = null,
         [FromQuery] string? priority = null,
        [FromQuery] Guid? categoryId = null,
-[FromQuery] DateTime? fromDate = null,
-[FromQuery] DateTime? toDate = null,
+    [FromQuery] DateTime? fromDate = null,
+    [FromQuery] DateTime? toDate = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] bool? sortAscending = null,
         CancellationToken cancellationToken = default)
    {
         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -50,7 +52,9 @@ public class RequestController : ControllerBase
             Priority = priority,
             CategoryId = categoryId,
             FromDate = fromDate,
-            ToDate = toDate
+            ToDate = toDate,
+            SortBy = sortBy,
+            SortAscending = sortAscending
         };
 
         var result = await _mediator.Send(query, cancellationToken);
@@ -288,5 +292,29 @@ public class RequestController : ControllerBase
             Data = result,
             Errors = null
         });
+    }
+
+    // POST /api/requests/bulk
+    [HttpPost("bulk")]
+    [Authorize(Roles = "Admin,Employee")]
+    [RequestSizeLimit(5_242_880)]
+    public async Task<IActionResult> BulkUpload(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        if (file == null) return BadRequest(ApiResponse<object>.FailResponse("No file provided", 400));
+
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, cancellationToken);
+
+        var command = new Easrms.Application.Features.Request.Commands.BulkCreateRequests.BulkCreateRequestsCommand
+        {
+            FileName = file.FileName,
+            FileContent = ms.ToArray(),
+            EmployeeId = currentUserId
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 }

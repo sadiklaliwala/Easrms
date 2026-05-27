@@ -5,7 +5,7 @@ using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Email;
 
 namespace Easrms.Application.Features.Request.Commands;
 

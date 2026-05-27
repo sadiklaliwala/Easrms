@@ -60,7 +60,14 @@ const LinkedAccountsSection = () => {
     <Box>
       <Typography
         variant="subtitle1"
-        sx={{ fontWeight: 700, mb: 2, color: "text.primary" }}
+        sx={{
+          fontWeight: 700,
+          mb: 2,
+          color: "text.primary",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
       >
         Linked Accounts
       </Typography>
@@ -71,13 +78,19 @@ const LinkedAccountsSection = () => {
           <ListItem
             key={provider.id}
             sx={{
-              px: 2,
-              py: 1.5,
-              mb: 1,
-              borderRadius: 2,
+              px: 2.5,
+              py: 2,
+              mb: 1.5,
+              borderRadius: 3,
               border: "1px solid",
               borderColor: "divider",
               bgcolor: "background.paper",
+              transition: "all 0.2s ease-in-out",
+              "&:hover": {
+                borderColor: "primary.light",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                transform: "translateY(-1px)",
+              },
             }}
             secondaryAction={
               provider.authProvider ===

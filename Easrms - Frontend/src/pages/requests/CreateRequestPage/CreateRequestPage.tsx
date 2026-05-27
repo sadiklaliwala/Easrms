@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import Stack from "@mui/material/Stack";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
-import Joi from "joi";
+import Joi from "../../../utils/appJoi";
 // import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 // import AttachFileIcon from "@mui/icons-material/AttachFile";
 
@@ -35,14 +35,15 @@ const schema = Joi.object({
     "string.empty": "Category is required",
     "any.required": "Category is required",
   }),
-  title: Joi.string().min(3).max(200).required().messages({
+  title: Joi.string().min(3).max(190).required().messages({
     "string.empty": "Title is required",
     "string.min": "Title must be at least 3 characters",
-    "string.max": "Title cannot exceed 200 characters",
+    "string.max": "Title cannot exceed 190 characters",
   }),
-  description: Joi.string().min(10).required().messages({
+  description: Joi.string().min(10).max(990).required().messages({
     "string.empty": "Description is required",
     "string.min": "Description must be at least 10 characters",
+    "string.max": "Description must not exceed 990 characters",
   }),
   priority: Joi.number()
     .valid(PRIORITY.LOW, PRIORITY.MEDIUM, PRIORITY.HIGH)
@@ -51,7 +52,7 @@ const schema = Joi.object({
       "any.required": "Priority is required",
       "any.only": "Select a valid priority",
     }),
-  attachmentUrl: Joi.string().uri().allow(null, "").optional(),
+  attachmentUrl: Joi.string().uri().max(490).allow(null, "").optional(),
 });
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -148,6 +149,7 @@ const CreateRequestPage = () => {
                   placeholder="Enter a short title for your request"
                   fullWidth
                   error={!!errors.title}
+                  maxLength={190}
                 />
               )}
             />
@@ -186,6 +188,7 @@ const CreateRequestPage = () => {
                   fullWidth
                   rows={5}
                   error={!!errors.description}
+                  maxLength={990}
                 />
               )}
             />

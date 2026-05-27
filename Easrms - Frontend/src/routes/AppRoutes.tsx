@@ -30,6 +30,9 @@ const OAuthCallbackPage = lazy(
   () => import("../pages/auth/OAuthCallbackPage"),
 );
 const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
+const ForgotPasswordPage = lazy(
+  () => import("../pages/auth/ForgotPasswordPage"),
+);
 
 const AppRoutes = () => {
   return (
@@ -37,6 +40,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/callback" element={<OAuthCallbackPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 

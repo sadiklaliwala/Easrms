@@ -25,8 +25,15 @@ public class GetAllUsersQueryHandler(IUserRepository userRepository) : IRequestH
             SortDirection = request.QueryParams.SortDirection,
             IsActive = request.QueryParams.IsActive,
             RoleId = request.QueryParams.RoleId,
-            Search = request.QueryParams.Search
+            Search = request.QueryParams.Search,
+            SortAscending = request.QueryParams.SortAscending
         };
+
+        // Prefer explicit SortDirection string if provided, otherwise derive from SortAscending flag
+        var sortDirection = !string.IsNullOrWhiteSpace(queryParams.SortDirection)
+            ? queryParams.SortDirection
+            : (queryParams.SortAscending ? "asc" : "desc");
+
         return await _userRepository.GetAllAsync(
             queryParams.PageNumber, 
             queryParams.PageSize,
@@ -34,7 +41,7 @@ public class GetAllUsersQueryHandler(IUserRepository userRepository) : IRequestH
             queryParams.RoleId, 
             queryParams.IsActive, 
             queryParams.SortBy, 
-            queryParams.SortDirection, 
+            sortDirection, 
             cancellationToken);
     }
 }

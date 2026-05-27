@@ -3,12 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Easrms.Application.Features.Request.Commands;
 using Easrms.Application.Interfaces.Repositories;
-using Easrms.Application.Interfaces;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using Easrms.Application.Interfaces.Email;
 
 namespace Easrms.Test.features.Request.Commands;
 

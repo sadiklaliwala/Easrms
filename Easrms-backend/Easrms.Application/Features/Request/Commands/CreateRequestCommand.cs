@@ -1,4 +1,4 @@
-﻿using Easrms.Application.Interfaces;
+﻿using Easrms.Application.Interfaces.Email;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
@@ -97,6 +97,7 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
     ? RequestStatusEnum.PendingApproval
     : RequestStatusEnum.Open;
         Console.WriteLine(initialStatus);
+
         // 4. Build entity
         var entity = new ServiceRequest
         {

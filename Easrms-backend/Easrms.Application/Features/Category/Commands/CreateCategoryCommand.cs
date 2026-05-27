@@ -40,7 +40,7 @@ public sealed class CreateCategoryCommandHandler : IRequestHandler<CreateCategor
     {
         // 1. Duplicate name check — no excludeId on create
         var nameTaken = await _categoryRepository.IsCategoryNameTakenAsync(
-            request.CategoryName,
+            request.CategoryName.Trim(),
             excludeCategoryId: null,
             cancellationToken: cancellationToken);
 

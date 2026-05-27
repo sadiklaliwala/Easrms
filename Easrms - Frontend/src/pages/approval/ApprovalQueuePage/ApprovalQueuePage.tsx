@@ -42,6 +42,8 @@ const ApprovalQueuePage = () => {
     pageNumber: 1,
     pageSize: 10,
     status: STATUS.PENDING_APPROVAL,
+    sortBy: "createdOn",
+    sortAscending: false,
   });
 
   const [selectedRequest, setSelectedRequest] = useState<RequestListDto | null>(
@@ -78,6 +80,15 @@ const ApprovalQueuePage = () => {
   const openApprovalDialog = (row: RequestListDto) => {
     setSelectedRequest(row);
     setApprovalOpen(true);
+  };
+
+  const handleSortChange = (sortBy: string, sortAscending: boolean) => {
+    setParams((prev) => ({
+      ...prev,
+      sortBy,
+      sortAscending,
+      pageNumber: 1,
+    }));
   };
 
   // ─── Table Columns ────────────────────────────────────────────────────────────
@@ -117,6 +128,7 @@ const ApprovalQueuePage = () => {
     {
       key: "actions",
       label: "Actions",
+      sortable: false,
       render: (row) => (
         <AppTableActions
           actions={[
@@ -164,6 +176,9 @@ const ApprovalQueuePage = () => {
         rows={requests}
         keyField="requestId"
         onRowClick={(row) => navigate(`/requests/${row.requestId}`)}
+        onSortChange={handleSortChange}
+        sortBy={params.sortBy}
+        sortAscending={params.sortAscending}
       />
 
       {/* Pagination */}

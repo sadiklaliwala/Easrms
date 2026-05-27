@@ -1,6 +1,9 @@
-namespace Easrms.Infrastructure.Services.Email;
+using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Email;
 
-internal static class EmailTemplates
+namespace Easrms.Application.EmailTamplate;
+
+public class EmailTemplates : IEmailTemplates
 {
     // ── Request Opened ────────────────────────────────────────────────────────
 
@@ -99,6 +102,27 @@ internal static class EmailTemplates
                    <li><strong>Title:</strong> {requestTitle}</li>
                    <li><strong>Reason:</strong> {escalationReason}</li>
                </ul>
+               <p>Thanks,<br/>Support Team</p>
+           </body>
+           </html>
+           """;
+
+    // ── Password Reset OTP ─────────────────────────────────────────────────────
+
+    public static string PasswordResetOtpSubject()
+        => "Password Reset OTP";
+
+    public static string PasswordResetOtpBody(string userName, string otp)
+        => $"""
+           <!DOCTYPE html>
+           <html>
+           <body style="font-family:Arial,sans-serif;color:#333;font-size:15px;line-height:1.6;max-width:600px;margin:0 auto;padding:24px;">
+               <p>Hi {userName},</p>
+               <p>You requested to reset your password. Use the one-time password (OTP) below to verify your identity and proceed with resetting your password.</p>
+               <div style="background:#f7f7f7;padding:16px;border-radius:6px;display:inline-block;margin:12px 0;font-size:20px;letter-spacing:3px;">
+                   <strong>{otp}</strong>
+               </div>
+               <p>This OTP is valid for 10 minutes. If you did not request a password reset, please ignore this email or contact support immediately.</p>
                <p>Thanks,<br/>Support Team</p>
            </body>
            </html>

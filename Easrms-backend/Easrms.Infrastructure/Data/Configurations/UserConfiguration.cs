@@ -37,6 +37,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.RefreshTokenExpiryOn)
                .IsRequired(false);
 
+        // NEW: OTP and profile fields
+        builder.Property(u => u.OtpCode).HasMaxLength(500).IsRequired(false);
+        builder.Property(u => u.OtpExpiryOn).IsRequired(false);
+        builder.Property(u => u.ProfilePhotoUrl).HasMaxLength(500).IsRequired(false);
+
         // Role relationship
         builder.HasOne(x => x.Role)
                .WithMany(x => x.Users)
@@ -55,7 +60,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         //        UserId = Guid.Parse("7c618c94-6873-47e8-84f8-592d9a018374"),
         //        FullName = "System Admin",
         //        Email = "admin@easrms.com",
-        //        PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+        //        PasswordHash = BCrypt.Net.BCrypt.Hash("123456"),
         //        RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7043"),
         //        ManagerId = null,
         //        IsActive = true,

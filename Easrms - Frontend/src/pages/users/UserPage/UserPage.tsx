@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stack } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 import toast from "react-hot-toast";
 
 import {
   useGetUsersQuery,
+  useGetUserByIdQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useToggleUserStatusMutation,
+  useBulkUploadUsersMutation,
 } from "../../../store/api/user.endpoints";
 import { useGetManagersQuery } from "../../../store/api/lookup.endpoints";
 
@@ -19,6 +22,7 @@ import AppDataGrid from "../../../components/common/table/AppDataGrid";
 import AppPagination from "../../../components/common/table/AppPagination";
 import AppModal from "../../../components/common/modal/AppModal";
 import AppConfirmDialog from "../../../components/common/modal/AppConfirmDialog";
+import AppBulkUploadDialog from "../../../components/common/modal/AppBulkUploadDialog";
 import AppStatusBadge from "../../../components/common/table/AppStatusBadge";
 import AppTableActions from "../../../components/common/table/AppTableActions";
 import AppLoader from "../../../components/common/feedback/AppLoader";
@@ -28,10 +32,11 @@ import AppInput from "../../../components/common/form/AppInput";
 import AppFormError from "../../../components/common/form/AppFormError";
 import AppSelect from "../../../components/common/form/AppSelect";
 import AppPasswordInput from "../../../components/common/form/AppPasswordInput";
+import { userBulkUploadConfig } from "../../../constants/bulkUpload.constants";
 
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
-import Joi from "joi";
+import Joi from "../../../utils/appJoi";
 import { Box } from "@mui/material";
 
 import type {
@@ -55,18 +60,25 @@ const ROLE_OPTIONS = [
 const createSchema = Joi.object({
   fullName: Joi.string()
     .min(2)
+    .max(90)
     .required()
-    .messages({ "string.empty": "Full name is required" }),
+    .messages({
+      "string.empty": "Full name is required",
+      "string.max": "Full name must not exceed 90 characters",
+    }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
+    .max(140)
     .required()
     .messages({
       "string.empty": "Email is required",
       "string.email": "Enter a valid email",
+      "string.max": "Email must not exceed 140 characters",
     }),
-  password: Joi.string().min(6).required().messages({
+  password: Joi.string().min(6).max(255).required().messages({
     "string.empty": "Password is required",
     "string.min": "Password must be at least 6 characters",
+    "string.max": "Password must not exceed 255 characters",
   }),
   roleId: Joi.string()
     .uuid()
@@ -78,14 +90,20 @@ const createSchema = Joi.object({
 const updateSchema = Joi.object({
   fullName: Joi.string()
     .min(2)
+    .max(90)
     .required()
-    .messages({ "string.empty": "Full name is required" }),
+    .messages({
+      "string.empty": "Full name is required",
+      "string.max": "Full name must not exceed 90 characters",
+    }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
+    .max(140)
     .required()
     .messages({
       "string.empty": "Email is required",
       "string.email": "Enter a valid email",
+      "string.max": "Email must not exceed 140 characters",
     }),
   roleId: Joi.string()
     .uuid()
@@ -99,8 +117,11 @@ const UserPage = () => {
   const [params, setParams] = useState<UserQueryParams>({
     pageNumber: 1,
     pageSize: 10,
+    sortBy: "createdOn",
+    sortAscending: false,
   });
   const [createOpen, setCreateOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserListDto | null>(null);
   const [toggleUser, setToggleUser] = useState<UserListDto | null>(null);
 
@@ -125,13 +146,32 @@ const UserPage = () => {
     formState: { errors: createErrors },
   } = useForm<CreateUserDto>({ resolver: joiResolver(createSchema) });
 
-  // ─── Edit Form ──────────────────────────────────────────────────────────────
   const {
     control: editControl,
     handleSubmit: handleEditSubmit,
     reset: resetEdit,
     formState: { errors: editErrors },
   } = useForm<UpdateUserDto>({ resolver: joiResolver(updateSchema) });
+
+  const { data: userDetailResponse } = useGetUserByIdQuery(
+    editUser?.userId ?? "",
+    { skip: !editUser }
+  );
+
+  useEffect(() => {
+    if (userDetailResponse?.success && userDetailResponse.data && editUser) {
+      const detail = userDetailResponse.data;
+      const matchedRole = ROLE_OPTIONS.find(
+        (r) => r.label.toLowerCase() === detail.roleName.toLowerCase()
+      );
+      resetEdit({
+        fullName: detail.fullName,
+        email: detail.email,
+        roleId: matchedRole ? matchedRole.value : "",
+        managerId: detail.managerId || "",
+      });
+    }
+  }, [userDetailResponse, editUser, resetEdit]);
 
   // ─── Handlers ───────────────────────────────────────────────────────────────
   const handleCreate = async (data: CreateUserDto) => {
@@ -168,6 +208,15 @@ const UserPage = () => {
     }
   };
 
+  const handleSortChange = (sortBy: string, sortAscending: boolean) => {
+    setParams((prev) => ({
+      ...prev,
+      sortBy,
+      sortAscending,
+      pageNumber: 1,
+    }));
+  };
+
   const handleToggle = async () => {
     if (!toggleUser) return;
     try {
@@ -187,11 +236,14 @@ const UserPage = () => {
 
   const openEdit = (user: UserListDto) => {
     setEditUser(user);
+    const matchedRole = ROLE_OPTIONS.find(
+      (r) => r.label.toLowerCase() === user.roleName.toLowerCase()
+    );
     resetEdit({
       fullName: user.fullName,
       email: user.email,
-      roleId: "",
-      managerId: null,
+      roleId: matchedRole ? matchedRole.value : "",
+      managerId: "",
     });
   };
 
@@ -203,6 +255,7 @@ const UserPage = () => {
     {
       key: "isActive",
       label: "Status",
+      sortable: false,
       render: (row) => (
         <AppStatusBadge status={row.isActive ? "Active" : "Inactive"} />
       ),
@@ -210,6 +263,7 @@ const UserPage = () => {
     {
       key: "actions",
       label: "Actions",
+      sortable: false,
       render: (row: UserListDto) => (
         <AppTableActions
           actions={[
@@ -238,11 +292,19 @@ const UserPage = () => {
         title="User Management"
         subtitle="Manage system users and their roles"
         actions={
-          <AppButton
-            label="Add User"
-            startIcon={<PersonAddIcon />}
-            onClick={() => setCreateOpen(true)}
-          />
+          <Stack direction="row" spacing={2}>
+            <AppButton
+              label="Bulk upload"
+              variant="outlined"
+              startIcon={<FileUploadIcon />}
+              onClick={() => setBulkOpen(true)}
+            />
+            <AppButton
+              label="Add User"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setCreateOpen(true)}
+            />
+          </Stack>
         }
       />
 
@@ -257,7 +319,14 @@ const UserPage = () => {
       </AppFilterBar>
 
       {/* Table */}
-      <AppDataGrid columns={columns} rows={users} keyField="userId" />
+      <AppDataGrid
+        columns={columns}
+        rows={users}
+        keyField="userId"
+        onSortChange={handleSortChange}
+        sortBy={params.sortBy}
+        sortAscending={params.sortAscending}
+      />
 
       {/* Pagination */}
       <AppPagination
@@ -342,6 +411,15 @@ const UserPage = () => {
         onClose={() => setToggleUser(null)}
         isSubmitting={toggling}
       />
+
+      <AppBulkUploadDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        config={{
+          ...userBulkUploadConfig,
+          uploadMutation: useBulkUploadUsersMutation,
+        }}
+      />
     </Stack>
   );
 };
@@ -375,6 +453,7 @@ const UserFormFields = ({
               placeholder="Enter full name"
               fullWidth
               error={!!errors.fullName}
+              maxLength={90}
             />
           )}
         />
@@ -393,6 +472,7 @@ const UserFormFields = ({
               type="email"
               fullWidth
               error={!!errors.email}
+              maxLength={140}
             />
           )}
         />
@@ -411,6 +491,7 @@ const UserFormFields = ({
                 placeholder="Enter password"
                 fullWidth
                 error={!!errors.password}
+                maxLength={255}
               />
             )}
           />

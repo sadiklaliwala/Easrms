@@ -207,6 +207,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Stack } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
+
 import { useGetRequestsQuery } from "../../../store/api/request.endpoints";
 import { useGetCategoriesQuery } from "../../../store/api/category.endpoints";
 import { useAppSelector } from "../../../hooks/useAppSelector";
@@ -225,10 +226,17 @@ import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import AppTableActions from "../../../components/common/table/AppTableActions";
 import AppSLABadge from "../../../components/common/table/AppSLABadge";
 import EscalateRequestDialog from "../../../components/common/modal/EscalateRequestDialog";
-import { useEscalateRequestMutation, useLazyExportRequestListExcelQuery, useLazyExportRequestListPdfQuery } from "../../../store/api/request.endpoints";
+import AppBulkUploadDialog from "../../../components/common/modal/AppBulkUploadDialog";
+import {
+  useEscalateRequestMutation,
+  useLazyExportRequestListExcelQuery,
+  useLazyExportRequestListPdfQuery,
+  useBulkUploadRequestsMutation,
+} from "../../../store/api/request.endpoints";
 import toast from "react-hot-toast";
 import { downloadBlob } from "../../../utils/exportFile";
 import { STATUS } from "../../../constants/status.constants";
+import { requestBulkUploadConfig } from "../../../constants/bulkUpload.constants";
 
 import { ROLES } from "../../../constants/role.constants";
 import {
@@ -255,6 +263,8 @@ const RequestListPage = () => {
   const [params, setParams] = useState<RequestQueryParams>({
     pageNumber: 1,
     pageSize: 10,
+    sortBy: "createdOn",
+    sortAscending: false,
   });
 
   const { data: response, isLoading, isError } = useGetRequestsQuery(params);
@@ -265,6 +275,7 @@ const RequestListPage = () => {
   });
 
   const [escalateRow, setEscalateRow] = useState<RequestListDto | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [escalateRequest, { isLoading: escalating }] =
     useEscalateRequestMutation();
 
@@ -359,6 +370,7 @@ const RequestListPage = () => {
       {
         key: "slaStatus",
         label: "SLA Status",
+        sortable: false,
         render: (row) => <AppSLABadge slaStatus={row.slaStatus} />,
       },
       {
@@ -369,6 +381,7 @@ const RequestListPage = () => {
       {
         key: "actions",
         label: "Actions",
+        sortable: false,
         render: (row) => {
           const statusLabel = STATUS_ENUM_REVERSE[row.status].toString();
           const canEscalate =
@@ -455,6 +468,18 @@ const RequestListPage = () => {
     setParams((p) => ({ ...p, pageSize: size, pageNumber: 1 }));
   }, []);
 
+  const handleSortChange = useCallback(
+    (sortBy: string, sortAscending: boolean) => {
+      setParams((p) => ({
+        ...p,
+        sortBy,
+        sortAscending,
+        pageNumber: 1,
+      }));
+    },
+    [],
+  );
+
   const handleEscalate = async (reason: string) => {
     if (!escalateRow) return;
     try {
@@ -486,13 +511,21 @@ const RequestListPage = () => {
         title="Service Requests"
         subtitle="View and manage all requests"
         actions={
-          roleName === ROLES.EMPLOYEE ? (
-            <AppButton
-              label="New Request"
-              startIcon={<AddIcon />}
-              onClick={() => navigate("/requests/create")}
-            />
-          ) : undefined
+          <Stack direction="row" spacing={2}>
+            {/* <AppButton
+              label="Bulk upload"
+              variant="outlined"
+              startIcon={<FileUploadIcon />}
+              onClick={() => setBulkOpen(true)}
+            /> */}
+            {roleName === ROLES.EMPLOYEE && (
+              <AppButton
+                label="New Request"
+                startIcon={<AddIcon />}
+                onClick={() => navigate("/requests/create")}
+              />
+            )}
+          </Stack>
         }
       />
 
@@ -525,7 +558,7 @@ const RequestListPage = () => {
       {/* Filters */}
       <AppFilterBar>
         {roleName === ROLES.ADMIN && (
-          <Box sx={{ display: 'flex', gap: 1, minWidth: 'max-content' }}>
+          <Box sx={{ display: "flex", gap: 1, minWidth: "max-content" }}>
             <AppButton
               label={excelLoading ? "Exporting..." : "Export Excel"}
               onClick={handleExportExcel}
@@ -598,6 +631,9 @@ const RequestListPage = () => {
         rows={requests}
         keyField="requestId"
         onRowClick={handleRowClick}
+        onSortChange={handleSortChange}
+        sortBy={params.sortBy}
+        sortAscending={params.sortAscending}
       />
 
       {/* Pagination */}
@@ -617,6 +653,15 @@ const RequestListPage = () => {
         dueDate={escalateRow?.dueDate ? formatDate(escalateRow.dueDate) : null}
         onEscalate={handleEscalate}
         isSubmitting={escalating}
+      />
+
+      <AppBulkUploadDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        config={{
+          ...requestBulkUploadConfig,
+          uploadMutation: useBulkUploadRequestsMutation,
+        }}
       />
     </Stack>
   );

@@ -75,4 +75,6 @@ export interface CategoryQueryParams {
   pageSize?: number;
   search?: string;
   isActive?: boolean;
+  sortBy?: string;
+  sortAscending?: boolean;
 }

@@ -1,4 +1,4 @@
-namespace Easrms.Application.Interfaces;
+namespace Easrms.Application.Interfaces.Email;
 
 public interface IEmailService
 {

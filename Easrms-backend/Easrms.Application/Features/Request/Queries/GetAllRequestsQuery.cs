@@ -20,6 +20,10 @@ public sealed class GetAllRequestsQuery : IRequest<RequestListWithPaginationDto>
     public string CurrentUserRole { get; init; } = string.Empty;
     public DateTime? FromDate { get; init; }
     public DateTime? ToDate { get; init; }
+
+    // SORT
+    public string? SortBy { get; init; }
+    public bool? SortAscending { get; init; }
 }
 
 public sealed class GetAllRequestsQueryHandler(IRequestRepository requestRepository)
@@ -59,6 +63,8 @@ public sealed class GetAllRequestsQueryHandler(IRequestRepository requestReposit
             ManagerId = scopedManagerId,
             FromDate = request.FromDate,
             ToDate = request.ToDate,
+            SortBy = request.SortBy ?? "CreatedOn",
+            SortAscending = request.SortAscending ?? false
         };
 
         return await _requestRepository.GetPagedRequestsAsync(

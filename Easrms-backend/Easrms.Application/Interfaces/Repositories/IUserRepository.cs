@@ -152,4 +152,7 @@ public interface IUserRepository
     Task RevokeRefreshTokenAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task UpdateUserOtpAsync(Guid userId, string? otpCode, DateTime? otpExpiry);
+    Task<User?> GetByEmailForOtpAsync(string email);
 }

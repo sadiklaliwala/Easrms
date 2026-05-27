@@ -93,5 +93,7 @@ export interface UserQueryParams {
   search?: string;
   roleId?: string;
   isActive?: boolean;
+  sortBy?: string;
+  sortAscending?: boolean;
 }
 

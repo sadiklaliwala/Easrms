@@ -1,4 +1,4 @@
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Cloudinary;
 using Easrms.Application.Settings;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;

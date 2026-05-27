@@ -26,6 +26,10 @@ public class User
 
     public DateTime? RefreshTokenExpiryOn { get; set; }
 
+    // NEW: OTP and profile fields
+    public string? OtpCode { get; set; }
+    public DateTime? OtpExpiryOn { get; set; }
+    public string? ProfilePhotoUrl { get; set; }
 
     // Navigation Properties
     public Role Role { get; set; } = null!;

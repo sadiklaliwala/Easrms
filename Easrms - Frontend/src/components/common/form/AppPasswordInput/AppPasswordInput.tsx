@@ -10,13 +10,18 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 type AppPasswordInputProps = TextFieldProps & {
   label?: string;
+  maxLength?: number;
 };
 
 const AppPasswordInput = ({
   label = "Password",
+  maxLength,
+  helperText,
   ...rest
 }: AppPasswordInputProps) => {
   const [show, setShow] = useState(false);
+  const value = rest.value !== undefined && rest.value !== null ? String(rest.value) : "";
+  const isLimitReached = maxLength !== undefined && value.length >= maxLength;
 
   return (
     <TextField
@@ -33,7 +38,17 @@ const AppPasswordInput = ({
             </InputAdornment>
           ),
         },
+        htmlInput: {
+          maxLength,
+        },
       }}
+      helperText={
+        isLimitReached ? (
+          <span style={{ color: "#d32f2f" }}>Maximum limit of {maxLength} characters reached</span>
+        ) : (
+          helperText
+        )
+      }
       {...rest}
     />
   );

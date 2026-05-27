@@ -1,4 +1,4 @@
-﻿using Easrms.Application.Interfaces;
+﻿using Easrms.Application.Interfaces.Email;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;

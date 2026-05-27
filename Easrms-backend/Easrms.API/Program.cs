@@ -1,6 +1,7 @@
 using Easrms.API;
 using Easrms.API.Middleware;
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Cloudinary;
+using Easrms.Application.Interfaces.Jwt;
 using Easrms.Application.Settings;
 using Easrms.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

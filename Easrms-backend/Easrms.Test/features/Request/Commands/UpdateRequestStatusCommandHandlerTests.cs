@@ -5,10 +5,10 @@ using Easrms.Application.Features.Request.Commands;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
-using Easrms.Application.Interfaces;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using Easrms.Application.Interfaces.Email;
 
 namespace Easrms.Test.features.Request.Commands;
 

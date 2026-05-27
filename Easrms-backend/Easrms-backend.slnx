@@ -7,7 +7,6 @@
   <Project Path="Easrms.Common/Easrms.Common.csproj" />
   <Project Path="Easrms.Domain/Easrms.Domain.csproj" />
   <Project Path="Easrms.Infrastructure/Easrms.Infrastructure.csproj" />
-  <Project Path="Easrms.IntegrationTesting/Easrms.IntegrationTesting.csproj" Id="5e09ff5d-3489-47d4-8d2f-74ad38a068d8" />
   <Project Path="Easrms.Test/Easrms.UnitTest.csproj" Id="333f71f1-6eb0-4cc7-b67f-ab325b264b3c">
     <Build Solution="Debug|*" Project="false" />
   </Project>

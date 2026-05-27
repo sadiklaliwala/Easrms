@@ -1,5 +1,5 @@
 ﻿using Easrms.Application.Features.Auth.Commands;
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Jwt;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Domain.Entities;
 using FluentAssertions;

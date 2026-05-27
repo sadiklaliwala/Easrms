@@ -1,4 +1,7 @@
 ﻿using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Cloudinary;
+using Easrms.Application.Interfaces.Email;
+using Easrms.Application.Interfaces.Jwt;
 using Easrms.Application.Interfaces.OAuth;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Infrastructure.BackgroundWorkers.Workers;
@@ -6,6 +9,7 @@ using Easrms.Infrastructure.Data;
 using Easrms.Infrastructure.Export;
 using Easrms.Infrastructure.Repositories.Implementations;
 using Easrms.Infrastructure.Services;
+using Easrms.Infrastructure.Services.BulkUpload;
 using Easrms.Infrastructure.Services.Email;
 using Easrms.Infrastructure.Services.OAuth;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +47,7 @@ namespace Easrms.Infrastructure
             services.AddHostedService<ExpiredRefreshTokenCleanupWorker>();
             // Register Cloudinary service and bind settings
             services.Configure<Easrms.Application.Settings.CloudinarySettings>(configuration.GetSection("Cloudinary"));
-            services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Easrms.Application.Settings.CloudinarySettings>>().Value as Easrms.Application.Interfaces.ICloudinarySettings);
+            services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<Easrms.Application.Settings.CloudinarySettings>>().Value as ICloudinarySettings);
             services.AddSingleton<IEmailQueue, EmailQueue>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
 
@@ -60,6 +64,11 @@ namespace Easrms.Infrastructure
             {
                 options.UseSqlServer(connectionString);
             });
+
+            // Bulk upload services
+            services.AddScoped<IUserBulkUploadService, UserBulkUploadService>();
+            services.AddScoped<ICategoryBulkUploadService, CategoryBulkUploadService>();
+            services.AddScoped<IRequestBulkUploadService, RequestBulkUploadService>();
 
             return services;
         }

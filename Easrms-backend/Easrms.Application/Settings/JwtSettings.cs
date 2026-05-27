@@ -3,7 +3,7 @@
 
 // Easrms.Common/Settings/JwtSettings.cs
 
-using Easrms.Application.Interfaces;
+using Easrms.Application.Interfaces.Jwt;
 
 namespace Easrms.Application.Settings;
 

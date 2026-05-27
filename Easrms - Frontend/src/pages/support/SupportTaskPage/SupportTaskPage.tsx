@@ -56,6 +56,8 @@ const SupportTaskPage = () => {
     pageNumber: 1,
     pageSize: 10,
     status: STATUS.ASSIGNED,
+    sortBy: "createdOn",
+    sortAscending: false,
   });
 
   const [selectedRequest, setSelectedRequest] = useState<RequestListDto | null>(
@@ -90,6 +92,15 @@ const SupportTaskPage = () => {
   const openStatusDialog = (row: RequestListDto) => {
     setSelectedRequest(row);
     setStatusOpen(true);
+  };
+
+  const handleSortChange = (sortBy: string, sortAscending: boolean) => {
+    setParams((prev) => ({
+      ...prev,
+      sortBy,
+      sortAscending,
+      pageNumber: 1,
+    }));
   };
 
   // ─── Table Columns ────────────────────────────────────────────────────────────
@@ -127,6 +138,7 @@ const SupportTaskPage = () => {
     {
       key: "actions",
       label: "Actions",
+      sortable: false,
       render: (row) => (
         <AppTableActions
           actions={[
@@ -191,6 +203,9 @@ const SupportTaskPage = () => {
         rows={requests}
         keyField="requestId"
         onRowClick={(row) => navigate(`/requests/${row.requestId}`)}
+        onSortChange={handleSortChange}
+        sortBy={params.sortBy}
+        sortAscending={params.sortAscending}
       />
 
       {/* Pagination */}

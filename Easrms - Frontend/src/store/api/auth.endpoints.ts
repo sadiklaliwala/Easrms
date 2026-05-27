@@ -65,6 +65,12 @@ import type {
   LinkProviderDto,
   UnlinkProviderDto,
 } from "../../types/auth.types";
+import type {
+  SendOtpDto,
+  VerifyOtpDto,
+  VerifyOtpResponseDto,
+  ResetPasswordDto,
+} from "../../types/profile.types";
 
 const authEndpoints = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -136,6 +142,30 @@ const authEndpoints = api.injectEndpoints({
       query: () => ApiEndPoints.AUTH.LINKED_PROVIDERS,
       providesTags: ["LinkedProviders"],
     }),
+
+    sendOtp: builder.mutation<ApiResponse<null>, SendOtpDto>({
+      query: (body) => ({
+        url: ApiEndPoints.AUTH_SEND_OTP,
+        method: "POST",
+        body,
+      }),
+    }),
+
+    verifyOtp: builder.mutation<ApiResponse<VerifyOtpResponseDto>, VerifyOtpDto>({
+      query: (body) => ({
+        url: ApiEndPoints.AUTH_VERIFY_OTP,
+        method: "POST",
+        body,
+      }),
+    }),
+
+    resetPassword: builder.mutation<ApiResponse<null>, ResetPasswordDto>({
+      query: (body) => ({
+        url: ApiEndPoints.AUTH_RESET_PASSWORD,
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -149,4 +179,7 @@ export const {
   useLinkProviderMutation,
   useUnlinkProviderMutation,
   useGetLinkedProvidersQuery,
+  useSendOtpMutation,
+  useVerifyOtpMutation,
+  useResetPasswordMutation,
 } = authEndpoints;

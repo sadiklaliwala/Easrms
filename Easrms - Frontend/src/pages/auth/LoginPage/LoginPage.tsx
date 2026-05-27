@@ -2,8 +2,8 @@ import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
-import Joi from "joi";
-import { Box, Paper, Typography, Stack, Divider } from "@mui/material";
+import Joi from "../../../utils/appJoi";
+import { Box, Paper, Typography, Stack, Divider, Link } from "@mui/material";
 import toast from "react-hot-toast";
 
 import { useLoginMutation } from "../../../store/api/auth.endpoints";
@@ -27,13 +27,16 @@ import type { LoginRequestDto } from "../../../types/auth.types";
 const schema = Joi.object({
   email: Joi.string()
     .email({ tlds: { allow: false } })
+    .max(140)
     .required()
     .messages({
       "string.empty": "Email is required",
       "string.email": "Enter a valid email address",
+      "string.max": "Email must not exceed 140 characters",
     }),
-  password: Joi.string().min(1).required().messages({
+  password: Joi.string().min(1).max(255).required().messages({
     "string.empty": "Password is required",
+    "string.max": "Password must not exceed 255 characters",
   }),
 });
 
@@ -229,6 +232,7 @@ const LoginPage = () => {
                   error={!!errors.email}
                   autoComplete="email"
                   autoFocus
+                  maxLength={140}
                 />
               )}
             />
@@ -248,6 +252,7 @@ const LoginPage = () => {
                   fullWidth
                   error={!!errors.password}
                   autoComplete="current-password"
+                  maxLength={255}
                 />
               )}
             />
@@ -263,6 +268,22 @@ const LoginPage = () => {
             size="large"
             sx={{ py: 1.25, borderRadius: 2 }}
           />
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+            <Link
+              component="button"
+              type="button"
+              variant="body2"
+              onClick={() => navigate("/forgot-password")}
+              sx={{
+                textDecoration: "none",
+                fontWeight: 600,
+                color: "primary.main",
+              }}
+            >
+              Forgot Password?
+            </Link>
+          </Box>
         </Stack>
 
         {/* OAuth Divider */}

@@ -70,9 +70,11 @@ const EscalateRequestDialog = ({
             mb: 2,
           }}
         >
-          Please provide a reason for escalating this request. This action cannot be undone.
+          Please provide a reason for escalating this request. This action
+          cannot be undone.
         </Typography>
         <TextField
+          variant="outlined"
           label="Escalation Reason"
           multiline
           rows={4}
@@ -83,7 +85,18 @@ const EscalateRequestDialog = ({
             if (error) setError("");
           }}
           error={!!error}
-          helperText={error}
+          helperText={
+            reason.length >= 490 ? (
+              <span style={{ color: "#d32f2f" }}>Maximum limit of 490 characters reached</span>
+            ) : (
+              error
+            )
+          }
+          slotProps={{
+            htmlInput: {
+              maxLength: 490,
+            },
+          }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 0, pt: 2 }}>

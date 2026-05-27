@@ -13,7 +13,7 @@ namespace Easrms.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = RoleConstants.Admin)]
-public class UserController : ControllerBase
+public partial class UserController : ControllerBase
 {
     private readonly IMediator _mediator;
 
@@ -32,6 +32,7 @@ public class UserController : ControllerBase
         [FromQuery] bool? isActive = null,
         [FromQuery] string? sortBy = null,
         [FromQuery] string? sortDirection = null,
+        [FromQuery] bool? sortAscending = null,
         CancellationToken cancellationToken = default)
     {
         var query = new GetAllUsersQuery(new UserQueryParams
@@ -42,7 +43,8 @@ public class UserController : ControllerBase
             RoleId = roleId,
             IsActive = isActive,
             SortBy = sortBy,
-            SortDirection = sortDirection
+            SortDirection = sortDirection,
+            SortAscending = sortAscending ?? false
         });
 
         var result = await _mediator.Send(query, cancellationToken);
@@ -133,5 +135,26 @@ public class UserController : ControllerBase
             Data = null,
             Errors = null
         });
+    }
+
+    // POST /api/users/bulk
+    [HttpPost("bulk")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    [RequestSizeLimit(5_242_880)]
+    public async Task<IActionResult> BulkUpload(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        if (file == null) return BadRequest(ApiResponse<object>.FailResponse("No file provided", 400));
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, cancellationToken);
+
+        var command = new Easrms.Application.Features.User.Commands.BulkCreateUsers.BulkCreateUsersCommand
+        {
+            FileName = file.FileName,
+            FileContent = ms.ToArray()
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 }

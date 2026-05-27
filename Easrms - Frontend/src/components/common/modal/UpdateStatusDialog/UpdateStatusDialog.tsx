@@ -115,6 +115,7 @@ const UpdateStatusDialog = ({
             {statusError && <FormHelperText>{statusError}</FormHelperText>}
           </FormControl>
           <TextField
+            variant="outlined"
             label="Remarks"
             multiline
             rows={3}
@@ -125,7 +126,18 @@ const UpdateStatusDialog = ({
               if (remarksError) setRemarksError("");
             }}
             error={!!remarksError}
-            helperText={remarksError || "Remarks are mandatory when resolving."}
+            helperText={
+              remarks.length >= 490 ? (
+                <span style={{ color: "#d32f2f" }}>Maximum limit of 490 characters reached</span>
+              ) : (
+                remarksError || "Remarks are mandatory when resolving."
+              )
+            }
+            slotProps={{
+              htmlInput: {
+                maxLength: 490,
+              },
+            }}
           />
         </Box>
       </DialogContent>

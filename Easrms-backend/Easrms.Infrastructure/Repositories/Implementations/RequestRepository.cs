@@ -121,10 +121,14 @@ public class RequestRepository : IRequestRepository
         // Sorting — allowlist only
         var allowedSort = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "CreatedOn",     "sr.CreatedOn"     },
-            { "Priority",      "sr.Priority"      },
-            { "Status",        "sr.Status"        },
-            { "RequestNumber", "sr.RequestNumber" }
+            { "RequestNumber", "sr.RequestNumber" },
+            { "Title",         "sr.Title" },
+            { "Status",        "sr.Status" },
+            { "Priority",      "sr.Priority" },
+            { "CreatedOn",     "sr.CreatedOn" },
+            { "DueDate",       "sr.DueDate" },
+            { "CategoryName",  "rc.CategoryName" },
+            { "AssigneeName",  "au.FullName" }
         };
 
         var sortColumn = allowedSort.TryGetValue(queryParams.SortBy ?? string.Empty, out var col)

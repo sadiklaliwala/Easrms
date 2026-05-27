@@ -3,7 +3,7 @@
 using System.Security.Claims;
 using Easrms.Domain.Entities;
 
-namespace Easrms.Application.Interfaces;
+namespace Easrms.Application.Interfaces.Jwt;
 
 /// <summary>
 /// Service contract for all JWT access token and refresh token operations.
@@ -43,6 +43,21 @@ public interface IJwtService
     /// <returns>A Base64-encoded random refresh token string.</returns>
     string GenerateRefreshToken();
 
+    /// <summary>
+    /// Generates a short-lived JWT used for password reset/change flows.
+    /// Contains claims: sub (user id) and purpose.
+    /// Lifetime: 15 minutes.
+    /// </summary>
+    /// <param name="userId">The user's id</param>
+    /// <param name="purpose">Either "password-reset" or "password-change"</param>
+    /// <returns>Signed JWT string.</returns>
+    string GeneratePasswordToken(Guid userId, string purpose);
+
+    /// <summary>
+    /// Validates a password token and ensures the purpose claim matches expectedPurpose.
+    /// Returns the ClaimsPrincipal if valid; null otherwise.
+    /// </summary>
+    ClaimsPrincipal? ValidatePasswordToken(string token, string expectedPurpose);
     
     /// <summary>
     /// Writes the JWT access token into an HttpOnly, Secure, SameSite=Strict cookie

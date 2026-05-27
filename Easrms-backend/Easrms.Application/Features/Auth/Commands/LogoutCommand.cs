@@ -1,4 +1,4 @@
-﻿using Easrms.Application.Interfaces;
+﻿using Easrms.Application.Interfaces.Jwt;
 using Easrms.Application.Interfaces.Repositories;
 using MediatR;
 

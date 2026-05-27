@@ -123,6 +123,13 @@ const ApiEndPoints = {
     REQUEST_DETAIL_EXCEL: (id: string) => `/api/export/requests/${id}/excel`,
     REQUEST_DETAIL_PDF: (id: string) => `/api/export/requests/${id}/pdf`,
   },
+  PROFILE: '/api/profile',
+  PROFILE_SEND_OTP: '/api/profile/send-otp',
+  PROFILE_VERIFY_OTP: '/api/profile/verify-otp',
+  PROFILE_CHANGE_PASSWORD: '/api/profile/change-password',
+  AUTH_SEND_OTP: '/api/auth/send-otp',
+  AUTH_VERIFY_OTP: '/api/auth/verify-otp',
+  AUTH_RESET_PASSWORD: '/api/auth/reset-password',
 };
 
 export default ApiEndPoints;

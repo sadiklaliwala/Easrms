@@ -3,12 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Easrms.Application.Features.Auth.Commands;
 using Easrms.Application.Interfaces.Repositories;
-using Easrms.Application.Interfaces;
 using Easrms.Domain.Entities;
 using Easrms.Application.DTOs.Auth;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using Easrms.Application.Interfaces.Jwt;
 
 namespace Easrms.Test.features.Auth.Commands;
 

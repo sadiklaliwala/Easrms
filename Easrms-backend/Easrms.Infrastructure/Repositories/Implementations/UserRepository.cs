@@ -78,6 +78,7 @@ public class UserRepository : IUserRepository
 
             if (allowedSortColumns.TryGetValue(sortBy, out var column))
             {
+                // Determine sort direction
                 var dir = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
                 orderBy = $"{column} {dir}";
             }
@@ -194,6 +195,26 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
         }
 
         return await query.FirstOrDefaultAsync(cancellationToken);
+    }
+
+    // NEW: GetByEmailForOtpAsync
+    public async Task<User?> GetByEmailForOtpAsync(string email)
+    {
+        return await _dbContext.Users
+            .Where(u => u.Email == email && u.IsActive)
+            .FirstOrDefaultAsync();
+    }
+
+    // NEW: UpdateUserOtpAsync
+    public async Task UpdateUserOtpAsync(Guid userId, string? otpCode, DateTime? otpExpiry)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null)
+            return;
+
+        user.OtpCode = otpCode;
+        user.OtpExpiryOn = otpExpiry?.ToUniversalTime();
+        await _dbContext.SaveChangesAsync();
     }
 
     // ---------------------------------------------------------------------

@@ -1,6 +1,6 @@
 ﻿// Easrms.Common/Settings/JwtSettings.cs
 
-namespace Easrms.Application.Interfaces
+namespace Easrms.Application.Interfaces.Jwt
 {
     public interface IJwtSettings
     {
