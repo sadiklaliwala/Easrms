@@ -27,6 +27,7 @@ import toast from "react-hot-toast";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import type {
+  BulkUploadConfig,
   BulkUploadError,
   BulkUploadResult,
 } from "../../../../types/bulkUpload.types";
@@ -47,7 +48,7 @@ export default function AppBulkUploadDialog({
   const [file, setFile] = useState<File | null>(null);
   const [fileSizeStr, setFileSizeStr] = useState("");
   const [parsedRows, setParsedRows] = useState<any[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
+  const [_headers, setHeaders] = useState<string[]>([]);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -166,7 +167,7 @@ export default function AppBulkUploadDialog({
   };
 
   const processParsedData = (
-    fileObj: File,
+    _fileObj: File,
     parsedHeaders: string[],
     dataRows: any[],
   ) => {
@@ -188,7 +189,7 @@ export default function AppBulkUploadDialog({
     const extra = trimmedHeaders.filter(
       (h) =>
         !config.requiredColumns.some(
-          (reqCol) => reqCol.toLowerCase() === h.toLowerCase(),
+          (reqCol: any) => reqCol.toLowerCase() === h.toLowerCase(),
         ),
     );
 
@@ -325,7 +326,7 @@ export default function AppBulkUploadDialog({
   };
 
   // Convert config preview columns to key/label columns expected by AppDataGrid
-  const previewGridColumns = config.previewColumns.map((col) => ({
+  const previewGridColumns = config.previewColumns.map((col: any) => ({
     key: col.field,
     label: col.headerName,
     width: col.width,
@@ -422,7 +423,12 @@ export default function AppBulkUploadDialog({
           pb: 1,
         }}
       >
-        <Typography variant="h6" fontWeight="bold">
+        <Typography
+          sx={{
+            variant: "h6",
+            fontWeight: "bold",
+          }}
+        >
           Bulk upload {config.title}
         </Typography>
         <IconButton onClick={handleClose} disabled={isUploading}>
@@ -472,9 +478,11 @@ export default function AppBulkUploadDialog({
                 }}
               />
               <Typography
-                variant="body1"
-                fontWeight="medium"
-                color="text.primary"
+                sx={{
+                  variant: "body1",
+                  fontWeight: "medium",
+                  color: "text.primary",
+                }}
               >
                 Drop a CSV or Excel file here
               </Typography>
@@ -488,9 +496,11 @@ export default function AppBulkUploadDialog({
             </Box>
 
             <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
+              sx={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
               <Button
                 variant="text"
@@ -592,18 +602,24 @@ export default function AppBulkUploadDialog({
           <Stack spacing={3}>
             {/* File Info Card */}
             <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
               sx={{
                 p: 2,
                 bgcolor: "grey.50",
                 border: "1px solid",
                 borderColor: "grey.200",
                 borderRadius: 1.5,
+                direction: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack
+                sx={{
+                  direction: "row",
+                  spacing: 2,
+                  alignItems: "center",
+                }}
+              >
                 <Box
                   sx={{
                     width: 40,
@@ -621,9 +637,8 @@ export default function AppBulkUploadDialog({
                 <Box>
                   <Typography
                     variant="body2"
-                    fontWeight="bold"
                     noWrap
-                    sx={{ maxWidth: 220 }}
+                    sx={{ maxWidth: 220, fontWeight: "bold" }}
                   >
                     {file.name}
                   </Typography>
@@ -642,9 +657,11 @@ export default function AppBulkUploadDialog({
             {/* Preview Grid */}
             <Stack spacing={1}>
               <Typography
-                variant="subtitle2"
-                fontWeight="bold"
-                color="text.secondary"
+                sx={{
+                  variant: "subtitle2",
+                  fontWeight: "bold",
+                  color: "text.secondary",
+                }}
               >
                 File Preview
               </Typography>
@@ -684,14 +701,22 @@ export default function AppBulkUploadDialog({
               >
                 <CardContent sx={{ textAlign: "center", p: "16px !important" }}>
                   <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    fontWeight="bold"
-                    textTransform="uppercase"
+                    sx={{
+                      variant: "caption",
+                      color: "text.secondary",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
                   >
                     Total Rows
                   </Typography>
-                  <Typography variant="h5" fontWeight="bold" sx={{ mt: 0.5 }}>
+                  <Typography
+                    sx={{
+                      variant: "h5",
+                      fontWeight: "bold",
+                      mt: 0.5,
+                    }}
+                  >
                     {uploadResult.totalRows}
                   </Typography>
                 </CardContent>
@@ -708,18 +733,22 @@ export default function AppBulkUploadDialog({
               >
                 <CardContent sx={{ textAlign: "center", p: "16px !important" }}>
                   <Typography
-                    variant="caption"
-                    color="success.dark"
-                    fontWeight="bold"
-                    textTransform="uppercase"
+                    sx={{
+                      variant: "caption",
+                      color: "success.dark",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
                   >
                     Inserted
                   </Typography>
                   <Typography
-                    variant="h5"
-                    fontWeight="bold"
-                    color="success.main"
-                    sx={{ mt: 0.5 }}
+                    sx={{
+                      variant: "h5",
+                      fontWeight: "bold",
+                      color: "success.main",
+                      mt: 0.5,
+                    }}
                   >
                     {uploadResult.insertedCount}
                   </Typography>
@@ -740,10 +769,12 @@ export default function AppBulkUploadDialog({
                     sx={{ textAlign: "center", p: "16px !important" }}
                   >
                     <Typography
-                      variant="caption"
-                      color="error.dark"
-                      fontWeight="bold"
-                      textTransform="uppercase"
+                      sx={{
+                        variant: "caption",
+                        color: "error.dark",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
                     >
                       Failed
                     </Typography>
@@ -784,9 +815,11 @@ export default function AppBulkUploadDialog({
             {uploadResult.failedCount > 0 && (
               <Stack spacing={1.5}>
                 <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
+                  sx={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
                 >
                   <Chip
                     size="small"
@@ -844,10 +877,11 @@ export default function AppBulkUploadDialog({
         {/* State 2 Actions */}
         {state === "preview" && (
           <Stack
-            direction="row"
-            spacing={2}
-            justifyContent="flex-end"
-            width="100%"
+            sx={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              width: "100%",
+            }}
           >
             <Button
               variant="outlined"
@@ -877,10 +911,12 @@ export default function AppBulkUploadDialog({
         {/* State 3 Actions */}
         {state === "result" && (
           <Stack
-            direction="row"
-            spacing={2}
-            justifyContent="flex-end"
-            width="100%"
+            sx={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              gap: 2,
+              width: "100%",
+            }}
           >
             <Button
               variant="outlined"

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Stack, IconButton, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import FileUploadIcon from "@mui/icons-material/FileUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import toast from "react-hot-toast";
 import { useForm, Controller } from "react-hook-form";
@@ -291,7 +290,7 @@ const CategoryPage = () => {
       label: "Actions",
       sortable: false,
       render: (row) => (
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack sx={{ flexDirection: "row", gap: 1, alignItems: "center" }}>
           <AppTableActions
             actions={[
               { label: "Edit", onClick: () => openEdit(row) },
@@ -493,7 +492,7 @@ const CategoryFormFields = ({ control, errors }: CategoryFormFieldsProps) => (
 
     <Box sx={{ mt: 2, mb: 2 }}>
       <AppLabel label="SLA Duration" required />
-      <Stack direction="row" spacing={2} alignItems="flex-start">
+      <Stack sx={{ flexDirection: "row", gap: 2, alignItems: "flex-start" }}>
         <Box sx={{ flex: 1 }}>
           <Controller
             name="slaValue"

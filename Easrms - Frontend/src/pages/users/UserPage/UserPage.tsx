@@ -61,14 +61,10 @@ const ROLE_OPTIONS = [
 
 // ─── Validation Schemas ───────────────────────────────────────────────────────
 const createSchema = Joi.object({
-  fullName: Joi.string()
-    .min(2)
-    .max(90)
-    .required()
-    .messages({
-      "string.empty": "Full name is required",
-      "string.max": "Full name must not exceed 90 characters",
-    }),
+  fullName: Joi.string().min(2).max(90).required().messages({
+    "string.empty": "Full name is required",
+    "string.max": "Full name must not exceed 90 characters",
+  }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
     .max(140)
@@ -91,14 +87,10 @@ const createSchema = Joi.object({
 });
 
 const updateSchema = Joi.object({
-  fullName: Joi.string()
-    .min(2)
-    .max(90)
-    .required()
-    .messages({
-      "string.empty": "Full name is required",
-      "string.max": "Full name must not exceed 90 characters",
-    }),
+  fullName: Joi.string().min(2).max(90).required().messages({
+    "string.empty": "Full name is required",
+    "string.max": "Full name must not exceed 90 characters",
+  }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
     .max(140)
@@ -123,14 +115,18 @@ const UserPage = () => {
     sortBy: "createdOn",
     sortAscending: false,
   });
-  const { roleName, userId: currentUserId } = useAppSelector((state) => state.auth);
+  const { roleName, userId: currentUserId } = useAppSelector(
+    (state) => state.auth,
+  );
   const isAdmin = roleName === ROLES.ADMIN;
 
   const [createOpen, setCreateOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserListDto | null>(null);
   const [toggleUser, setToggleUser] = useState<UserListDto | null>(null);
-  const [deleteUserRecord, setDeleteUserRecord] = useState<UserListDto | null>(null);
+  const [deleteUserRecord, setDeleteUserRecord] = useState<UserListDto | null>(
+    null,
+  );
 
   const { data: response, isLoading, isError } = useGetUsersQuery(params);
   const { data: managersResponse } = useGetManagersQuery();
@@ -163,14 +159,14 @@ const UserPage = () => {
 
   const { data: userDetailResponse } = useGetUserByIdQuery(
     editUser?.userId ?? "",
-    { skip: !editUser }
+    { skip: !editUser },
   );
 
   useEffect(() => {
     if (userDetailResponse?.success && userDetailResponse.data && editUser) {
       const detail = userDetailResponse.data;
       const matchedRole = ROLE_OPTIONS.find(
-        (r) => r.label.toLowerCase() === detail.roleName.toLowerCase()
+        (r) => r.label.toLowerCase() === detail.roleName.toLowerCase(),
       );
       resetEdit({
         fullName: detail.fullName,
@@ -260,7 +256,7 @@ const UserPage = () => {
   const openEdit = (user: UserListDto) => {
     setEditUser(user);
     const matchedRole = ROLE_OPTIONS.find(
-      (r) => r.label.toLowerCase() === user.roleName.toLowerCase()
+      (r) => r.label.toLowerCase() === user.roleName.toLowerCase(),
     );
     resetEdit({
       fullName: user.fullName,
@@ -288,7 +284,7 @@ const UserPage = () => {
       label: "Actions",
       sortable: false,
       render: (row: UserListDto) => (
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack sx={{ flexDirection: "row", alignItems: "center" }} spacing={1}>
           <AppTableActions
             actions={[
               { label: "Edit", onClick: () => openEdit(row) },

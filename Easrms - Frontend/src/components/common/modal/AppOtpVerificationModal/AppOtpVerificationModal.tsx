@@ -192,10 +192,10 @@ const AppOtpVerificationModal = ({
           6-digit code
         </Typography>
         <Stack
-          direction="row"
-          spacing={1.5}
-          justifyContent="center"
           sx={{
+            flexDirection: "row",
+            gap: 1.5,
+            justifyContent: "center",
             animation: status === "error" ? `${shake} 0.4s ease` : "none",
           }}
         >
