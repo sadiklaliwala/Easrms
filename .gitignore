@@ -24,6 +24,7 @@ _ReSharper*/
 
 # App Settings
 appsettings.Development.json
+appsettings.json
 
 # ─── React / Node ────────────────────────────────────────────────────────────
 node_modules/
