@@ -73,7 +73,7 @@ const categoryEndpoints = api.injectEndpoints({
       CategoryQueryParams
     >({
       query: (params) =>
-        `${ApiEndPoints.CATEGORIES.BASE}${buildQueryParams(params)}`,
+        `${ApiEndPoints.CATEGORIES.BASE}${buildQueryParams({ ...params, isDeleted: false })}`,
       providesTags: ["Category"],
     }),
 
@@ -125,6 +125,14 @@ const categoryEndpoints = api.injectEndpoints({
       }),
       invalidatesTags: ["Category"],
     }),
+
+    deleteCategory: builder.mutation<ApiResponse<null>, string>({
+      query: (id) => ({
+        url: ApiEndPoints.CATEGORIES.BY_ID(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Category"],
+    }),
   }),
 });
 
@@ -135,4 +143,5 @@ export const {
   useUpdateCategoryMutation,
   useToggleCategoryStatusMutation,
   useBulkUploadCategoriesMutation,
+  useDeleteCategoryMutation,
 } = categoryEndpoints;

@@ -92,6 +92,7 @@ const ApiEndPoints = {
     ASSIGN: (id: string) => `/api/Request/${id}/assign`,
     STATUS: (id: string) => `/api/Request/${id}/status`,
     CLOSE: (id: string) => `/api/Request/${id}/close`,
+    REOPEN: (id: string) => `/api/Request/${id}/reopen`,
   },
 
   // Comments

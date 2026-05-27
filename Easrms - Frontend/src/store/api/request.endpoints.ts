@@ -244,6 +244,24 @@ const requestEndpoints = api.injectEndpoints({
         responseHandler: (response: any) => response.blob(),
       }),
     }),
+
+    reopenRequest: builder.mutation<
+      ApiResponse<null>,
+      { id: string; body: { reopenReason: string } }
+    >({
+      query: ({ id, body }) => ({
+        url: ApiEndPoints.REQUESTS.REOPEN(id),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        "RequestDetail",
+        "RequestList",
+        { type: "Request", id },
+        "Request",
+        "Dashboard",
+      ],
+    }),
   }),
 });
 
@@ -261,4 +279,5 @@ export const {
   useLazyExportRequestDetailExcelQuery,
   useLazyExportRequestDetailPdfQuery,
   useBulkUploadRequestsMutation,
+  useReopenRequestMutation,
 } = requestEndpoints;

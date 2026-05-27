@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Stack } from "@mui/material";
+import { Stack, IconButton } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
 import toast from "react-hot-toast";
 
 import {
@@ -11,7 +12,9 @@ import {
   useUpdateUserMutation,
   useToggleUserStatusMutation,
   useBulkUploadUsersMutation,
+  useDeleteUserMutation,
 } from "../../../store/api/user.endpoints";
+import { useAppSelector } from "../../../hooks/useAppSelector";
 import { useGetManagersQuery } from "../../../store/api/lookup.endpoints";
 
 import AppPageHeader from "../../../components/common/layout/AppPageHeader";
@@ -120,10 +123,14 @@ const UserPage = () => {
     sortBy: "createdOn",
     sortAscending: false,
   });
+  const { roleName, userId: currentUserId } = useAppSelector((state) => state.auth);
+  const isAdmin = roleName === ROLES.ADMIN;
+
   const [createOpen, setCreateOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserListDto | null>(null);
   const [toggleUser, setToggleUser] = useState<UserListDto | null>(null);
+  const [deleteUserRecord, setDeleteUserRecord] = useState<UserListDto | null>(null);
 
   const { data: response, isLoading, isError } = useGetUsersQuery(params);
   const { data: managersResponse } = useGetManagersQuery();
@@ -131,6 +138,7 @@ const UserPage = () => {
   const [updateUser, { isLoading: updating }] = useUpdateUserMutation();
   const [toggleUserStatus, { isLoading: toggling }] =
     useToggleUserStatusMutation();
+  const [deleteUser, { isLoading: deleting }] = useDeleteUserMutation();
 
   const managers =
     managersResponse?.data?.map((m) => ({
@@ -234,6 +242,21 @@ const UserPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteUserRecord) return;
+    try {
+      const res = await deleteUser(deleteUserRecord.userId).unwrap();
+      if (res.success) {
+        toast.success("User deleted successfully");
+        setDeleteUserRecord(null);
+      } else {
+        toast.error(res.message ?? "Failed to delete user");
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to delete user");
+    }
+  };
+
   const openEdit = (user: UserListDto) => {
     setEditUser(user);
     const matchedRole = ROLE_OPTIONS.find(
@@ -251,7 +274,7 @@ const UserPage = () => {
   const columns: GridColumn<UserListDto>[] = [
     { key: "fullName", label: "Full Name" },
     { key: "email", label: "Email" },
-    { key: "roleName", label: "Role" },
+    { key: "roleName", label: "Role", sortable: false },
     {
       key: "isActive",
       label: "Status",
@@ -265,16 +288,27 @@ const UserPage = () => {
       label: "Actions",
       sortable: false,
       render: (row: UserListDto) => (
-        <AppTableActions
-          actions={[
-            { label: "Edit", onClick: () => openEdit(row) },
-            {
-              label: row.isActive ? "Deactivate" : "Activate",
-              onClick: () => setToggleUser(row),
-              color: row.isActive ? "error" : "success",
-            },
-          ]}
-        />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <AppTableActions
+            actions={[
+              { label: "Edit", onClick: () => openEdit(row) },
+              {
+                label: row.isActive ? "Deactivate" : "Activate",
+                onClick: () => setToggleUser(row),
+                color: row.isActive ? "error" : "success",
+              },
+            ]}
+          />
+          {isAdmin && row.userId !== currentUserId && (
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => setDeleteUserRecord(row)}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Stack>
       ),
     },
   ];
@@ -410,6 +444,18 @@ const UserPage = () => {
         onConfirm={handleToggle}
         onClose={() => setToggleUser(null)}
         isSubmitting={toggling}
+      />
+
+      {/* Delete Confirm Dialog */}
+      <AppConfirmDialog
+        open={!!deleteUserRecord}
+        title="Delete User"
+        message="Are you sure you want to delete this user? This action cannot be undone."
+        confirmLabel="Delete"
+        confirmColor="error"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteUserRecord(null)}
+        isSubmitting={deleting}
       />
 
       <AppBulkUploadDialog

@@ -38,9 +38,10 @@ public sealed class CreateCategoryCommandHandler : IRequestHandler<CreateCategor
         CreateCategoryCommand request,
         CancellationToken cancellationToken)
     {
+        var normalizedName = request.CategoryName.Trim().Replace(" ", "").ToLowerInvariant();
         // 1. Duplicate name check — no excludeId on create
         var nameTaken = await _categoryRepository.IsCategoryNameTakenAsync(
-            request.CategoryName.Trim(),
+            normalizedName,
             excludeCategoryId: null,
             cancellationToken: cancellationToken);
 

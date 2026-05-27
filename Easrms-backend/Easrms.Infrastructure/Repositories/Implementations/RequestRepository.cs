@@ -290,6 +290,15 @@ public class RequestRepository : IRequestRepository
             .AnyAsync(sr => sr.RequestNumber == requestNumber, cancellationToken);
     }
 
+    // New: check active requests for category
+    public async Task<bool> HasActiveRequestsForCategoryAsync(Guid categoryId, CancellationToken cancellationToken = default)
+    {
+        // Active = status not Closed (8) and not Rejected (4)
+        return await _dbContext.ServiceRequests
+            .Where(sr => sr.CategoryId == categoryId && sr.Status != (RequestStatusEnum)8 && sr.Status != (RequestStatusEnum)4)
+            .AnyAsync(cancellationToken);
+    }
+
     /// <summary>
     /// Adds request to DbContext. Does NOT call SaveChanges — handler must call SaveChangesAsync.
     /// </summary>

@@ -16,6 +16,9 @@ public class RequestCategory
 
     public DateTime? UpdatedOn { get; set; }
 
+    // Soft-delete
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedOn { get; set; }
 
     // Navigation Properties
     public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();

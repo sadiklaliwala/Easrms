@@ -151,3 +151,7 @@ export interface RequestQueryParams {
 export type EscalateRequestDto = {
   escalationReason: string;
 };
+
+export interface ReopenRequestDto {
+  reopenReason: string;
+}

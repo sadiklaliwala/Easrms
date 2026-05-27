@@ -15,6 +15,7 @@ interface RequestActionButtonsProps {
   onUpdateStatus?: () => void;
   onClose?: () => void;
   onEscalate?: () => void;
+  onReopen?: () => void;
 }
 
 const RequestActionButtons = ({
@@ -25,6 +26,7 @@ const RequestActionButtons = ({
   onUpdateStatus,
   onClose,
   onEscalate,
+  onReopen,
 }: RequestActionButtonsProps) => {
   const { roleName, userId } = useAppSelector((state) => state.auth);
   const { status, assignedTo, employeeId, isEscalated } = request;
@@ -52,6 +54,8 @@ const RequestActionButtons = ({
     statusLabel !== STATUS.CLOSED &&
     statusLabel !== STATUS.REJECTED &&
     !isEscalated;
+  const canReopen =
+    isEmployee && employeeId === userId && statusLabel === STATUS.REJECTED;
 
   if (
     !canApprove &&
@@ -59,7 +63,8 @@ const RequestActionButtons = ({
     !showDisabledAssign &&
     !canUpdateStatus &&
     !canClose &&
-    !canEscalate
+    !canEscalate &&
+    !canReopen
   ) {
     return null;
   }
@@ -134,6 +139,16 @@ const RequestActionButtons = ({
           onClick={onEscalate}
         >
           Escalate
+        </Button>
+      )}
+      {canReopen && (
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          onClick={onReopen}
+        >
+          Reopen Request
         </Button>
       )}
     </Box>

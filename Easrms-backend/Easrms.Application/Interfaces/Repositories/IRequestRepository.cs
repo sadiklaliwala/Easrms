@@ -122,4 +122,7 @@ public interface IRequestRepository
     /// <param name="cancellationToken">Token to cancel the async operation.</param>
     /// <returns>The number of rows affected.</returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    // Check whether there are active (not Closed and not Rejected) requests for a category
+    Task<bool> HasActiveRequestsForCategoryAsync(Guid categoryId, CancellationToken cancellationToken = default);
 }

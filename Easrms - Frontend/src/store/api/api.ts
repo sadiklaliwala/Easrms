@@ -8,6 +8,8 @@ export const api = createApi({
     "User",
     "Category",
     "Request",
+    "RequestDetail",
+    "RequestList",
     "Comment",
     "History",
     "Dashboard",

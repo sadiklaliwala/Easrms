@@ -155,4 +155,7 @@ public interface IUserRepository
 
     Task UpdateUserOtpAsync(Guid userId, string? otpCode, DateTime? otpExpiry);
     Task<User?> GetByEmailForOtpAsync(string email);
+
+    // Soft delete
+    Task<bool> SoftDeleteUserAsync(Guid userId);
 }

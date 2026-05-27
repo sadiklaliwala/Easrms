@@ -173,4 +173,14 @@ public class CategoryController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
+
+    // DELETE /api/categories/{id}
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken cancellationToken = default)
+    {
+        var command = new Easrms.Application.Features.Category.Commands.DeleteCategory.DeleteCategoryCommand { CategoryId = id };
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
 }

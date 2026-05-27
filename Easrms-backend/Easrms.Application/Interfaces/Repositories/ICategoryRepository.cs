@@ -123,4 +123,7 @@ public interface ICategoryRepository
     /// <param name="cancellationToken">Token to cancel the async operation.</param>
     /// <returns>The number of rows affected.</returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    // Soft delete
+    Task<bool> SoftDeleteCategoryAsync(Guid categoryId, CancellationToken cancellationToken = default);
 }

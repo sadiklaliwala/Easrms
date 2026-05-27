@@ -38,7 +38,7 @@ public class CategoryRepository : ICategoryRepository
         var pageSize = Math.Clamp(queryParams.PageSize, 1, 100);
         var offset = (pageNumber - 1) * pageSize;
 
-        var whereClauses = new List<string> { "1=1" };
+        var whereClauses = new List<string> { "rc.IsDeleted = 0" };
         var parameters = new DynamicParameters();
 
         if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
@@ -124,7 +124,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
     public async Task<RequestCategory?> GetByIdAsync(Guid categoryId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.RequestCategories
-            .Where(rc => rc.CategoryId == categoryId)
+            .Where(rc => rc.CategoryId == categoryId && !rc.IsDeleted)
             .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -136,7 +136,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
     public async Task<IReadOnlyList<CategoryListDto>> GetAllActiveAsync(CancellationToken cancellationToken = default)
     {
         var items = await _dbContext.RequestCategories
-            .Where(rc => rc.IsActive)
+            .Where(rc => rc.IsActive && !rc.IsDeleted)
             .AsNoTracking()
             .Select(rc => new CategoryListDto
             {
@@ -153,16 +153,17 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
     public async Task<bool> ExistsAsync(Guid categoryId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.RequestCategories.AnyAsync(rc => rc.CategoryId == categoryId, cancellationToken);
+        return await _dbContext.RequestCategories.AnyAsync(rc => rc.CategoryId == categoryId && !rc.IsDeleted, cancellationToken);
     }
 
     public async Task<bool> IsCategoryNameTakenAsync(string categoryName, Guid? excludeCategoryId = null, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(categoryName)) return false;
+        var normalized = categoryName.Trim().Replace(" ", "").ToLowerInvariant();
 
-        var normalized = categoryName.Trim().ToLowerInvariant();
         return await _dbContext.RequestCategories
-            .AnyAsync(rc => rc.CategoryName.ToLower() == normalized && (excludeCategoryId == null || rc.CategoryId != excludeCategoryId.Value), cancellationToken);
+            .AnyAsync(rc => rc.CategoryName.Replace(" ", "").ToLower() == normalized
+                         && (excludeCategoryId == null || rc.CategoryId != excludeCategoryId.Value)
+                         && !rc.IsDeleted, cancellationToken);
     }
 
     /// <summary>
@@ -193,6 +194,17 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> SoftDeleteCategoryAsync(Guid categoryId, CancellationToken cancellationToken = default)
+    {
+        var affected = await _dbContext.RequestCategories
+            .Where(rc => rc.CategoryId == categoryId && !rc.IsDeleted)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(rc => rc.IsDeleted, rc => true)
+                .SetProperty(rc => rc.DeletedOn, rc => DateTime.UtcNow), cancellationToken);
+
+        return affected > 0;
     }
 }
 

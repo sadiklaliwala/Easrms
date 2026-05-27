@@ -47,3 +47,16 @@ export const canCloseRequest = (
       (roleName === ROLES.EMPLOYEE && employeeId === currentUserId))
   );
 };
+
+export const canReopen = (
+  roleName: string,
+  status: number,
+  employeeId: string,
+  currentUserId: string,
+): boolean => {
+  return (
+    roleName === ROLES.EMPLOYEE &&
+    employeeId === currentUserId &&
+    STATUS_ENUM_REVERSE[status] === STATUS.REJECTED
+  );
+};

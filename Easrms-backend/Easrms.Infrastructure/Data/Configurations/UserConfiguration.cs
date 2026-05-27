@@ -42,6 +42,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.OtpExpiryOn).IsRequired(false);
         builder.Property(u => u.ProfilePhotoUrl).HasMaxLength(500).IsRequired(false);
 
+        // Soft-delete mapping
+        builder.Property(u => u.IsDeleted)
+               .IsRequired()
+               .HasDefaultValue(false);
+
+        builder.Property(u => u.DeletedOn)
+               .IsRequired(false);
+
         // Role relationship
         builder.HasOne(x => x.Role)
                .WithMany(x => x.Users)
@@ -53,20 +61,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 .WithMany(u => u.Employees)
                 .HasForeignKey(u => u.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-        //builder.HasData(
-        //    new User
-        //    {
-        //        UserId = Guid.Parse("7c618c94-6873-47e8-84f8-592d9a018374"),
-        //        FullName = "System Admin",
-        //        Email = "admin@easrms.com",
-        //        PasswordHash = BCrypt.Net.BCrypt.Hash("123456"),
-        //        RoleId = Guid.Parse("90a5eb56-0ddc-4187-9f32-8870f8fc7043"),
-        //        ManagerId = null,
-        //        IsActive = true,
-        //        CreatedOn = new DateTime(2026, 1, 1)
-        //    }
-        //);
     }
 }
 

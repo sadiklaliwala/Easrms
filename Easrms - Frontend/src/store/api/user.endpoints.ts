@@ -18,7 +18,7 @@ const userEndpoints = api.injectEndpoints({
       UserQueryParams
     >({
       query: (params) =>
-        `${ApiEndPoints.USERS.BASE}${buildQueryParams(params)}`,
+        `${ApiEndPoints.USERS.BASE}${buildQueryParams({ ...params, isDeleted: false })}`,
       providesTags: ["User"],
     }),
 
@@ -68,6 +68,14 @@ const userEndpoints = api.injectEndpoints({
       }),
       invalidatesTags: ["User", "Lookup"],
     }),
+
+    deleteUser: builder.mutation<ApiResponse<null>, string>({
+      query: (id) => ({
+        url: ApiEndPoints.USERS.BY_ID(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User", "Lookup"],
+    }),
   }),
 });
 
@@ -78,4 +86,5 @@ export const {
   useUpdateUserMutation,
   useToggleUserStatusMutation,
   useBulkUploadUsersMutation,
+  useDeleteUserMutation,
 } = userEndpoints;

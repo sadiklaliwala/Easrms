@@ -31,6 +31,10 @@ public class User
     public DateTime? OtpExpiryOn { get; set; }
     public string? ProfilePhotoUrl { get; set; }
 
+    // Soft delete
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedOn { get; set; }
+
     // Navigation Properties
     public Role Role { get; set; } = null!;
 

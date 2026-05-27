@@ -43,7 +43,7 @@ public class UserRepository : IUserRepository
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         // Build dynamic SQL with safe parameterization
-        var whereClauses = new List<string> { "1=1" };
+        var whereClauses = new List<string> { "u.IsDeleted = 0" };
         var parameters = new DynamicParameters();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -130,7 +130,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetSupportUsersAsync(CancellationToken cancellationToken = default)
     {
         var sql = @"SELECT u.* FROM Users u
-                    WHERE u.IsActive = 1 AND u.RoleId IN (
+                    WHERE u.IsActive = 1 AND u.IsDeleted = 0 AND u.RoleId IN (
                         SELECT r.RoleId FROM Roles r WHERE r.RoleName = @SupportRoleName
                     );";
 
@@ -142,7 +142,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetManagersAsync(CancellationToken cancellationToken = default)
     {
         var sql = @"SELECT u.* FROM Users u
-WHERE u.IsActive = 1 AND u.RoleId IN (
+WHERE u.IsActive = 1 AND u.IsDeleted = 0 AND u.RoleId IN (
     SELECT r.RoleId FROM Roles r WHERE r.RoleName = @ManagerRoleName
 );";
 
@@ -159,7 +159,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
         var query = _dbContext.Users
             .Include(u => u.Role)
             .Include(u => u.Manager)
-            .Where(u => u.UserId == userId);
+            .Where(u => u.UserId == userId && !u.IsDeleted);
 
         if (!trackChanges)
         {
@@ -173,7 +173,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     {
         var query = _dbContext.Users
             .Include(u => u.Role)
-            .Where(u => u.Email == email);
+            .Where(u => u.Email == email && !u.IsDeleted);
 
         if (!trackChanges)
         {
@@ -187,7 +187,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     {
         var query = _dbContext.Users
             .Include(u => u.Role)
-            .Where(u => u.RefreshToken == refreshToken);
+            .Where(u => u.RefreshToken == refreshToken && !u.IsDeleted);
 
         if (!trackChanges)
         {
@@ -201,7 +201,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     public async Task<User?> GetByEmailForOtpAsync(string email)
     {
         return await _dbContext.Users
-            .Where(u => u.Email == email && u.IsActive)
+            .Where(u => u.Email == email && u.IsActive && !u.IsDeleted)
             .FirstOrDefaultAsync();
     }
 
@@ -223,7 +223,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     public async Task<bool> EmailExistsAsync(string email, Guid? excludeUserId = null, CancellationToken cancellationToken = default)
     {
         var sql = @"SELECT CASE WHEN EXISTS (
-    SELECT 1 FROM Users u WHERE u.Email = @Email AND (@ExcludeUserId IS NULL OR u.UserId <> @ExcludeUserId)
+    SELECT 1 FROM Users u WHERE u.Email = @Email AND (@ExcludeUserId IS NULL OR u.UserId <> @ExcludeUserId) AND u.IsDeleted = 0
 ) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
 
         using var conn = _dapperContext.CreateConnection();
@@ -233,7 +233,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
 
     public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE UserId = @UserId) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
+        var sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE UserId = @UserId AND IsDeleted = 0) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
         using var conn = _dapperContext.CreateConnection();
         var exists = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(sql, new { UserId = userId }, cancellationToken: cancellationToken));
         return exists;
@@ -264,13 +264,13 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     {
         // Use ExecuteUpdateAsync to toggle IsActive column without fetching entity
         await _dbContext.Users
-            .Where(u => u.UserId == userId)
+            .Where(u => u.UserId == userId && !u.IsDeleted)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.IsActive, u => !u.IsActive), cancellationToken);
     }
     public async Task UpdateLoginMetaAsync(Guid userId, string refreshToken, DateTime expiryOn, CancellationToken cancellationToken = default)
     {
         await _dbContext.Users
-            .Where(u => u.UserId == userId)
+            .Where(u => u.UserId == userId && !u.IsDeleted)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(u => u.RefreshToken, u => refreshToken)
                 .SetProperty(u => u.RefreshTokenExpiryOn, u => expiryOn.ToUniversalTime())
@@ -281,7 +281,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     public async Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         await _dbContext.Users
-            .Where(u => u.UserId == userId)
+            .Where(u => u.UserId == userId && !u.IsDeleted)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.LastLoginOn, u => DateTime.UtcNow), cancellationToken);
     }
 
@@ -289,7 +289,7 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     {
         // Caller must provide already hashed refreshToken
         await _dbContext.Users
-            .Where(u => u.UserId == userId)
+            .Where(u => u.UserId == userId && !u.IsDeleted)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(u => u.RefreshToken, u => refreshToken)
                 .SetProperty(u => u.RefreshTokenExpiryOn, u => expiryOn.ToUniversalTime()), cancellationToken);
@@ -298,10 +298,21 @@ WHERE u.IsActive = 1 AND u.RoleId IN (
     public async Task RevokeRefreshTokenAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         await _dbContext.Users
-            .Where(u => u.UserId == userId)
+            .Where(u => u.UserId == userId && !u.IsDeleted)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(u => u.RefreshToken, u => null)
                 .SetProperty(u => u.RefreshTokenExpiryOn, u => null), cancellationToken);
+    }
+
+    public async Task<bool> SoftDeleteUserAsync(Guid userId)
+    {
+        var affected = await _dbContext.Users
+            .Where(u => u.UserId == userId && !u.IsDeleted)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.IsDeleted, u => true)
+                .SetProperty(u => u.DeletedOn, u => DateTime.UtcNow));
+
+        return affected > 0;
     }
 }
 

@@ -157,4 +157,15 @@ public partial class UserController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
+
+    // DELETE /api/users/{id}
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> DeleteUser(Guid id, CancellationToken cancellationToken = default)
+    {
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var command = new Easrms.Application.Features.User.Commands.DeleteUser.DeleteUserCommand { UserId = id, CurrentUserId = currentUserId };
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
 }

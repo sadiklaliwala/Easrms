@@ -34,5 +34,13 @@ public class RequestCategoryConfiguration : IEntityTypeConfiguration<RequestCate
         builder.Property(x => x.SLAHours)
             .IsRequired()
             .HasDefaultValue(24);
+
+        // Soft-delete mapping
+        builder.Property(x => x.IsDeleted)
+               .IsRequired()
+               .HasDefaultValue(false);
+
+        builder.Property(x => x.DeletedOn)
+               .IsRequired(false);
     }
 }

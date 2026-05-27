@@ -37,3 +37,15 @@ export const STATUS_ENUM_REVERSE: Record<number, StatusType> = {
   7: STATUS.RESOLVED,
   8: STATUS.CLOSED,
 };
+
+export const VALID_TRANSITIONS: Record<StatusType, StatusType[]> = {
+  [STATUS.REJECTED]: [STATUS.OPEN, STATUS.PENDING_APPROVAL],
+  [STATUS.OPEN]: [],
+  [STATUS.PENDING_APPROVAL]: [],
+  [STATUS.APPROVED]: [],
+  [STATUS.ASSIGNED]: [],
+  [STATUS.IN_PROGRESS]: [],
+  [STATUS.RESOLVED]: [],
+  [STATUS.CLOSED]: [],
+};
+

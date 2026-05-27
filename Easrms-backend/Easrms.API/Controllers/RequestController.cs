@@ -317,4 +317,26 @@ public class RequestController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
+
+    // POST /api/requests/{id}/reopen
+    [HttpPost("{id:guid}/reopen")]
+    [Authorize(Roles = RoleConstants.Employee)]
+    public async Task<IActionResult> ReopenRequest(Guid id, [FromBody] Easrms.Application.DTOs.Request.ReopenRequestDto dto, CancellationToken cancellationToken = default)
+    {
+        // Validate dto minimal length here or rely on FluentValidation
+        if (dto == null || string.IsNullOrWhiteSpace(dto.ReopenReason) || dto.ReopenReason.Length < 10)
+            return BadRequest(ApiResponse<object>.FailResponse("ReopenReason is required and must be at least 10 characters.", 400));
+
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var command = new Easrms.Application.Features.Request.Commands.ReopenRequest.ReopenRequestCommand
+        {
+            RequestId = id,
+            ReopenedBy = currentUserId,
+            ReopenReason = dto.ReopenReason
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
 }

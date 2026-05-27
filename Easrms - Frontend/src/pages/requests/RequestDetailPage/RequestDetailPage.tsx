@@ -12,6 +12,7 @@ import {
   useEscalateRequestMutation,
   useLazyExportRequestDetailExcelQuery,
   useLazyExportRequestDetailPdfQuery,
+  useReopenRequestMutation,
 } from "../../../store/api/request.endpoints";
 import {
   useGetCommentsQuery,
@@ -45,6 +46,7 @@ import ApprovalDialog from "../../../components/common/modal/ApprovalDialog";
 import AssignSupportDialog from "../../../components/common/modal/AssignSupportDialog";
 import UpdateStatusDialog from "../../../components/common/modal/UpdateStatusDialog";
 import CloseRequestDialog from "../../../components/common/modal/CloseRequestDialog";
+import ReopenRequestDialog from "../../../components/common/modal/ReopenRequestDialog";
 
 import type { ApprovalRequestDto } from "../../../types/request.types";
 // import type { AddCommentDto } from "../../../types/comment.types";
@@ -71,6 +73,7 @@ const RequestDetailPage = () => {
   const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
+  const [reopenOpen, setReopenOpen] = useState(false);
 
   // ─── Queries ──────────────────────────────────────────────────────────────────
   const {
@@ -92,6 +95,7 @@ const RequestDetailPage = () => {
   const [addComment, { isLoading: commenting }] = useAddCommentMutation();
   const [escalateRequest, { isLoading: escalating }] =
     useEscalateRequestMutation();
+  const [reopenRequest, { isLoading: reopening }] = useReopenRequestMutation();
   const [exportExcel, { isFetching: excelLoading }] =
     useLazyExportRequestDetailExcelQuery();
   const [exportPdf, { isFetching: pdfLoading }] =
@@ -189,6 +193,23 @@ const RequestDetailPage = () => {
     }
   };
 
+  const handleReopen = async (reason: string) => {
+    try {
+      const res = await reopenRequest({
+        id: id!,
+        body: { reopenReason: reason },
+      }).unwrap();
+      if (res.success) {
+        toast.success("Request reopened successfully");
+        setReopenOpen(false);
+      } else {
+        toast.error(res.message ?? "Failed to reopen request");
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to reopen request");
+    }
+  };
+
   const handleAddComment = async (data: AddCommentDto) => {
     try {
       const res = await addComment({ requestId: id!, body: data }).unwrap();
@@ -273,6 +294,7 @@ const RequestDetailPage = () => {
               onClose={() => setCloseOpen(true)}
               onReject={() => setApprovalOpen(true)}
               onEscalate={() => setEscalateOpen(true)}
+              onReopen={() => setReopenOpen(true)}
             />
           </Box>
         }
@@ -288,7 +310,11 @@ const RequestDetailPage = () => {
 
       {/* Rejection Banner */}
       {request.rejectionReason && (
-        <RequestRejectionBanner reason={request.rejectionReason} />
+        <RequestRejectionBanner
+          reason={request.rejectionReason}
+          request={request}
+          onReopen={() => setReopenOpen(true)}
+        />
       )}
 
       {/* Escalation Banner */}
@@ -402,6 +428,13 @@ const RequestDetailPage = () => {
         dueDate={request.dueDate ? formatDate(request.dueDate) : null}
         onEscalate={handleEscalate}
         isSubmitting={escalating}
+      />
+
+      <ReopenRequestDialog
+        open={reopenOpen}
+        onClose={() => setReopenOpen(false)}
+        onConfirm={handleReopen}
+        isLoading={reopening}
       />
     </Stack>
   );

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Stack } from "@mui/material";
+import { Stack, IconButton, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
 import toast from "react-hot-toast";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "../../../utils/appJoi";
-import { Box } from "@mui/material";
 
 import {
   useGetCategoriesQuery,
@@ -14,7 +14,10 @@ import {
   useUpdateCategoryMutation,
   useToggleCategoryStatusMutation,
   useBulkUploadCategoriesMutation,
+  useDeleteCategoryMutation,
 } from "../../../store/api/category.endpoints";
+import { useAppSelector } from "../../../hooks/useAppSelector";
+import { ROLES } from "../../../constants/role.constants";
 
 import AppPageHeader from "../../../components/common/layout/AppPageHeader";
 import AppButton from "../../../components/common/buttons/AppButton";
@@ -96,6 +99,9 @@ const CategoryPage = () => {
     sortBy: "createdOn",
     sortAscending: false,
   });
+  const { roleName } = useAppSelector((state) => state.auth);
+  const isAdmin = roleName === ROLES.ADMIN;
+
   const [createOpen, setCreateOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<CategoryListDto | null>(
@@ -104,12 +110,15 @@ const CategoryPage = () => {
   const [toggleCategory, setToggleCategory] = useState<CategoryListDto | null>(
     null,
   );
+  const [deleteCategoryRecord, setDeleteCategoryRecord] =
+    useState<CategoryListDto | null>(null);
 
   const { data: response, isLoading, isError } = useGetCategoriesQuery(params);
   const [createCategory, { isLoading: creating }] = useCreateCategoryMutation();
   const [updateCategory, { isLoading: updating }] = useUpdateCategoryMutation();
   const [toggleCategoryStatus, { isLoading: toggling }] =
     useToggleCategoryStatusMutation();
+  const [deleteCategory, { isLoading: deleting }] = useDeleteCategoryMutation();
 
   // ─── Create Form ─────────────────────────────────────────────────────────────
   const {
@@ -230,6 +239,23 @@ const CategoryPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteCategoryRecord) return;
+    try {
+      const res = await deleteCategory(
+        deleteCategoryRecord.categoryId,
+      ).unwrap();
+      if (res.success) {
+        toast.success("Category deleted successfully");
+        setDeleteCategoryRecord(null);
+      } else {
+        toast.error(res.message ?? "Failed to delete category");
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to delete category");
+    }
+  };
+
   const openEdit = (cat: CategoryListDto) => {
     setEditCategory(cat);
     const parsedSla = parseSlaHours(cat.slaHours);
@@ -265,16 +291,27 @@ const CategoryPage = () => {
       label: "Actions",
       sortable: false,
       render: (row) => (
-        <AppTableActions
-          actions={[
-            { label: "Edit", onClick: () => openEdit(row) },
-            {
-              label: row.isActive ? "Deactivate" : "Activate",
-              onClick: () => setToggleCategory(row),
-              color: row.isActive ? "error" : "success",
-            },
-          ]}
-        />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <AppTableActions
+            actions={[
+              { label: "Edit", onClick: () => openEdit(row) },
+              {
+                label: row.isActive ? "Deactivate" : "Activate",
+                onClick: () => setToggleCategory(row),
+                color: row.isActive ? "error" : "success",
+              },
+            ]}
+          />
+          {isAdmin && (
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => setDeleteCategoryRecord(row)}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Stack>
       ),
     },
   ];
@@ -402,6 +439,18 @@ const CategoryPage = () => {
         onConfirm={handleToggle}
         onClose={() => setToggleCategory(null)}
         isSubmitting={toggling}
+      />
+
+      {/* Delete Confirm Dialog */}
+      <AppConfirmDialog
+        open={!!deleteCategoryRecord}
+        title="Delete Category"
+        message="Are you sure you want to delete this category? Categories with active requests cannot be deleted."
+        confirmLabel="Delete"
+        confirmColor="error"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteCategoryRecord(null)}
+        isSubmitting={deleting}
       />
 
       <AppBulkUploadDialog
