@@ -1,8 +1,10 @@
-﻿using Easrms.Application.Interfaces.Repositories;
+﻿using Easrms.Application.Interfaces.Notifications;
+using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
+using INotificationPublisher = Easrms.Application.Interfaces.Notifications.INotificationPublisher;
 
 namespace Easrms.Application.Features.Request.Commands;
 
@@ -38,17 +40,19 @@ public sealed class CloseRequestCommand : IRequest
 /// </summary>
 public sealed class CloseRequestCommandHandler(
     IRequestRepository requestRepository,
-    ICommentRepository commentRepository) : IRequestHandler<CloseRequestCommand>
+    ICommentRepository commentRepository,
+    INotificationPublisher notificationPublisher) : IRequestHandler<CloseRequestCommand>
 {
-    private readonly IRequestRepository _requestRepository = requestRepository;
-    private readonly ICommentRepository _commentRepository = commentRepository;
+    private readonly IRequestRepository _request_repository = requestRepository;
+    private readonly ICommentRepository _comment_repository = commentRepository;
+    private readonly INotificationPublisher _notificationPublisher = notificationPublisher;
 
     public async Task Handle(
         CloseRequestCommand request,
         CancellationToken cancellationToken)
     {
         // 1a. Fetch entity
-        var entity = await _requestRepository.GetRequestByIdAsync(
+        var entity = await _request_repository.GetRequestByIdAsync(
             request.RequestId,
             cancellationToken: cancellationToken)
             ?? throw new KeyNotFoundException(
@@ -75,7 +79,7 @@ public sealed class CloseRequestCommandHandler(
         entity.UpdatedOn = DateTime.UtcNow;
 
         // 3. Mark dirty
-        _requestRepository.Update(entity);
+        _request_repository.Update(entity);
 
         // 4. Stage history entry
         var history = new RequestStatusHistory
@@ -88,9 +92,15 @@ public sealed class CloseRequestCommandHandler(
             ChangedOn = DateTime.UtcNow
         };
 
-        await _commentRepository.AddStatusHistoryAsync(history, cancellationToken);
+        await _comment_repository.AddStatusHistoryAsync(history, cancellationToken);
 
         // 5. Single commit — request update + history in one transaction
-        await _requestRepository.SaveChangesAsync(cancellationToken);
+        await _request_repository.SaveChangesAsync(cancellationToken);
+
+        // Notify the assigned support user
+        if (entity.AssignedTo.HasValue)
+        {
+            await _notificationPublisher.PublishToUserAsync(entity.AssignedTo.Value, SignalREvents.RequestClosed, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber }, cancellationToken);
+        }
     }
 }

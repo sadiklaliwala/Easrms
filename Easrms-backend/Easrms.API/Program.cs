@@ -116,5 +116,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Map SignalR notification hub
+app.MapHub<Easrms.API.Hubs.NotificationHub>("/hubs/notification");
+
 app.Run();
 

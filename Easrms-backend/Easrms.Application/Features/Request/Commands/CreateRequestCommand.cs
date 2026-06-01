@@ -1,10 +1,12 @@
 ﻿using Easrms.Application.Interfaces.Email;
+using Easrms.Application.Interfaces.Notifications;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Common.Helpers;
 using Easrms.Domain.Entities;
 using MediatR;
+using INotificationPublisher = Easrms.Application.Interfaces.Notifications.INotificationPublisher;
 
 namespace Easrms.Application.Features.Request.Commands;
 
@@ -27,7 +29,6 @@ public sealed class CreateRequestCommand : IRequest<string>
 
 }
 
-
 /// <summary>
 /// Step-by-step per HANDLER_REPO_REFERENCE_MAP:
 ///   1. ICategoryRepository.GetByIdAsync(categoryId)
@@ -46,23 +47,26 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
 {
     private readonly IRequestRepository _requestRepository;
     private readonly ICategoryRepository _categoryRepository;
-    private readonly ICommentRepository _commentRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly ICommentRepository _comment_repository;
+    private readonly IUserRepository _user_repository;
     private readonly IEmailService _emailService;
+    private readonly INotificationPublisher _notificationPublisher;
 
     public CreateRequestCommandHandler(
         IRequestRepository requestRepository,
         ICategoryRepository categoryRepository,
         ICommentRepository commentRepository,
         IUserRepository userRepository,
-        IEmailService emailService
+        IEmailService emailService,
+        INotificationPublisher notificationPublisher
     )
     {
         _requestRepository = requestRepository;
         _categoryRepository = categoryRepository;
-        _commentRepository = commentRepository;
-        _userRepository = userRepository;
+        _comment_repository = commentRepository;
+        _user_repository = userRepository;
         _emailService = emailService;
+        _notificationPublisher = notificationPublisher;
 
     }
 
@@ -96,7 +100,6 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
         var initialStatus = category.IsApprovalRequired
     ? RequestStatusEnum.PendingApproval
     : RequestStatusEnum.Open;
-        Console.WriteLine(initialStatus);
 
         // 4. Build entity
         var entity = new ServiceRequest
@@ -113,9 +116,9 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             DueDate = dueDate,
             AttachmentUrl = request.AttachmentUrl
         };
-        Console.WriteLine(entity.Status);
+
         await _requestRepository.AddAsync(entity, cancellationToken);
-        Console.WriteLine(entity.Status);
+
         // 5. Seed the first history entry — OldStatus is null on creation
         var history = new RequestStatusHistory
         {
@@ -128,25 +131,31 @@ public sealed class CreateRequestCommandHandler : IRequestHandler<CreateRequestC
             Remarks = "Request created."
         };
 
-        await _commentRepository.AddStatusHistoryAsync(history, cancellationToken);
+        await _comment_repository.AddStatusHistoryAsync(history, cancellationToken);
 
         // 6. Single SaveChanges — both AddAsync and AddStatusHistoryAsync share
         //    the same DbContext instance, so one commit covers both inserts
         await _requestRepository.SaveChangesAsync(cancellationToken);
 
+        // fetch employee once for email and notification
+        var employee = await _user_repository.GetByIdAsync(request.CurrentUserId, cancellationToken: cancellationToken);
+        var employeeName = employee?.FullName;
+        var employeeEmail = employee?.Email;
+
+        // SignalR notifications via abstraction
+        if (entity.Status == RequestStatusEnum.PendingApproval)
+        {
+            await _notificationPublisher.PublishToGroupAsync(RoleConstants.Manager, SignalREvents.NewRequestPendingApproval, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, Title = entity.Title, EmployeeName = employeeName }, cancellationToken);
+        }
+        else if (entity.Status == RequestStatusEnum.Open)
+        {
+            await _notificationPublisher.PublishToGroupAsync(RoleConstants.Admin, SignalREvents.NewRequestOpen, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, Title = entity.Title }, cancellationToken);
+        }
+
         // 6. Fire-and-forget email — runs after response is already on its way
-        //    We capture what we need; do NOT pass DbContext or scoped services into the lambda.
-        var employeeEmail = (await _userRepository.GetByIdAsync(request.CurrentUserId))?.Email;
         if (!string.IsNullOrWhiteSpace(employeeEmail))
         {
-            var capturedEmail = employeeEmail;
-            var capturedNumber = requestNumber;
-            var capturedTitle = request.Title;
-
-            //_ = Task.Run(async () =>
-            //{
-            await _emailService.SendRequestOpenedAsync(capturedEmail, capturedNumber, capturedTitle);
-            //}, CancellationToken.None); // CancellationToken.None so it is NOT cancelled when the request ends
+            await _emailService.SendRequestOpenedAsync(employeeEmail!, requestNumber, request.Title);
         }
 
         // 7. Return the human-readable number — controller wraps in 201

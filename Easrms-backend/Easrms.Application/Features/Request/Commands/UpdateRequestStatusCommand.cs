@@ -1,9 +1,12 @@
 ﻿using Easrms.Application.Interfaces.Email;
+using Easrms.Application.Interfaces.Notifications;
 using Easrms.Application.Interfaces.Repositories;
+using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using INotificationPublisher = Easrms.Application.Interfaces.Notifications.INotificationPublisher;
 
 namespace Easrms.Application.Features.Request.Commands;
 
@@ -43,14 +46,16 @@ public sealed class UpdateRequestStatusCommandHandler(
     ICommentRepository commentRepository,
     IUserRepository userRepository,
     IEmailService emailService,
-    ILogger<UpdateRequestStatusCommandHandler> logger
+    ILogger<UpdateRequestStatusCommandHandler> logger,
+    INotificationPublisher notificationPublisher
     ) : IRequestHandler<UpdateRequestStatusCommand>
 {
-    private readonly IRequestRepository _requestRepository = requestRepository;
-    private readonly ICommentRepository _commentRepository = commentRepository;
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IEmailService _emailService = emailService;
+    private readonly IRequestRepository _requestrepository = requestRepository;
+    private readonly ICommentRepository _commentrepository = commentRepository;
+    private readonly IUserRepository _userrepository = userRepository;
+    private readonly IEmailService _emailservice = emailService;
     private readonly ILogger<UpdateRequestStatusCommandHandler> _logger = logger;
+    private readonly INotificationPublisher _notificationPublisher = notificationPublisher;
 
     // Valid transitions: key = current status, value = expected new status
     private static readonly Dictionary<RequestStatusEnum, RequestStatusEnum> AllowedTransitions = new()
@@ -64,7 +69,7 @@ public sealed class UpdateRequestStatusCommandHandler(
         CancellationToken cancellationToken)
     {
         // 1a. Fetch entity
-        var entity = await _requestRepository.GetRequestByIdAsync(
+        var entity = await _requestrepository.GetRequestByIdAsync(
             request.RequestId,
             cancellationToken: cancellationToken)
             ?? throw new KeyNotFoundException(
@@ -101,7 +106,7 @@ public sealed class UpdateRequestStatusCommandHandler(
             entity.ResolvedOn = DateTime.UtcNow;
 
         // 4. Mark dirty
-        _requestRepository.Update(entity);
+        _requestrepository.Update(entity);
 
         // 5. Stage history entry
         var history = new RequestStatusHistory
@@ -115,11 +120,18 @@ public sealed class UpdateRequestStatusCommandHandler(
             Remarks = request.Remarks
         };
 
-        await _commentRepository.AddStatusHistoryAsync(history, cancellationToken);
+        await _commentrepository.AddStatusHistoryAsync(history, cancellationToken);
 
         // 6. Single commit — request update + history in one transaction
-        await _requestRepository.SaveChangesAsync(cancellationToken);
+        await _requestrepository.SaveChangesAsync(cancellationToken);
 
+
+        // Notify the employee
+        await _notificationPublisher.PublishToUserAsync(entity.EmployeeId, SignalREvents.RequestStatusUpdated, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, NewStatus = entity.Status.ToString() }, cancellationToken);
+
+        // Also notify Admin and Manager groups
+        await _notificationPublisher.PublishToGroupAsync(RoleConstants.Admin, SignalREvents.RequestStatusUpdated, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, NewStatus = entity.Status.ToString() }, cancellationToken);
+        await _notificationPublisher.PublishToGroupAsync(RoleConstants.Manager, SignalREvents.RequestStatusUpdated, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, NewStatus = entity.Status.ToString() }, cancellationToken);
 
         // 6. Fire-and-forget email when status becomes Resolved
         //    Employee gets notified that they can now close the request.
@@ -128,8 +140,8 @@ public sealed class UpdateRequestStatusCommandHandler(
             var employee = entity.Employee;
             if (!string.IsNullOrWhiteSpace(employee?.Email))
             {
-                await _emailService.SendRequestResolvedAsync(
-                    employee.Email,
+                await _emailservice.SendRequestResolvedAsync(
+                    employee.Email!,
                     entity.RequestNumber,
                     entity.Title);
             }
@@ -157,7 +169,7 @@ public sealed class UpdateRequestStatusCommandHandler(
 
                     foreach (var to in recipients)
                     {
-                        await _emailService.SendSLABreachedAsync(to!, entity.RequestNumber, entity.Title);
+                        await _emailservice.SendSLABreachedAsync(to!, entity.RequestNumber, entity.Title);
                     }
                 }
                 else if (now > nearingThreshold && now <= due)
@@ -169,7 +181,7 @@ public sealed class UpdateRequestStatusCommandHandler(
 
                     foreach (var to in recipients)
                     {
-                        await _emailService.SendSLANearingBreachAsync(to!, entity.RequestNumber, entity.Title);
+                        await _emailservice.SendSLANearingBreachAsync(to!, entity.RequestNumber, entity.Title);
                     }
                 }
             }

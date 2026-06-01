@@ -21,10 +21,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { api } from './api/api';
 import authReducer from './slices/authSlice';
+import notificationReducer from './slices/notificationSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    notification: notificationReducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

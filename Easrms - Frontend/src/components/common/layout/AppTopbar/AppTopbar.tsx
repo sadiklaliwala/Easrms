@@ -12,6 +12,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import { useAppSelector } from "../../../../hooks/useAppSelector";
+import AppNotificationBell from "../AppNotificationBell";
 
 interface AppTopbarProps {
   onMenuToggle: () => void;
@@ -72,9 +73,10 @@ const AppTopbar = ({ onMenuToggle, onLogout }: AppTopbarProps) => {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: 1.5,
           }}
         >
+          <AppNotificationBell />
           <Box
             sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}
           >

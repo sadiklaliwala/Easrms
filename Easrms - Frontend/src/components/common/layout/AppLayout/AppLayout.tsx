@@ -9,9 +9,12 @@ import { useAppDispatch } from "../../../../hooks/useAppSelector";
 import { clearCredentials } from "../../../../store/slices/authSlice";
 import { api } from "../../../../store/api/api";
 
+import { useNotificationHub } from "../../../../hooks/useNotificationHub";
+
 // const DRAWER_WIDTH = 240;
 
 const AppLayout = () => {
+  useNotificationHub();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const [logout] = useLogoutMutation();

@@ -1,8 +1,10 @@
-﻿using Easrms.Application.Interfaces.Repositories;
+﻿using Easrms.Application.Interfaces.Notifications;
+using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
+using INotificationPublisher = Easrms.Application.Interfaces.Notifications.INotificationPublisher;
 
 namespace Easrms.Application.Features.Request.Commands;
 
@@ -18,7 +20,6 @@ public sealed class AssignRequestCommand : IRequest
     /// <summary>Admin's UserId extracted from JWT claims by the controller.</summary>
     public Guid CurrentUserId { get; init; }
 }
-
 
 /// <summary>
 /// Step-by-step per HANDLER_REPO_REFERENCE_MAP:
@@ -38,18 +39,20 @@ public sealed class AssignRequestCommand : IRequest
 public sealed class AssignRequestCommandHandler(
     IRequestRepository requestRepository,
     ICommentRepository commentRepository,
-    IUserRepository userRepository) : IRequestHandler<AssignRequestCommand>
+    IUserRepository userRepository,
+    INotificationPublisher notificationPublisher) : IRequestHandler<AssignRequestCommand>
 {
-    private readonly IRequestRepository _requestRepository = requestRepository;
-    private readonly ICommentRepository _commentRepository = commentRepository;
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRequestRepository _request_repository = requestRepository;
+    private readonly ICommentRepository _comment_repository = commentRepository;
+    private readonly IUserRepository _user_repository = userRepository;
+    private readonly INotificationPublisher _notificationPublisher = notificationPublisher;
 
     public async Task Handle(
         AssignRequestCommand request,
         CancellationToken cancellationToken)
     {
         // 1. Fetch and validate status
-        var entity = await _requestRepository.GetRequestByIdAsync(
+        var entity = await _request_repository.GetRequestByIdAsync(
             request.RequestId,
             cancellationToken: cancellationToken)
             ?? throw new KeyNotFoundException(
@@ -67,7 +70,7 @@ public sealed class AssignRequestCommandHandler(
                 $"Only Open or Approved requests can be assigned.");
 
         // 2. Verify the support user exists
-        var supportUserExists = await _userRepository.ExistsAsync(
+        var supportUserExists = await _user_repository.ExistsAsync(
             request.SupportUserId,
             cancellationToken: cancellationToken);
 
@@ -82,7 +85,7 @@ public sealed class AssignRequestCommandHandler(
         entity.UpdatedOn = DateTime.UtcNow;
 
         // 4. Mark dirty
-        _requestRepository.Update(entity);
+        _request_repository.Update(entity);
 
         // 5. Stage history entry
         var history = new RequestStatusHistory
@@ -94,9 +97,11 @@ public sealed class AssignRequestCommandHandler(
             ChangedOn = DateTime.UtcNow
         };
 
-        await _commentRepository.AddStatusHistoryAsync(history, cancellationToken);
+        await _comment_repository.AddStatusHistoryAsync(history, cancellationToken);
 
         // 6. Single commit — request update + history in one transaction
-        await _requestRepository.SaveChangesAsync(cancellationToken);
+        await _request_repository.SaveChangesAsync(cancellationToken);
+
+        await _notificationPublisher.PublishToUserAsync(request.SupportUserId, SignalREvents.RequestAssigned, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, Title = entity.Title }, cancellationToken);
     }
 }

@@ -1,8 +1,10 @@
-﻿using Easrms.Application.Interfaces.Repositories;
+﻿using Easrms.Application.Interfaces.Notifications;
+using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Constants;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using MediatR;
+using INotificationPublisher = Easrms.Application.Interfaces.Notifications.INotificationPublisher;
 
 namespace Easrms.Application.Features.Request.Commands;
 
@@ -41,10 +43,12 @@ public sealed class ApprovalRequestCommand : IRequest
 /// </summary>
 public sealed class ApprovalRequestCommandHandler(
     IRequestRepository requestRepository,
-    ICommentRepository commentRepository) : IRequestHandler<ApprovalRequestCommand>
+    ICommentRepository commentRepository,
+    INotificationPublisher notificationPublisher) : IRequestHandler<ApprovalRequestCommand>
 {
     private readonly IRequestRepository _requestRepository = requestRepository;
     private readonly ICommentRepository _commentRepository = commentRepository;
+    private readonly INotificationPublisher _notificationPublisher = notificationPublisher;
 
     public async Task Handle(
         ApprovalRequestCommand request,
@@ -128,5 +132,17 @@ public sealed class ApprovalRequestCommandHandler(
 
         // 8. Single commit — history + optional comment + request update all in one transaction
         await _requestRepository.SaveChangesAsync(cancellationToken);
+
+        // SignalR notifications after commit
+        if (request.Action == "Approve")
+        {
+            await _notificationPublisher.PublishToGroupAsync(RoleConstants.Admin, SignalREvents.RequestApproved, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, Title = entity.Title }, cancellationToken);
+
+            await _notificationPublisher.PublishToUserAsync(entity.EmployeeId, SignalREvents.RequestApproved, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, Title = entity.Title }, cancellationToken);
+        }
+        else
+        {
+            await _notificationPublisher.PublishToUserAsync(entity.EmployeeId, SignalREvents.RequestRejected, new { RequestId = entity.RequestId, RequestNumber = entity.RequestNumber, Title = entity.Title, RejectionReason = entity.RejectionReason }, cancellationToken);
+        }
     }
 }
