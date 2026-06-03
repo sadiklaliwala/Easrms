@@ -8,7 +8,7 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
 {
     public void Configure(EntityTypeBuilder<ServiceRequest> builder)
     {
-        builder.ToTable("ServiceRequests");
+        //builder.ToTable("ServiceRequests");
 
         builder.HasKey(x => x.RequestId);
 

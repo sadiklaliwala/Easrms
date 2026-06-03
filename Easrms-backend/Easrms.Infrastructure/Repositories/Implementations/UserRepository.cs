@@ -43,37 +43,37 @@ public class UserRepository : IUserRepository
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         // Build dynamic SQL with safe parameterization
-        var whereClauses = new List<string> { "u.IsDeleted = 0" };
+        var whereClauses = new List<string> { "u.is_deleted = FALSE" };
         var parameters = new DynamicParameters();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            whereClauses.Add("(u.FullName LIKE @Search OR u.Email LIKE @Search)");
+            whereClauses.Add("(u.full_name LIKE @Search OR u.email LIKE @Search)");
             parameters.Add("@Search", $"%{search}%");
         }
 
         if (roleId.HasValue)
         {
-            whereClauses.Add("u.RoleId = @RoleId");
+            whereClauses.Add("u.role_id = @RoleId");
             parameters.Add("@RoleId", roleId.Value);
         }
 
         if (isActive.HasValue)
         {
-            whereClauses.Add("u.IsActive = @IsActive");
+            whereClauses.Add("u.is_active = @IsActive");
             parameters.Add("@IsActive", isActive.Value);
         }
 
-        var orderBy = "u.CreatedOn DESC"; // default
+        var orderBy = "u.created_on DESC"; // default
         if (!string.IsNullOrWhiteSpace(sortBy))
         {
             // Allowlist sortable columns to prevent SQL injection
             var allowedSortColumns = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "FullName", "u.FullName" },
-                { "Email", "u.Email" },
-                { "CreatedOn", "u.CreatedOn" },
-                { "IsActive", "u.IsActive" }
+                { "FullName", "u.full_name" },
+                { "Email", "u.email" },
+                { "CreatedOn", "u.created_on" },
+                { "IsActive", "u.is_active" }
             };
 
             if (allowedSortColumns.TryGetValue(sortBy, out var column))
@@ -91,15 +91,15 @@ public class UserRepository : IUserRepository
         var where = string.Join(" AND ", whereClauses);
 
         var sql = $@"
-                    SELECT COUNT(1) FROM Users u
+                    SELECT COUNT(1) FROM users u
                     WHERE {where};
 
-                    SELECT u.UserId, u.FullName, u.Email, r.RoleName, u.IsActive, u.CreatedOn
-                    FROM Users u
-                    LEFT JOIN Roles r ON u.RoleId = r.RoleId
+                    SELECT u.user_id AS UserId, u.full_name AS FullName, u.email AS Email, r.role_name AS RoleName, u.is_active AS IsActive, u.created_on AS CreatedOn
+                    FROM users u
+                    LEFT JOIN roles r ON u.role_id = r.role_id
                     WHERE {where}
                     ORDER BY {orderBy}
-                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                    LIMIT @PageSize OFFSET @Offset;
                     ";
 
         using var conn = _dapperContext.CreateConnection();
@@ -129,9 +129,9 @@ public class UserRepository : IUserRepository
     // ---------------------------------------------------------------------
     public async Task<IEnumerable<User>> GetSupportUsersAsync(CancellationToken cancellationToken = default)
     {
-        var sql = @"SELECT u.* FROM Users u
-                    WHERE u.IsActive = 1 AND u.IsDeleted = 0 AND u.RoleId IN (
-                        SELECT r.RoleId FROM Roles r WHERE r.RoleName = @SupportRoleName
+        var sql = @"SELECT u.* FROM users u
+                    WHERE u.is_active = TRUE AND u.is_deleted = FALSE AND u.role_id IN (
+                        SELECT r.role_id FROM roles r WHERE r.role_name = @SupportRoleName
                     );";
 
         using var conn = _dapperContext.CreateConnection();
@@ -141,9 +141,9 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetManagersAsync(CancellationToken cancellationToken = default)
     {
-        var sql = @"SELECT u.* FROM Users u
-WHERE u.IsActive = 1 AND u.IsDeleted = 0 AND u.RoleId IN (
-    SELECT r.RoleId FROM Roles r WHERE r.RoleName = @ManagerRoleName
+        var sql = @"SELECT u.* FROM users u
+WHERE u.is_active = TRUE AND u.is_deleted = FALSE AND u.role_id IN (
+    SELECT r.role_id FROM roles r WHERE r.role_name = @ManagerRoleName
 );";
 
         using var conn = _dapperContext.CreateConnection();
@@ -223,8 +223,8 @@ WHERE u.IsActive = 1 AND u.IsDeleted = 0 AND u.RoleId IN (
     public async Task<bool> EmailExistsAsync(string email, Guid? excludeUserId = null, CancellationToken cancellationToken = default)
     {
         var sql = @"SELECT CASE WHEN EXISTS (
-    SELECT 1 FROM Users u WHERE u.Email = @Email AND (@ExcludeUserId IS NULL OR u.UserId <> @ExcludeUserId) AND u.IsDeleted = 0
-) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
+    SELECT 1 FROM users u WHERE u.email = @Email AND (@ExcludeUserId IS NULL OR u.user_id <> @ExcludeUserId) AND u.is_deleted = FALSE
+) THEN TRUE ELSE FALSE END";
 
         using var conn = _dapperContext.CreateConnection();
         var exists = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(sql, new { Email = email, ExcludeUserId = excludeUserId }, cancellationToken: cancellationToken));
@@ -233,7 +233,7 @@ WHERE u.IsActive = 1 AND u.IsDeleted = 0 AND u.RoleId IN (
 
     public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE UserId = @UserId AND IsDeleted = 0) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END";
+        var sql = "SELECT CASE WHEN EXISTS (SELECT 1 FROM users WHERE user_id = @UserId AND is_deleted = FALSE) THEN TRUE ELSE FALSE END";
         using var conn = _dapperContext.CreateConnection();
         var exists = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(sql, new { UserId = userId }, cancellationToken: cancellationToken));
         return exists;

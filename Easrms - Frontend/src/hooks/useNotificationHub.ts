@@ -1,5 +1,9 @@
 import { useEffect } from "react";
-import { HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
+import {
+  HubConnectionBuilder,
+  HubConnectionState,
+  LogLevel,
+} from "@microsoft/signalr";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "./useAppSelector";
 import { addNotification } from "../store/slices/notificationSlice";
@@ -24,7 +28,7 @@ export const useNotificationHub = () => {
 
     const handleNotification = (message: string, type: string) => {
       dispatch(addNotification({ message, type }));
-      
+
       // Auto-refresh RTK Query caches
       dispatch(
         api.util.invalidateTags([
@@ -34,7 +38,7 @@ export const useNotificationHub = () => {
           "Dashboard",
           "History",
           "Comment",
-        ])
+        ]),
       );
 
       // Show toast
@@ -73,7 +77,8 @@ export const useNotificationHub = () => {
     connection.on("RequestRejected", (data: any) => {
       const requestNumber = data?.requestNumber ?? data?.RequestNumber ?? "";
       const title = data?.title ?? data?.Title ?? "";
-      const rejectionReason = data?.rejectionReason ?? data?.RejectionReason ?? "";
+      const rejectionReason =
+        data?.rejectionReason ?? data?.RejectionReason ?? "";
       const titlePart = title ? ` ("${title}")` : "";
       const reasonSuffix = rejectionReason ? ` Reason: ${rejectionReason}` : "";
       const msg = `Request #${requestNumber}${titlePart} was rejected.${reasonSuffix}`;
@@ -90,7 +95,12 @@ export const useNotificationHub = () => {
 
     connection.on("RequestStatusUpdated", (data: any) => {
       const requestNumber = data?.requestNumber ?? data?.RequestNumber ?? "";
-      const status = data?.newStatus ?? data?.NewStatus ?? data?.status ?? data?.Status ?? "";
+      const status =
+        data?.newStatus ??
+        data?.NewStatus ??
+        data?.status ??
+        data?.Status ??
+        "";
       const msg = `Request #${requestNumber} status updated to ${status}.`;
       handleNotification(msg, "RequestStatusUpdated");
     });

@@ -8,7 +8,7 @@ public class UserAuthProviderConfiguration : IEntityTypeConfiguration<UserAuthPr
 {
     public void Configure(EntityTypeBuilder<UserAuthProvider> builder)
     {
-        builder.ToTable("UserAuthProviders");
+        //builder.ToTable("UserAuthProviders");
 
         builder.HasKey(x => x.Id);
 

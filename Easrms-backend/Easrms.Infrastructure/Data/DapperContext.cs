@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 
@@ -15,7 +15,7 @@ namespace Easrms.Infrastructure.Data
 
         public IDbConnection CreateConnection()
         {
-            return new SqlConnection(
+            return new NpgsqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
         }
     }

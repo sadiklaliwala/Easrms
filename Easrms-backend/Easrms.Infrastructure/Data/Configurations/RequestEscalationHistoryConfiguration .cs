@@ -8,7 +8,7 @@ namespace Easrms.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<RequestEscalationHistory> builder)
         {
-            builder.ToTable("RequestEscalationHistory");
+            //builder.ToTable("RequestEscalationHistory");
 
             builder.HasKey(x => x.EscalationId);
 

@@ -6,6 +6,8 @@ using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using Easrms.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Easrms.Infrastructure.Elastic;
+using Easrms.Infrastructure.Elastic.ElasticDocuments;
 
 namespace Easrms.Infrastructure.Repositories.Implementations;
 
@@ -19,11 +21,13 @@ public class RequestRepository : IRequestRepository
 {
     private readonly AppDbContext _dbContext;
     private readonly DapperContext _dapperContext;
+    private readonly IElasticService _elasticService;
 
-    public RequestRepository(AppDbContext dbContext, DapperContext dapperContext)
+    public RequestRepository(AppDbContext dbContext, DapperContext dapperContext, IElasticService elasticService)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _dapperContext = dapperContext ?? throw new ArgumentNullException(nameof(dapperContext));
+        _elasticService = elasticService;
     }
 
     /// <summary>
@@ -48,7 +52,7 @@ public class RequestRepository : IRequestRepository
 
         if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
         {
-            whereClauses.Add("(sr.RequestNumber LIKE @RequestNumberPrefix OR sr.Title LIKE @TitleSearch)");
+            whereClauses.Add("(sr.request_number LIKE @RequestNumberPrefix OR sr.title LIKE @TitleSearch)");
             parameters.Add("@RequestNumberPrefix", queryParams.SearchTerm + "%");
             parameters.Add("@TitleSearch", "%" + queryParams.SearchTerm + "%");
         }
@@ -58,12 +62,12 @@ public class RequestRepository : IRequestRepository
         {
             if (int.TryParse(queryParams.Status, out var statusInt))
             {
-                whereClauses.Add("sr.Status = @Status");
+                whereClauses.Add("sr.status = @Status");
                 parameters.Add("@Status", statusInt);
             }
             else if (Enum.TryParse<RequestStatusEnum>(queryParams.Status, true, out var statusEnum))
             {
-                whereClauses.Add("sr.Status = @Status");
+                whereClauses.Add("sr.status = @Status");
                 parameters.Add("@Status", (int)statusEnum);
             }
         }
@@ -73,67 +77,67 @@ public class RequestRepository : IRequestRepository
         {
             if (int.TryParse(queryParams.Priority, out var priorityInt))
             {
-                whereClauses.Add("sr.Priority = @Priority");
+                whereClauses.Add("sr.priority = @Priority");
                 parameters.Add("@Priority", priorityInt);
             }
             else if (Enum.TryParse<PriorityEnums>(queryParams.Priority, true, out var priorityEnum))
             {
-                whereClauses.Add("sr.Priority = @Priority");
+                whereClauses.Add("sr.priority = @Priority");
                 parameters.Add("@Priority", (int)priorityEnum);
             }
         }
 
         if (queryParams.CategoryId.HasValue)
         {
-            whereClauses.Add("sr.CategoryId = @CategoryId");
+            whereClauses.Add("sr.category_id = @CategoryId");
             parameters.Add("@CategoryId", queryParams.CategoryId.Value);
         }
 
         if (queryParams.EmployeeId.HasValue)
         {
-            whereClauses.Add("sr.EmployeeId = @EmployeeId");
+            whereClauses.Add("sr.employee_id = @EmployeeId");
             parameters.Add("@EmployeeId", queryParams.EmployeeId.Value);
         }
 
         if (queryParams.AssignedTo.HasValue)
         {
-            whereClauses.Add("sr.AssignedTo = @AssignedTo");
+            whereClauses.Add("sr.assigned_to = @AssignedTo");
             parameters.Add("@AssignedTo", queryParams.AssignedTo.Value);
         }
         if (queryParams.ManagerId.HasValue)
         {
-            whereClauses.Add("EXISTS (SELECT 1 FROM Users u WHERE u.UserId = sr.EmployeeId AND u.ManagerId = @ManagerId)");
+            whereClauses.Add("EXISTS (SELECT 1 FROM users u WHERE u.user_id = sr.employee_id AND u.manager_id = @ManagerId)");
             parameters.Add("@ManagerId", queryParams.ManagerId.Value);
         }
 
         if (queryParams.FromDate.HasValue)
         {
-            whereClauses.Add("sr.CreatedOn >= @FromDate");
+            whereClauses.Add("sr.created_on >= @FromDate");
             parameters.Add("@FromDate", queryParams.FromDate.Value.ToUniversalTime());
         }
 
         if (queryParams.ToDate.HasValue)
         {
-            whereClauses.Add("sr.CreatedOn <= @ToDate");
+            whereClauses.Add("sr.created_on <= @ToDate");
             parameters.Add("@ToDate", queryParams.ToDate.Value.ToUniversalTime());
         }
 
         // Sorting — allowlist only
         var allowedSort = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "RequestNumber", "sr.RequestNumber" },
-            { "Title",         "sr.Title" },
-            { "Status",        "sr.Status" },
-            { "Priority",      "sr.Priority" },
-            { "CreatedOn",     "sr.CreatedOn" },
-            { "DueDate",       "sr.DueDate" },
-            { "CategoryName",  "rc.CategoryName" },
-            { "AssigneeName",  "au.FullName" }
+            { "RequestNumber", "sr.request_number" },
+            { "Title",         "sr.title" },
+            { "Status",        "sr.status" },
+            { "Priority",      "sr.priority" },
+            { "CreatedOn",     "sr.created_on" },
+            { "DueDate",       "sr.due_date" },
+            { "CategoryName",  "rc.category_name" },
+            { "AssigneeName",  "au.full_name" }
         };
 
         var sortColumn = allowedSort.TryGetValue(queryParams.SortBy ?? string.Empty, out var col)
             ? col
-            : "sr.CreatedOn";
+            : "sr.created_on";
 
         var sortDir = queryParams.SortAscending ? "ASC" : "DESC";
 
@@ -144,38 +148,38 @@ public class RequestRepository : IRequestRepository
 
         var sql = $@"
             SELECT COUNT(1)
-            FROM ServiceRequests sr
+            FROM service_requests sr
             WHERE {where};
 
             SELECT
-                sr.RequestId,
-                sr.RequestNumber,
-                sr.Title,
-                rc.CategoryName,
-                sr.Priority,
-                sr.Status,
-                sr.CreatedOn,
-                au.FullName AS AssigneeName,
-                sr.DueDate,
-                sr.IsEscalated,
-                sr.EscalatedOn,
-                sr.EscalationReason,
-                u_esc.FullName AS EscalatedByName,
+                sr.request_id AS RequestId,
+                sr.request_number AS RequestNumber,
+                sr.title AS Title,
+                rc.category_name AS CategoryName,
+                sr.priority AS Priority,
+                sr.status AS Status,
+                sr.created_on AS CreatedOn,
+                au.full_name AS AssigneeName,
+                sr.due_date AS DueDate,
+                sr.is_escalated AS IsEscalated,
+                sr.escalated_on AS EscalatedOn,
+                sr.escalation_reason AS EscalationReason,
+                u_esc.full_name AS EscalatedByName,
                 CASE
-                  WHEN sr.Status IN (7, 8) THEN 'Within SLA'
-                  WHEN sr.DueDate IS NULL THEN 'N/A'
-                  WHEN GETUTCDATE() > sr.DueDate THEN 'Breached'
-                  WHEN GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) THEN 'Nearing Breach'
+                  WHEN sr.status IN (7, 8) THEN 'Within SLA'
+                  WHEN sr.due_date IS NULL THEN 'N/A'
+                  WHEN NOW() > sr.due_date THEN 'Breached'
+                  WHEN NOW() > (sr.due_date - INTERVAL '2 hours') THEN 'Nearing Breach'
                   ELSE 'Within SLA'
                 END AS SLAStatus,
-                sr.AttachmentUrl
-            FROM ServiceRequests sr
-            LEFT JOIN RequestCategories rc ON sr.CategoryId  = rc.CategoryId
-            LEFT JOIN Users            au ON sr.AssignedTo   = au.UserId
-            LEFT JOIN Users            u_esc ON u_esc.UserId = sr.EscalatedBy
+                sr.attachment_url AS AttachmentUrl
+            FROM service_requests sr
+            LEFT JOIN request_categories rc ON sr.category_id  = rc.category_id
+            LEFT JOIN users            au ON sr.assigned_to   = au.user_id
+            LEFT JOIN users            u_esc ON u_esc.user_id = sr.escalated_by
             WHERE {where}
             ORDER BY {sortColumn} {sortDir}
-            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+            LIMIT @PageSize OFFSET @Offset;";
 
         using var conn = _dapperContext.CreateConnection();
         using var multi = await conn.QueryMultipleAsync(
@@ -187,20 +191,20 @@ public class RequestRepository : IRequestRepository
         var items = rows.Select(row =>
         {
             // DB columns are int — cast directly, no string parsing needed
-            Guid requestId = row.RequestId;
-            string requestNumber = row.RequestNumber ?? string.Empty;
-            string title = row.Title ?? string.Empty;
-            string categoryName = row.CategoryName ?? string.Empty;
-            int priorityInt = (int)row.Priority;
-            int statusInt = (int)row.Status;
-            DateTime createdOn = row.CreatedOn;
-            string assigneeName = row.AssigneeName ?? string.Empty;
-            string attachmentUrl = row.AttachmentUrl ?? string.Empty;
+            Guid requestId = row.requestid;
+            string requestNumber = row.requestnumber ?? string.Empty;
+            string title = row.title ?? string.Empty;
+            string categoryName = row.categoryname ?? string.Empty;
+            int priorityInt = (int)row.priority;
+            int statusInt = (int)row.status;
+            DateTime createdOn = row.createdon;
+            string assigneeName = row.assignename ?? string.Empty;
+            string attachmentUrl = row.attachmenturl ?? string.Empty;
 
             // New SLA / escalation fields
-            DateTime? dueDate = row.DueDate is null ? null : (DateTime?)row.DueDate;
-            bool isEscalated = row.IsEscalated is not null && (bool)row.IsEscalated;
-            string slaStatus = row.SLAStatus ?? string.Empty;
+            DateTime? dueDate = row.duedate is null ? null : (DateTime?)row.duedate;
+            bool isEscalated = row.isescalated is not null && (bool)row.isescalated;
+            string slaStatus = row.slastatus ?? string.Empty;
 
             // Safe cast: fall back to sensible defaults if the DB value is somehow out of range
             var priority = Enum.IsDefined(typeof(PriorityEnums), priorityInt)
@@ -322,6 +326,61 @@ public class RequestRepository : IRequestRepository
     /// </summary>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.SaveChangesAsync(cancellationToken);
+        // Capture changed ServiceRequest entries before SaveChanges
+        var changedEntries = _dbContext.ChangeTracker.Entries<ServiceRequest>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+            .Select(e => new { Id = e.Entity.RequestId, State = e.State })
+            .ToList();
+
+        var result = await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (_elasticService != null && changedEntries.Any())
+        {
+            foreach (var entry in changedEntries)
+            {
+                try
+                {
+                    if (entry.State == EntityState.Deleted)
+                    {
+                        await _elasticService.DeleteRequestAsync(entry.Id);
+                        continue;
+                    }
+
+                    // For Added/Modified: fetch fresh entity with navigations
+                    var sr = await GetRequestByIdAsync(entry.Id, cancellationToken);
+                    if (sr == null) continue;
+
+                    var doc = new RequestDocument
+                    {
+                        RequestId = sr.RequestId,
+                        RequestNumber = sr.RequestNumber ?? string.Empty,
+                        Title = sr.Title ?? string.Empty,
+                        Description = sr.Description ?? string.Empty,
+                        CategoryName = sr.Category?.CategoryName ?? string.Empty,
+                        EmployeeName = sr.Employee?.FullName ?? string.Empty,
+                        AssigneeName = sr.AssignedUser?.FullName ?? string.Empty,
+                        Priority = sr.Priority.ToString(),
+                        Status = sr.Status.ToString(),
+                        RejectionReason = sr.EscalationReason ?? string.Empty,
+                        CreatedOn = sr.CreatedOn,
+                        DueDate = sr.DueDate,
+                        IsSLABreached = sr.IsEscalated,
+                        IsEscalated = sr.IsEscalated
+                    };
+
+                    if (entry.State == EntityState.Added)
+                        await _elasticService.IndexRequestAsync(doc);
+                    else
+                        await _elasticService.UpdateRequestAsync(doc);
+                }
+                catch
+                {
+                    // Swallow exceptions from ES to avoid breaking application flow.
+                    // Consider logging or queuing for retries in production.
+                }
+            }
+        }
+
+        return result;
     }
 }

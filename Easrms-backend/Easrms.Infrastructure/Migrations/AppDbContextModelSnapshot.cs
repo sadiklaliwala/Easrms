@@ -3,8 +3,8 @@ using System;
 using Easrms.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -18,177 +18,220 @@ namespace Easrms.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "10.0.8")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestCategory", b =>
                 {
                     b.Property<Guid>("CategoryId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
 
                     b.Property<string>("CategoryName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("category_name");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
 
                     b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_on");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsApprovalRequired")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_approval_required");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
 
                     b.Property<int>("SLAHours")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(24);
+                        .HasColumnType("integer")
+                        .HasDefaultValue(24)
+                        .HasColumnName("sla_hours");
 
                     b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_on");
 
-                    b.HasKey("CategoryId");
+                    b.HasKey("CategoryId")
+                        .HasName("pk_request_categories");
 
                     b.HasIndex("CategoryName")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_request_categories_category_name");
 
-                    b.ToTable("RequestCategories", (string)null);
+                    b.ToTable("request_categories", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestComment", b =>
                 {
                     b.Property<Guid>("CommentId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("comment_id");
 
                     b.Property<Guid>("CommentBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("comment_by");
 
                     b.Property<string>("CommentText")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("comment_text");
 
                     b.Property<int>("CommentType")
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("comment_type");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
 
                     b.Property<Guid>("RequestId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
 
-                    b.HasKey("CommentId");
+                    b.HasKey("CommentId")
+                        .HasName("pk_request_comments");
 
-                    b.HasIndex("CommentBy");
+                    b.HasIndex("CommentBy")
+                        .HasDatabaseName("ix_request_comments_comment_by");
 
-                    b.HasIndex("RequestId");
+                    b.HasIndex("RequestId")
+                        .HasDatabaseName("ix_request_comments_request_id");
 
-                    b.ToTable("RequestComments", (string)null);
+                    b.ToTable("request_comments", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestEscalationHistory", b =>
                 {
                     b.Property<Guid>("EscalationId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("escalation_id");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
 
                     b.Property<Guid>("EscalatedBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("escalated_by");
 
                     b.Property<DateTime>("EscalatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("escalated_on");
 
                     b.Property<string>("EscalationReason")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("escalation_reason");
 
                     b.Property<Guid>("RequestId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
 
-                    b.HasKey("EscalationId");
+                    b.HasKey("EscalationId")
+                        .HasName("pk_request_escalation_histories");
 
-                    b.HasIndex("EscalatedBy");
+                    b.HasIndex("EscalatedBy")
+                        .HasDatabaseName("ix_request_escalation_histories_escalated_by");
 
-                    b.HasIndex("RequestId");
+                    b.HasIndex("RequestId")
+                        .HasDatabaseName("ix_request_escalation_histories_request_id");
 
-                    b.ToTable("RequestEscalationHistory", (string)null);
+                    b.ToTable("request_escalation_histories", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestStatusHistory", b =>
                 {
                     b.Property<Guid>("HistoryId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("history_id");
 
                     b.Property<Guid>("ChangedBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
 
                     b.Property<DateTime>("ChangedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("changed_on");
 
                     b.Property<int>("NewStatus")
                         .HasMaxLength(30)
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("new_status");
 
                     b.Property<int?>("OldStatus")
                         .HasMaxLength(30)
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("old_status");
 
                     b.Property<string>("Remarks")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("remarks");
 
                     b.Property<Guid>("RequestId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
 
-                    b.HasKey("HistoryId");
+                    b.HasKey("HistoryId")
+                        .HasName("pk_request_status_histories");
 
-                    b.HasIndex("ChangedBy");
+                    b.HasIndex("ChangedBy")
+                        .HasDatabaseName("ix_request_status_histories_changed_by");
 
-                    b.HasIndex("RequestId");
+                    b.HasIndex("RequestId")
+                        .HasDatabaseName("ix_request_status_histories_request_id");
 
-                    b.ToTable("RequestStatusHistories", (string)null);
+                    b.ToTable("request_status_histories", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.Role", b =>
                 {
                     b.Property<Guid>("RoleId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
 
                     b.Property<string>("RoleName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role_name");
 
-                    b.HasKey("RoleId");
+                    b.HasKey("RoleId")
+                        .HasName("pk_roles");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("roles", (string)null);
 
                     b.HasData(
                         new
@@ -217,196 +260,251 @@ namespace Easrms.Infrastructure.Migrations
                 {
                     b.Property<Guid>("RequestId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
 
                     b.Property<Guid?>("AssignedTo")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_to");
 
                     b.Property<string>("AttachmentUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("attachment_url");
 
                     b.Property<Guid>("CategoryId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
 
                     b.Property<Guid?>("ClosedBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by");
 
                     b.Property<DateTime?>("ClosedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_on");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
 
                     b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("due_date");
 
                     b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
 
                     b.Property<Guid?>("EscalatedBy")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("escalated_by");
 
                     b.Property<DateTime?>("EscalatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("escalated_on");
 
                     b.Property<string>("EscalationReason")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("escalation_reason");
 
                     b.Property<bool>("IsEscalated")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_escalated");
 
                     b.Property<int>("Priority")
                         .HasMaxLength(20)
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
 
                     b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("rejection_reason");
 
                     b.Property<string>("RequestNumber")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("request_number");
 
                     b.Property<DateTime?>("ResolvedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_on");
 
                     b.Property<int>("Status")
                         .HasMaxLength(30)
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
 
                     b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_on");
 
-                    b.HasKey("RequestId");
+                    b.HasKey("RequestId")
+                        .HasName("pk_service_requests");
 
-                    b.HasIndex("AssignedTo");
+                    b.HasIndex("AssignedTo")
+                        .HasDatabaseName("ix_service_requests_assigned_to");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_service_requests_category_id");
 
-                    b.HasIndex("ClosedBy");
+                    b.HasIndex("ClosedBy")
+                        .HasDatabaseName("ix_service_requests_closed_by");
 
-                    b.HasIndex("EmployeeId");
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_service_requests_employee_id");
 
-                    b.HasIndex("EscalatedBy");
+                    b.HasIndex("EscalatedBy")
+                        .HasDatabaseName("ix_service_requests_escalated_by");
 
                     b.HasIndex("RequestNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_service_requests_request_number");
 
-                    b.ToTable("ServiceRequests", (string)null);
+                    b.ToTable("service_requests", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
 
                     b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_on");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("full_name");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
 
                     b.Property<DateTime?>("LastLoginOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_login_on");
 
                     b.Property<Guid?>("ManagerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("manager_id");
 
                     b.Property<string>("OtpCode")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("otp_code");
 
                     b.Property<DateTime?>("OtpExpiryOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("otp_expiry_on");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
 
                     b.Property<string>("ProfilePhotoUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("profile_photo_url");
 
                     b.Property<string>("RefreshToken")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("refresh_token");
 
                     b.Property<DateTime?>("RefreshTokenExpiryOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("refresh_token_expiry_on");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
 
                     b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_on");
 
-                    b.HasKey("UserId");
+                    b.HasKey("UserId")
+                        .HasName("pk_users");
 
-                    b.HasIndex("ManagerId");
+                    b.HasIndex("ManagerId")
+                        .HasDatabaseName("ix_users_manager_id");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("ix_users_role_id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.UserAuthProvider", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<int>("AuthProvider")
-                        .HasColumnType("int");
+                        .HasColumnType("integer")
+                        .HasColumnName("auth_provider");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_on");
 
                     b.Property<string>("ExternalUserId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("external_user_id");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_user_auth_providers");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_auth_providers_user_id");
 
-                    b.ToTable("UserAuthProviders", (string)null);
+                    b.ToTable("user_auth_providers", (string)null);
                 });
 
             modelBuilder.Entity("Easrms.Domain.Entities.RequestComment", b =>
@@ -415,13 +513,15 @@ namespace Easrms.Infrastructure.Migrations
                         .WithMany("Comments")
                         .HasForeignKey("CommentBy")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_request_comments_users_comment_by");
 
                     b.HasOne("Easrms.Domain.Entities.ServiceRequest", "ServiceRequest")
                         .WithMany("Comments")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_request_comments_service_requests_request_id");
 
                     b.Navigation("CommentByUser");
 
@@ -434,13 +534,15 @@ namespace Easrms.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("EscalatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_request_escalation_histories_users_escalated_by");
 
                     b.HasOne("Easrms.Domain.Entities.ServiceRequest", "Request")
                         .WithMany("EscalationHistories")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_request_escalation_histories_service_requests_request_id");
 
                     b.Navigation("EscalatedByUser");
 
@@ -453,13 +555,15 @@ namespace Easrms.Infrastructure.Migrations
                         .WithMany("StatusHistories")
                         .HasForeignKey("ChangedBy")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_request_status_histories_users_changed_by");
 
                     b.HasOne("Easrms.Domain.Entities.ServiceRequest", "Request")
                         .WithMany("StatusHistories")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_request_status_histories_service_requests_request_id");
 
                     b.Navigation("ChangedByUser");
 
@@ -471,29 +575,34 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasOne("Easrms.Domain.Entities.User", "AssignedUser")
                         .WithMany("AssignedRequests")
                         .HasForeignKey("AssignedTo")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_service_requests_users_assigned_to");
 
                     b.HasOne("Easrms.Domain.Entities.RequestCategory", "Category")
                         .WithMany("ServiceRequests")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_service_requests_request_categories_category_id");
 
                     b.HasOne("Easrms.Domain.Entities.User", "ClosedByUser")
                         .WithMany("ClosedRequests")
                         .HasForeignKey("ClosedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_service_requests_users_closed_by");
 
                     b.HasOne("Easrms.Domain.Entities.User", "Employee")
                         .WithMany("CreatedRequests")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_service_requests_users_employee_id");
 
                     b.HasOne("Easrms.Domain.Entities.User", "Escalator")
                         .WithMany()
                         .HasForeignKey("EscalatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_service_requests_users_escalated_by");
 
                     b.Navigation("AssignedUser");
 
@@ -511,13 +620,15 @@ namespace Easrms.Infrastructure.Migrations
                     b.HasOne("Easrms.Domain.Entities.User", "Manager")
                         .WithMany("Employees")
                         .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_users_users_manager_id");
 
                     b.HasOne("Easrms.Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_users_roles_role_id");
 
                     b.Navigation("Manager");
 
@@ -530,7 +641,8 @@ namespace Easrms.Infrastructure.Migrations
                         .WithMany("AuthProviders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_user_auth_providers_users_user_id");
 
                     b.Navigation("User");
                 });

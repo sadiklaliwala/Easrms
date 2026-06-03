@@ -9,6 +9,7 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 using Easrms.Application.Interfaces.Jwt;
+using Easrms.Common.Helpers;
 
 namespace Easrms.Test.features.Auth.Commands;
 
@@ -17,6 +18,7 @@ public class LoginCommandHandlerTests
     private readonly Mock<IUserRepository> _userRepo = new();
     private readonly Mock<IJwtService> _jwtService = new();
     private readonly Mock<IJwtSettings> _jwtSettings = new();
+    //private static readonly Mock<PasswordHelper> _passwordhelper = new();
     private readonly LoginCommandHandler _handler;
 
     public LoginCommandHandlerTests()
@@ -29,7 +31,7 @@ public class LoginCommandHandlerTests
     {
         var email = "user@example.com";
         var password = "Secret123";
-        var user = new User { UserId = Guid.NewGuid(), Email = email, IsActive = true, PasswordHash = BCrypt.Net.BCrypt.Hash(password), FullName = "User", Role = new Role { RoleName = "Employee" } };
+        var user = new User { UserId = Guid.NewGuid(), Email = email, IsActive = true, PasswordHash = PasswordHelper.Hash(password), FullName = "User", Role = new Role { RoleName = "Employee" } };
         _userRepo.Setup(u => u.GetByEmailAsync(email, false, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         _jwtService.Setup(j => j.GenerateAccessToken(user)).Returns("access-token");
         _jwtService.Setup(j => j.GenerateRefreshToken()).Returns("refresh-token");
@@ -57,7 +59,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ThrowUnauthorized_When_PasswordInvalid()
     {
         var email = "user@example.com";
-        var user = new User { UserId = Guid.NewGuid(), Email = email, IsActive = true, PasswordHash = BCrypt.Net.BCrypt.Hash("other") };
+        var user = new User { UserId = Guid.NewGuid(), Email = email, IsActive = true, PasswordHash = PasswordHelper.Hash("other") };
         _userRepo.Setup(u => u.GetByEmailAsync(email, false, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         var command = new LoginCommand { Email = email, Password = "wrong" };
         await FluentActions.Invoking(() => _handler.Handle(command, CancellationToken.None)).Should().ThrowAsync<UnauthorizedAccessException>();
@@ -67,7 +69,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ThrowUnauthorized_When_Inactive()
     {
         var email = "user@example.com";
-        var user = new User { UserId = Guid.NewGuid(), Email = email, IsActive = false, PasswordHash = BCrypt.Net.BCrypt.Hash("pass") };
+        var user = new User { UserId = Guid.NewGuid(), Email = email, IsActive = false, PasswordHash = PasswordHelper.Hash("pass") };
         _userRepo.Setup(u => u.GetByEmailAsync(email, false, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         var command = new LoginCommand { Email = email, Password = "pass" };
         await FluentActions.Invoking(() => _handler.Handle(command, CancellationToken.None)).Should().ThrowAsync<UnauthorizedAccessException>();

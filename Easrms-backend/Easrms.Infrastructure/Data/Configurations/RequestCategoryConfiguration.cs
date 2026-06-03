@@ -8,7 +8,7 @@ public class RequestCategoryConfiguration : IEntityTypeConfiguration<RequestCate
 {
     public void Configure(EntityTypeBuilder<RequestCategory> builder)
     {
-        builder.ToTable("RequestCategories");
+        //builder.ToTable("RequestCategories");
 
         builder.HasKey(x => x.CategoryId);
 

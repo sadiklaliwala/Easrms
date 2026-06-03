@@ -1,12 +1,14 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Easrms.API.Services;
 using Easrms.Application.Features.Request.Commands;
+using Easrms.Application.Interfaces.Notifications;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using FluentAssertions;
 using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Easrms.Test.features.Request.Commands;
@@ -17,10 +19,12 @@ public class AssignRequestCommandHandlerTests
     private readonly Mock<ICommentRepository> _commentRepo = new();
     private readonly Mock<IUserRepository> _userRepo = new();
     private readonly AssignRequestCommandHandler _handler;
+    private readonly Mock<INotificationPublisher> _notificationPublisher = new();
+
 
     public AssignRequestCommandHandlerTests()
     {
-        _handler = new AssignRequestCommandHandler(_reqRepo.Object, _commentRepo.Object, _userRepo.Object);
+        _handler = new AssignRequestCommandHandler(_reqRepo.Object, _commentRepo.Object, _userRepo.Object, _notificationPublisher.Object);
     }
 
     [Fact]

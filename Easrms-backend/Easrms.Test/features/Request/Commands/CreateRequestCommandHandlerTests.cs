@@ -1,14 +1,17 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Easrms.API.Services;
 using Easrms.Application.Features.Request.Commands;
+using Easrms.Application.Interfaces.Email;
+using Easrms.Application.Interfaces.Notifications;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
 using Easrms.Domain.Entities;
 using FluentAssertions;
+using MediatR;
 using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
-using Easrms.Application.Interfaces.Email;
 
 namespace Easrms.Test.features.Request.Commands;
 
@@ -20,7 +23,7 @@ public class CreateRequestCommandHandlerTests
     private readonly Mock<IUserRepository> _mockUserRepository;
     private readonly Mock<IEmailService> _mockEmailService;
     private readonly CreateRequestCommandHandler _handler;
-
+    private readonly Mock<Application.Interfaces.Notifications.INotificationPublisher> _notificationPublisher = new();
     public CreateRequestCommandHandlerTests()
     {
         _mockRequestRepository = new Mock<IRequestRepository>();
@@ -28,13 +31,15 @@ public class CreateRequestCommandHandlerTests
         _mockCommentRepository = new Mock<ICommentRepository>();
         _mockUserRepository = new Mock<IUserRepository>();
         _mockEmailService = new Mock<IEmailService>();
+        _notificationPublisher= new Mock<Application.Interfaces.Notifications.INotificationPublisher>();
 
         _handler = new CreateRequestCommandHandler(
             _mockRequestRepository.Object,
             _mockCategoryRepository.Object,
             _mockCommentRepository.Object,
             _mockUserRepository.Object,
-            _mockEmailService.Object
+            _mockEmailService.Object,
+            _notificationPublisher.Object
         );
     }
 

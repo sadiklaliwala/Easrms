@@ -38,35 +38,35 @@ public class CategoryRepository : ICategoryRepository
         var pageSize = Math.Clamp(queryParams.PageSize, 1, 100);
         var offset = (pageNumber - 1) * pageSize;
 
-        var whereClauses = new List<string> { "rc.IsDeleted = 0" };
+        var whereClauses = new List<string> { "rc.is_deleted = FALSE" };
         var parameters = new DynamicParameters();
 
         if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
         {
-            whereClauses.Add("rc.CategoryName LIKE @SearchTerm");
+            whereClauses.Add("rc.category_name LIKE @SearchTerm");
             parameters.Add("@SearchTerm", "%" + queryParams.SearchTerm + "%");
         }
 
         if (queryParams.IsActive.HasValue)
         {
-            whereClauses.Add("rc.IsActive = @IsActive");
+            whereClauses.Add("rc.is_active = @IsActive");
             parameters.Add("@IsActive", queryParams.IsActive.Value);
         }
 
         if (queryParams.IsApprovalRequired.HasValue)
         {
-            whereClauses.Add("rc.IsApprovalRequired = @IsApprovalRequired");
+            whereClauses.Add("rc.is_approval_required = @IsApprovalRequired");
             parameters.Add("@IsApprovalRequired", queryParams.IsApprovalRequired.Value);
         }
 
         // Sorting allowlist
         var allowedSort = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "CreatedOn", "rc.CreatedOn" },
-            { "CategoryName", "rc.CategoryName" }
+            { "CreatedOn", "rc.created_on" },
+            { "CategoryName", "rc.category_name" }
         };
 
-        var sortColumn = allowedSort.TryGetValue(queryParams.SortBy ?? string.Empty, out var col) ? col : "rc.CreatedOn";
+        var sortColumn = allowedSort.TryGetValue(queryParams.SortBy ?? string.Empty, out var col) ? col : "rc.created_on";
         var sortDir = queryParams.SortAscending ? "ASC" : "DESC";
 
         parameters.Add("@Offset", offset);
@@ -75,33 +75,50 @@ public class CategoryRepository : ICategoryRepository
         var where = string.Join(" AND ", whereClauses);
 
         var sql = $@"
-SELECT COUNT(1) FROM RequestCategories rc
+SELECT COUNT(1) FROM request_categories rc
 WHERE {where};
 
-SELECT rc.CategoryId, rc.CategoryName, rc.IsApprovalRequired, rc.IsActive, rc.CreatedOn
-FROM RequestCategories rc
+SELECT rc.category_id AS CategoryId, rc.category_name AS CategoryName, rc.is_approval_required AS IsApprovalRequired, rc.is_active AS IsActive, rc.created_on AS CreatedOn
+FROM request_categories rc
 WHERE {where}
 ORDER BY {sortColumn} {sortDir}
-OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+LIMIT @PageSize OFFSET @Offset;";
 
         using var conn = _dapperContext.CreateConnection();
         using var multi = await conn.QueryMultipleAsync(new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
 
-        var total = await multi.ReadFirstAsync<int>();
-        var rows = await multi.ReadAsync();
+        //var total = await multi.ReadFirstAsync<int>();
+        //var rows = await multi.ReadAsync();
 
-        var items = new List<CategoryListDto>();
-        foreach (var row in rows)
-        {
-            items.Add(new CategoryListDto
-            {
-                CategoryId = row.CategoryId,
-                CategoryName = row.CategoryName ?? string.Empty,
-                IsApprovalRequired = row.IsApprovalRequired,
-                IsActive = row.IsActive,
-                CreatedOn = row.CreatedOn
-            });
-        }
+        //var items = new List<CategoryListDto>();
+        //foreach (var row in rows)
+        //{
+        //    items.Add(new CategoryListDto
+        //    {
+        //        CategoryId = row.CategoryId,
+        //        CategoryName = row.CategoryName ?? string.Empty,
+        //        IsApprovalRequired = row.IsApprovalRequired,
+        //        IsActive = row.IsActive,
+        //        CreatedOn = row.CreatedOn
+        //    });
+        //}
+
+        //var result = new CategoryListWithPaginationDto
+        //{
+        //    Items = items,
+        //    Pagination = new PaginationDto
+        //    {
+        //        PageNumber = pageNumber,
+        //        PageSize = pageSize,
+        //        TotalCount = total,
+        //        TotalPages = (int)Math.Ceiling(total / (double)pageSize)
+        //    }
+        //};
+
+        //return result;
+        var total = await multi.ReadFirstAsync<int>();
+
+        var items = (await multi.ReadAsync<CategoryListDto>()).ToList();
 
         var result = new CategoryListWithPaginationDto
         {

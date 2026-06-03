@@ -18,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Easrms.Infrastructure.Elastic;
+using Nest;
 
 namespace Easrms.Infrastructure
 {
@@ -62,13 +64,21 @@ namespace Easrms.Infrastructure
 
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlServer(connectionString);
+                options.UseNpgsql(connectionString)
+                .UseSnakeCaseNamingConvention();
             });
 
             // Bulk upload services
             services.AddScoped<IUserBulkUploadService, UserBulkUploadService>();
             services.AddScoped<ICategoryBulkUploadService, CategoryBulkUploadService>();
             services.AddScoped<IRequestBulkUploadService, RequestBulkUploadService>();
+
+            // Elasticsearch client and service registration
+            var esUrl = configuration.GetValue<string>("Elasticsearch:Url") ?? "http://localhost:9200";
+            var settings = new ConnectionSettings(new Uri(esUrl)).DefaultIndex("easrms-requests");
+            var client = new ElasticClient(settings);
+            services.AddSingleton<IElasticClient>(client);
+            services.AddScoped<IElasticService, ElasticService>();
 
             return services;
         }

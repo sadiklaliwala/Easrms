@@ -9,8 +9,9 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 using Easrms.Application.Interfaces.Email;
+using Easrms.Application.Interfaces.Notifications;
 
-namespace Easrms.Test.features.Request.Commands;
+namespace Easrms.UnitTest.features.Request.Commands;
 
 public class UpdateRequestStatusCommandHandlerTests
 {
@@ -20,10 +21,11 @@ public class UpdateRequestStatusCommandHandlerTests
     private readonly Mock<IEmailService> _emailService = new();
     private readonly Mock<Microsoft.Extensions.Logging.ILogger<UpdateRequestStatusCommandHandler>> _logger = new();
     private readonly UpdateRequestStatusCommandHandler _handler;
+    private readonly Mock<INotificationPublisher> _notificationPublisher = new();
 
     public UpdateRequestStatusCommandHandlerTests()
     {
-        _handler = new UpdateRequestStatusCommandHandler(_reqRepo.Object, _commentRepo.Object, _user_repo.Object, _emailService.Object, _logger.Object);
+        _handler = new UpdateRequestStatusCommandHandler(_reqRepo.Object, _commentRepo.Object, _user_repo.Object, _emailService.Object, _logger.Object, _notificationPublisher.Object);
     }
 
     [Fact]

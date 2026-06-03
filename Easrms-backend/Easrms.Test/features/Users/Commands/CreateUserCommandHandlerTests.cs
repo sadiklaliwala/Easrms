@@ -1,5 +1,6 @@
 ﻿using Easrms.Application.DTOs.User;
 using Easrms.Application.Features.User.Commands;
+using Easrms.Application.Interfaces.OAuth;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Domain.Entities;
 using FluentAssertions;
@@ -11,11 +12,13 @@ public sealed class CreateUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly CreateUserCommandHandler _handler;
+    private readonly Mock<IAuthProviderRepository> _authProviderRepository;
 
     public CreateUserCommandHandlerTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _handler = new CreateUserCommandHandler(_userRepositoryMock.Object);
+        _authProviderRepository = new Mock<IAuthProviderRepository>();
+        _handler = new CreateUserCommandHandler(_userRepositoryMock.Object, _authProviderRepository.Object);
     }
 
     private void SetupEmailExists(string email, bool exists)

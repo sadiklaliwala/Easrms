@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿// DashboardRepository.cs
+using Dapper;
 using Easrms.Application.DTOs.Dashboard;
 using Easrms.Application.Interfaces.Repositories;
 using Easrms.Common.Enums;
@@ -6,10 +7,6 @@ using Easrms.Infrastructure.Data;
 
 namespace Easrms.Infrastructure.Repositories.Implementations;
 
-/// <summary>
-/// Dapper-based repository for dashboard aggregations. All methods are read-only
-/// and execute parameterized SQL aggregations for performance.
-/// </summary>
 public class DashboardRepository : IDashboardRepository
 {
     private readonly DapperContext _dapperContext;
@@ -19,20 +16,60 @@ public class DashboardRepository : IDashboardRepository
         _dapperContext = dapperContext ?? throw new ArgumentNullException(nameof(dapperContext));
     }
 
-    public async Task<DashboardSummaryDto> GetSLASummaryAsync(DashboardQueryParams queryParams, CancellationToken cancellationToken = default)
+    // ─── Private typed class to avoid dynamic casing issues with PostgreSQL ───
+    private class SlaRow
+    {
+        public long WithinSLACount { get; set; }
+        public long NearingBreachCount { get; set; }
+        public long BreachedCount { get; set; }
+        public long EscalatedCount { get; set; }
+    }
+
+    private class StatusRow
+    {
+        public int Status { get; set; }
+        public long Count { get; set; }
+    }
+
+    private class PriorityRow
+    {
+        public int Priority { get; set; }
+        public long Count { get; set; }
+    }
+
+    private class CategoryRow
+    {
+        public string CategoryName { get; set; } = string.Empty;
+        public long Count { get; set; }
+    }
+
+    private class AssignedUserRow
+    {
+        public Guid UserId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public long Count { get; set; }
+    }
+
+    // ─── SLA Summary Only ─────────────────────────────────────────────────────
+    public async Task<DashboardSummaryDto> GetSLASummaryAsync(
+        DashboardQueryParams queryParams,
+        CancellationToken cancellationToken = default)
     {
         var (where, parameters) = BuildWhereClause(queryParams);
+
         var slaSql = $@"
-    SELECT
-        SUM(CASE WHEN sr.IsEscalated = 1 THEN 1 ELSE 0 END) AS EscalatedCount,
-        SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > sr.DueDate THEN 1 ELSE 0 END) AS BreachedCount,
-        SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) AND GETUTCDATE() <= sr.DueDate THEN 1 ELSE 0 END) AS NearingBreachCount,
-        SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() <= DATEADD(HOUR,-2,sr.DueDate) THEN 1 ELSE 0 END) AS WithinSLACount
-    FROM ServiceRequests sr
-    {where};";
+            SELECT
+                COALESCE(SUM(CASE WHEN sr.is_escalated = TRUE THEN 1 ELSE 0 END), 0)                                                                                                              AS EscalatedCount,
+                COALESCE(SUM(CASE WHEN sr.due_date IS NOT NULL AND sr.status NOT IN (7, 8) AND NOW() > sr.due_date THEN 1 ELSE 0 END), 0)                                                          AS BreachedCount,
+                COALESCE(SUM(CASE WHEN sr.due_date IS NOT NULL AND sr.status NOT IN (7, 8) AND NOW() > (sr.due_date - INTERVAL '2 hours') AND NOW() <= sr.due_date THEN 1 ELSE 0 END), 0)          AS NearingBreachCount,
+                COALESCE(SUM(CASE WHEN sr.due_date IS NOT NULL AND sr.status NOT IN (7, 8) AND NOW() <= (sr.due_date - INTERVAL '2 hours') THEN 1 ELSE 0 END), 0)                                  AS WithinSLACount
+            FROM service_requests sr
+            {where};";
 
         using var conn = _dapperContext.CreateConnection();
-        var slaRow = await conn.QueryFirstAsync(new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken));
+        var slaRow = await conn.QueryFirstOrDefaultAsync<SlaRow>(
+            new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken))
+            ?? new SlaRow();
 
         return new DashboardSummaryDto
         {
@@ -43,16 +80,14 @@ public class DashboardRepository : IDashboardRepository
         };
     }
 
-    /// <summary>
-    /// Returns full dashboard summary by composing smaller aggregation queries.
-    /// Executes all component queries in parallel for performance.
-    /// </summary>
+    // ─── Full Dashboard Summary ───────────────────────────────────────────────
     public async Task<DashboardSummaryDto> GetSummaryAsync(
         DashboardQueryParams queryParams,
         CancellationToken cancellationToken = default)
     {
         if (queryParams is null) throw new ArgumentNullException(nameof(queryParams));
 
+        // Run all sub-queries in parallel
         var statusTask = GetStatusCountsAsync(queryParams, cancellationToken);
         var priorityTask = GetPriorityCountsAsync(queryParams, cancellationToken);
         var categoryTask = GetCategoryCountsAsync(queryParams, cancellationToken);
@@ -65,19 +100,21 @@ public class DashboardRepository : IDashboardRepository
         var categoryCounts = await categoryTask;
         var assignedUserCounts = await assignedUserTask;
 
-        // Retrieve SLA / escalation totals in one query
+        // SLA totals
         var (where, parameters) = BuildWhereClause(queryParams);
         var slaSql = $@"
             SELECT
-            ISNULL(SUM(CASE WHEN sr.IsEscalated = 1 THEN 1 ELSE 0 END),0) AS EscalatedCount,
-            ISNULL(SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > sr.DueDate THEN 1 ELSE 0 END),0) AS BreachedCount,
-            ISNULL(SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() > DATEADD(HOUR,-2,sr.DueDate) AND GETUTCDATE() <= sr.DueDate THEN 1 ELSE 0 END),0) AS NearingBreachCount,
-            ISNULL(SUM(CASE WHEN sr.DueDate IS NOT NULL AND sr.Status NOT IN (7, 8) AND GETUTCDATE() <= DATEADD(HOUR,-2,sr.DueDate) THEN 1 ELSE 0 END),0) AS WithinSLACount
-            FROM ServiceRequests sr
-        {where};";
+                COALESCE(SUM(CASE WHEN sr.is_escalated = TRUE THEN 1 ELSE 0 END), 0)                                                                                                              AS EscalatedCount,
+                COALESCE(SUM(CASE WHEN sr.due_date IS NOT NULL AND sr.status NOT IN (7, 8) AND NOW() > sr.due_date THEN 1 ELSE 0 END), 0)                                                          AS BreachedCount,
+                COALESCE(SUM(CASE WHEN sr.due_date IS NOT NULL AND sr.status NOT IN (7, 8) AND NOW() > (sr.due_date - INTERVAL '2 hours') AND NOW() <= sr.due_date THEN 1 ELSE 0 END), 0)          AS NearingBreachCount,
+                COALESCE(SUM(CASE WHEN sr.due_date IS NOT NULL AND sr.status NOT IN (7, 8) AND NOW() <= (sr.due_date - INTERVAL '2 hours') THEN 1 ELSE 0 END), 0)                                  AS WithinSLACount
+            FROM service_requests sr
+            {where};";
 
         using var conn = _dapperContext.CreateConnection();
-        var slaRow = await conn.QueryFirstAsync(new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken));
+        var slaRow = await conn.QueryFirstOrDefaultAsync<SlaRow>(
+            new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken))
+            ?? new SlaRow();
 
         return new DashboardSummaryDto
         {
@@ -90,7 +127,7 @@ public class DashboardRepository : IDashboardRepository
             InProgressCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.InProgress),
             ResolvedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Resolved),
             ClosedCount = statusCounts.GetValueOrDefault((int)RequestStatusEnum.Closed),
-            WithinSLACount = Convert.ToInt32(slaRow.WithinSLACount ?? 0),
+            WithinSLACount = (int)slaRow.WithinSLACount,
             NearingBreachCount = (int)slaRow.NearingBreachCount,
             BreachedCount = (int)slaRow.BreachedCount,
             EscalatedCount = (int)slaRow.EscalatedCount,
@@ -100,9 +137,7 @@ public class DashboardRepository : IDashboardRepository
         };
     }
 
-    /// <summary>
-    /// Returns counts per status as a dictionary keyed by int (enum value).
-    /// </summary>
+    // ─── Status Counts ────────────────────────────────────────────────────────
     public async Task<IReadOnlyDictionary<int, int>> GetStatusCountsAsync(
         DashboardQueryParams queryParams,
         CancellationToken cancellationToken = default)
@@ -112,24 +147,22 @@ public class DashboardRepository : IDashboardRepository
         var (where, parameters) = BuildWhereClause(queryParams);
 
         var sql = $@"
-            SELECT sr.Status AS Status, COUNT(1) AS Count
-            FROM ServiceRequests sr
+            SELECT sr.status AS Status, COUNT(1) AS Count
+            FROM service_requests sr
             {where}
-            GROUP BY sr.Status;";
+            GROUP BY sr.status;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = await conn.QueryAsync(
+        var rows = await conn.QueryAsync<StatusRow>(
             new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
 
         return rows.ToDictionary(
-            row => (int)row.Status,
+            row => row.Status,
             row => (int)row.Count
         );
     }
 
-    /// <summary>
-    /// Returns counts grouped by priority.
-    /// </summary>
+    // ─── Priority Counts ──────────────────────────────────────────────────────
     public async Task<IReadOnlyList<PriorityCountDto>> GetPriorityCountsAsync(
         DashboardQueryParams queryParams,
         CancellationToken cancellationToken = default)
@@ -139,21 +172,20 @@ public class DashboardRepository : IDashboardRepository
         var (where, parameters) = BuildWhereClause(queryParams);
 
         var sql = $@"
-            SELECT sr.Priority AS Priority, COUNT(1) AS Count
-            FROM ServiceRequests sr
+            SELECT sr.priority AS Priority, COUNT(1) AS Count
+            FROM service_requests sr
             {where}
-            GROUP BY sr.Priority
-            ORDER BY sr.Priority ASC;";
+            GROUP BY sr.priority
+            ORDER BY sr.priority ASC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = (await conn.QueryAsync(
+        var rows = (await conn.QueryAsync<PriorityRow>(
             new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
 
         return rows.Select(row =>
         {
-            int priorityInt = (int)row.Priority;
-            var priority = Enum.IsDefined(typeof(PriorityEnums), priorityInt)
-                ? (PriorityEnums)priorityInt
+            var priority = Enum.IsDefined(typeof(PriorityEnums), row.Priority)
+                ? (PriorityEnums)row.Priority
                 : PriorityEnums.Low;
 
             return new PriorityCountDto
@@ -164,9 +196,7 @@ public class DashboardRepository : IDashboardRepository
         }).ToList();
     }
 
-    /// <summary>
-    /// Returns counts grouped by category name ordered by count desc.
-    /// </summary>
+    // ─── Category Counts ──────────────────────────────────────────────────────
     public async Task<IReadOnlyList<CategoryCountDto>> GetCategoryCountsAsync(
         DashboardQueryParams queryParams,
         CancellationToken cancellationToken = default)
@@ -176,16 +206,16 @@ public class DashboardRepository : IDashboardRepository
         var (where, parameters) = BuildWhereClause(queryParams);
 
         var sql = $@"
-            SELECT rc.CategoryName AS CategoryName, COUNT(1) AS Count
-            FROM ServiceRequests sr
-            INNER JOIN RequestCategories rc ON sr.CategoryId = rc.CategoryId
+            SELECT rc.category_name AS CategoryName, COUNT(1) AS Count
+            FROM service_requests sr
+            INNER JOIN request_categories rc ON sr.category_id = rc.category_id
             {where}
-            GROUP BY rc.CategoryName
+            GROUP BY rc.category_name
             HAVING COUNT(1) > 0
             ORDER BY COUNT(1) DESC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = (await conn.QueryAsync(
+        var rows = (await conn.QueryAsync<CategoryRow>(
             new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
 
         return rows.Select(row => new CategoryCountDto
@@ -195,10 +225,7 @@ public class DashboardRepository : IDashboardRepository
         }).ToList();
     }
 
-    /// <summary>
-    /// Returns request counts grouped by assigned support user.
-    /// Only includes requests where AssignedTo is not null.
-    /// </summary>
+    // ─── Assigned User Counts ─────────────────────────────────────────────────
     public async Task<IReadOnlyList<AssignedUserCountDto>> GetAssignedUserCountsAsync(
         DashboardQueryParams queryParams,
         CancellationToken cancellationToken = default)
@@ -207,39 +234,35 @@ public class DashboardRepository : IDashboardRepository
 
         var (where, parameters) = BuildWhereClause(queryParams);
 
-        // Extend WHERE to only include assigned requests
         var extendedWhere = string.IsNullOrEmpty(where)
-            ? "WHERE sr.AssignedTo IS NOT NULL"
-            : where + " AND sr.AssignedTo IS NOT NULL";
+            ? "WHERE sr.assigned_to IS NOT NULL"
+            : where + " AND sr.assigned_to IS NOT NULL";
 
         var sql = $@"
             SELECT
-                u.UserId   AS UserId,
-                u.FullName AS FullName,
-                COUNT(1)   AS Count
-            FROM ServiceRequests sr
-            INNER JOIN Users u ON sr.AssignedTo = u.UserId
+                u.user_id   AS UserId,
+                u.full_name AS FullName,
+                COUNT(1)    AS Count
+            FROM service_requests sr
+            INNER JOIN users u ON sr.assigned_to = u.user_id
             {extendedWhere}
-            GROUP BY u.UserId, u.FullName
+            GROUP BY u.user_id, u.full_name
             HAVING COUNT(1) > 0
             ORDER BY COUNT(1) DESC;";
 
         using var conn = _dapperContext.CreateConnection();
-        var rows = (await conn.QueryAsync(
+        var rows = (await conn.QueryAsync<AssignedUserRow>(
             new CommandDefinition(sql, parameters, cancellationToken: cancellationToken))).ToList();
 
         return rows.Select(row => new AssignedUserCountDto
         {
-            UserId = (Guid)row.UserId,
+            UserId = row.UserId,
             FullName = row.FullName ?? string.Empty,
             Count = (int)row.Count
         }).ToList();
     }
 
-    /// <summary>
-    /// Helper: builds WHERE clause and DynamicParameters from DashboardQueryParams.
-    /// Role scoping: only one of EmployeeId, AssignedToUserId, ManagerId is set by the handler.
-    /// </summary>
+    // ─── WHERE Clause Builder ─────────────────────────────────────────────────
     private static (string whereClause, DynamicParameters parameters) BuildWhereClause(
         DashboardQueryParams queryParams)
     {
@@ -248,29 +271,29 @@ public class DashboardRepository : IDashboardRepository
 
         if (queryParams.FromDate.HasValue)
         {
-            where.Add("sr.CreatedOn >= @FromDate");
+            where.Add("sr.created_on >= @FromDate");
             parameters.Add("@FromDate", queryParams.FromDate.Value.ToUniversalTime());
         }
 
         if (queryParams.ToDate.HasValue)
         {
-            where.Add("sr.CreatedOn <= @ToDate");
+            where.Add("sr.created_on <= @ToDate");
             parameters.Add("@ToDate", queryParams.ToDate.Value.ToUniversalTime());
         }
 
         if (queryParams.EmployeeId.HasValue)
         {
-            where.Add("sr.EmployeeId = @EmployeeId");
+            where.Add("sr.employee_id = @EmployeeId");
             parameters.Add("@EmployeeId", queryParams.EmployeeId.Value);
         }
         else if (queryParams.AssignedToUserId.HasValue)
         {
-            where.Add("sr.AssignedTo = @AssignedToUserId");
+            where.Add("sr.assigned_to = @AssignedToUserId");
             parameters.Add("@AssignedToUserId", queryParams.AssignedToUserId.Value);
         }
         else if (queryParams.ManagerId.HasValue)
         {
-            where.Add("EXISTS (SELECT 1 FROM Users u WHERE u.UserId = sr.EmployeeId AND u.ManagerId = @ManagerId)");
+            where.Add("EXISTS (SELECT 1 FROM users u WHERE u.user_id = sr.employee_id AND u.manager_id = @ManagerId)");
             parameters.Add("@ManagerId", queryParams.ManagerId.Value);
         }
 
