@@ -66,12 +66,14 @@ const AppNotificationBell = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
-        PaperProps={{
-          sx: {
-            width: 320,
-            maxHeight: 400,
-            boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.1)",
-            borderRadius: 2,
+        slotProps={{
+          paper: {
+            sx: {
+              width: 320,
+              maxHeight: 400,
+              boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.1)",
+              borderRadius: 2,
+            },
           },
         }}
         anchorOrigin={{
