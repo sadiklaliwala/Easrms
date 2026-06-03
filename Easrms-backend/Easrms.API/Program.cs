@@ -116,7 +116,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", (context) =>
 {
-    return context.Response.WriteAsync("Service is Running ");
+
+    return context.Response.WriteAsync("Service is Running  and Allowes Origin is "+allowedOrigins);
 });
 
 app.UseHttpsRedirection();
