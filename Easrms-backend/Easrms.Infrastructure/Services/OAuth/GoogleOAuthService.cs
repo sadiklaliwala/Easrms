@@ -48,9 +48,7 @@ public class GoogleOAuthService : IOAuthService
         if (!resp.IsSuccessStatusCode)
         {
             throw new UnauthorizedAccessException(
-                $"Google token exchange failed.\n" +
-                $"Status: {resp.StatusCode}\n" +
-                $"Body: {responseBody}");
+                $"Status: {resp.StatusCode} Google Related Error Ocurred Plz Login Again ");
         }
 
         //var json = await resp.Content.ReadAsStringAsync(cancellationToken);
