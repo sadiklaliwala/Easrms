@@ -13,7 +13,6 @@ public sealed class LoginCommand : IRequest<LoginResponseDto>
     public required string Password { get; init; } = string.Empty;
 }
 
-
 /// <summary>
 /// 1. GetByEmailAsync(email, trackChanges: false)  → 401 if null
 /// 2. entity.IsActive check                        → 403 if false
@@ -27,8 +26,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
     private readonly IJwtService _jwtService;
     private readonly IJwtSettings _jwtSettings;
 
-
-    public LoginCommandHandler(IUserRepository userRepository , IJwtService jwtService , IJwtSettings jwtSettings)
+    public LoginCommandHandler(IUserRepository userRepository, IJwtService jwtService, IJwtSettings jwtSettings)
     {
         _userRepository = userRepository;
         _jwtService = jwtService;
@@ -58,8 +56,9 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
 
         var AccessToken = _jwtService.GenerateAccessToken(user);
         var RefreshToken = _jwtService.GenerateRefreshToken();
-        _jwtService.SetTokenCookie(AccessToken);
-        _jwtService.SetRefreshTokenCookie(RefreshToken);
+        // do not set cookies — return tokens in response body
+        // _jwtService.SetTokenCookie(AccessToken);
+        // _jwtService.SetRefreshTokenCookie(RefreshToken);
         user.RefreshToken = RefreshToken;
         user.RefreshTokenExpiryOn = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
         // 5. Stamp LastLoginOn — direct ExecuteUpdateAsync, no SaveChanges needed
@@ -78,7 +77,9 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             FullName = user.FullName,
             Email = user.Email,
             RoleName = user.Role.RoleName,
-            ManagerId = user.ManagerId,           
+            ManagerId = user.ManagerId,
+            AccessToken = AccessToken,
+            RefreshToken = RefreshToken
         };
     }
 }

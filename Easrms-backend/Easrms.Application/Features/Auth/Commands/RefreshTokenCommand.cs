@@ -8,7 +8,6 @@ namespace Easrms.Application.Features.Auth.Commands;
 
 public sealed class RefreshTokenCommand : IRequest<RefreshTokenResponseDto>
 {
-    //public string AccessToken { get; init; } = string.Empty;
     public string RefreshToken { get; init; } = string.Empty;
 }
 
@@ -18,9 +17,6 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
     private readonly IUserRepository _userRepository;
     private readonly IJwtService _jwtService;
     private readonly IJwtSettings _jwtSettings;
-    
-
-
 
     public RefreshTokenCommandHandler(IUserRepository userRepository, IJwtService jwtService, IJwtSettings jwtSettings)
     {
@@ -33,7 +29,7 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
         RefreshTokenCommand request,
         CancellationToken cancellationToken)
     {
-        var refreshToken = _jwtService.GetRefreshTokenFromCookie();
+        var refreshToken = request.RefreshToken;
 
         if (string.IsNullOrWhiteSpace(refreshToken))
             throw new UnauthorizedAccessException("Refresh token not found.");
@@ -52,8 +48,6 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
 
         var AccessToken = _jwtService.GenerateAccessToken(user);
         var RefreshToken = _jwtService.GenerateRefreshToken();
-        _jwtService.SetTokenCookie(AccessToken);
-        _jwtService.SetRefreshTokenCookie(RefreshToken);
         await _userRepository.UpdateRefreshTokenAsync(
             user.UserId, RefreshToken,
             DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays),

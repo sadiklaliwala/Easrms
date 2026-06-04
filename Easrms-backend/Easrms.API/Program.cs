@@ -100,7 +100,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-
+// Console.WriteLine(builder.Environment.EnvironmentName);
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -120,7 +120,10 @@ app.MapGet("/", (context) =>
     return context.Response.WriteAsync("Service is Running  and Allowes Origin is "+allowedOrigins);
 });
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("FrontendPolicy");
 

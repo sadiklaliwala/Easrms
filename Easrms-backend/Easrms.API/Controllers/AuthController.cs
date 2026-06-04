@@ -94,13 +94,12 @@ public class AuthController : ControllerBase
 
     // POST /api/auth/refresh-token
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken(CancellationToken ct)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto, CancellationToken ct)
     {
-        var refreshToken = Request.Cookies["CookieNameRefresh"]; // pick a name
-        if (string.IsNullOrWhiteSpace(refreshToken))
+        if (string.IsNullOrWhiteSpace(dto.RefreshToken))
             return Unauthorized(ApiResponse<object>.FailResponse("Missing refresh token.", 401));
 
-        var result = await _mediator.Send(new RefreshTokenCommand { RefreshToken = refreshToken }, ct);
+        var result = await _mediator.Send(new RefreshTokenCommand { RefreshToken = dto.RefreshToken }, ct);
 
         return Ok(ApiResponse<object>.SuccessResponse(result, "Token refreshed successfully."));
     }
@@ -108,13 +107,12 @@ public class AuthController : ControllerBase
     // POST /api/auth/revoke-token
     [HttpPost("revoke-token")]
     [Authorize]
-    public async Task<IActionResult> RevokeToken(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenRequestDto dto, CancellationToken cancellationToken = default)
     {
-        var refreshToken = Request.Cookies["easrms_access_token_refresh"]; // pick a name
-        if (string.IsNullOrWhiteSpace(refreshToken))
+        if (string.IsNullOrWhiteSpace(dto.RefreshToken))
             return Unauthorized(ApiResponse<object>.FailResponse("Missing refresh token.", 401));
 
-        var command = new RevokeTokenCommand { RefreshToken = refreshToken };
+        var command = new RevokeTokenCommand { RefreshToken = dto.RefreshToken };
 
         await _mediator.Send(command, cancellationToken);
 

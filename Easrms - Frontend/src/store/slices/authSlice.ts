@@ -76,6 +76,12 @@ const authSlice = createSlice({
       state.managerId = action.payload.managerId ?? null;
       state.isAuthenticated = true;
       state.isInitializing = false;
+      if (action.payload.accessToken) {
+        localStorage.setItem("accessToken", action.payload.accessToken);
+      }
+      if (action.payload.refreshToken) {
+        localStorage.setItem("refreshToken", action.payload.refreshToken);
+      }
     },
     clearCredentials: (state) => {
       state.userId = null;
@@ -85,6 +91,8 @@ const authSlice = createSlice({
       state.managerId = null;
       state.isAuthenticated = false;
       state.isInitializing = false; // done initializing
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     },
     setInitializingDone: (state) => {
       state.isInitializing = false;

@@ -20,19 +20,25 @@ import { setCredentials, setInitializingDone } from "./store/slices/authSlice";
 const AppInitializer = () => {
   const dispatch = useAppDispatch();
   const { isInitializing } = useAppSelector((state) => state.auth);
+  const hasToken = !!localStorage.getItem("accessToken");
 
   const {
     data: response,
     isSuccess,
     isError,
   } = useGetMeQuery(undefined, {
-    skip: !isInitializing, // only runs on first load
+    skip: !isInitializing || !hasToken, // only runs on first load if token exists
     refetchOnMountOrArgChange: false, // never refetch automatically
     refetchOnFocus: false, // do not refetch when tab regains focus
     refetchOnReconnect: false, // do not refetch on reconnect
   });
 
   useEffect(() => {
+    if (isInitializing && !hasToken) {
+      dispatch(setInitializingDone());
+      return;
+    }
+
     if (isSuccess && response?.success && response.data) {
       dispatch(
         setCredentials({
@@ -50,7 +56,7 @@ const AppInitializer = () => {
     if (isError) {
       dispatch(setInitializingDone());
     }
-  }, [isSuccess, isError, response, dispatch]);
+  }, [isSuccess, isError, response, dispatch, isInitializing, hasToken]);
 
   return <AppRoutes />;
 };

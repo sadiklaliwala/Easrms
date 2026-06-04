@@ -20,11 +20,10 @@ publish/
 # Rider / ReSharper
 .idea/
 _ReSharper*/
-*.DotSettings.user
 
 # App Settings
 appsettings.Development.json
-
+appsettings.json
 
 # ─── React / Node ────────────────────────────────────────────────────────────
 node_modules/
@@ -54,3 +53,5 @@ pnpm-debug.log*
 Thumbs.db
 *.tmp
 *.swp
+*.DotSettings.user
+Easrms-backend/Easrms.API/appsettings.json
