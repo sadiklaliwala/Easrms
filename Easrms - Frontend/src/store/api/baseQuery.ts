@@ -10,7 +10,7 @@ import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { clearCredentials } from "../slices/authSlice";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_BASE_URL ?? "https://localhost:7252",
+  baseUrl: "/",
   credentials: "include", // Required — JWT is in HttpOnly cookie
   prepareHeaders: (headers) => {
     headers.set("Content-Type", "application/json");
