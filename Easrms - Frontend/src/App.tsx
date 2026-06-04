@@ -34,27 +34,29 @@ const AppInitializer = () => {
   });
 
   useEffect(() => {
-    if (isInitializing && !hasToken) {
-      dispatch(setInitializingDone());
-      return;
-    }
+    if (isInitializing) {
+      if (!hasToken) {
+        dispatch(setInitializingDone());
+        return;
+      }
 
-    if (isSuccess && response?.success && response.data) {
-      dispatch(
-        setCredentials({
-          userId: response.data.userId,
-          fullName: response.data.fullName,
-          email: response.data.email,
-          roleName: response.data.roleName,
-          managerId: response.data.managerId ?? null,
-          accessToken: "",
-          refreshToken: "",
-        }),
-      );
-    }
+      if (isSuccess && response?.success && response.data) {
+        dispatch(
+          setCredentials({
+            userId: response.data.userId,
+            fullName: response.data.fullName,
+            email: response.data.email,
+            roleName: response.data.roleName,
+            managerId: response.data.managerId ?? null,
+            accessToken: "",
+            refreshToken: "",
+          }),
+        );
+      }
 
-    if (isError) {
-      dispatch(setInitializingDone());
+      if (isError) {
+        dispatch(setInitializingDone());
+      }
     }
   }, [isSuccess, isError, response, dispatch, isInitializing, hasToken]);
 

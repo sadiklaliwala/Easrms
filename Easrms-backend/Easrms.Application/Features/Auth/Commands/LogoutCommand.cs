@@ -47,7 +47,7 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
         await _userRepository.RevokeRefreshTokenAsync(request.CurrentUserId, cancellationToken);
 
         // 3. Cookie removed by AuthController after this returns
-        _jwtService.ClearTokenCookie();
-        _jwtService.ClearRefreshTokenCookie();
+        //_jwtService.ClearTokenCookie();
+        //_jwtService.ClearRefreshTokenCookie();
     }
 }

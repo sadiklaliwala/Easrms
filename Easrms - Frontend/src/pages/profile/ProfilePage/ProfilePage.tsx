@@ -33,6 +33,7 @@ import {
   useVerifyProfileOtpMutation,
   useChangePasswordMutation,
 } from "../../../store/api/profile.endpoints";
+import { useGetCloudinarySignatureMutation } from "../../../store/api/cloudinary.endpoints";
 import ApiEndPoints from "../../../store/ApiEndPoints";
 
 // ─── Change Password Step 3 Schema ───────────────────────────────────────────
@@ -71,6 +72,7 @@ const ProfilePage = () => {
   const [verifyProfileOtp] = useVerifyProfileOtpMutation();
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
+  const [getCloudinarySignature] = useGetCloudinarySignatureMutation();
 
   const profile = profileResponse?.data;
 
@@ -138,21 +140,12 @@ const ProfilePage = () => {
 
     setIsUploadingPhoto(true);
     try {
-      // 1. Get Signature via plain fetch call
-      const signUrl = `${import.meta.env.VITE_API_BASE_URL || ""}${ApiEndPoints.CLOUDINARY.SIGN}`;
-      const signResponse = await fetch(signUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folder: "profile-photos" }),
-        credentials: "include",
-      });
-
-      if (!signResponse.ok) {
-        throw new Error("Failed to sign Cloudinary request");
-      }
-
-      const sigData = await signResponse.json();
-      const { apiKey, cloudName, timestamp, signature, folder } = sigData.data;
+      // 1. Get Signature via mutation
+      const sigResponse = await getCloudinarySignature({
+        folder: "profile-photos",
+      }).unwrap();
+      const { apiKey, cloudName, timestamp, signature, folder } =
+        sigResponse.data;
 
       // 2. Build FormData
       const formData = new FormData();
@@ -236,7 +229,6 @@ const ProfilePage = () => {
       if (result.success && result.data) {
         setPasswordChangeToken(result.data.passwordChangeToken);
         toast.success("OTP verified successfully");
-        setStep(3);
         return true;
       } else {
         toast.error(result.message || "Failed to verify OTP");
@@ -532,6 +524,9 @@ const ProfilePage = () => {
                 open={step === 2}
                 onClose={() => {
                   setStep(1);
+                }}
+                onSuccess={() => {
+                  setStep(3);
                 }}
                 email={profile?.email || ""}
                 onVerify={onVerifyOtpModal}

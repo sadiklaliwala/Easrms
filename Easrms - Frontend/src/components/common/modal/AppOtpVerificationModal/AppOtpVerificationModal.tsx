@@ -21,6 +21,7 @@ const shake = keyframes`
 interface AppOtpVerificationModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   email: string;
   onVerify: (otp: string) => Promise<boolean>;
   onResend: () => Promise<void>;
@@ -30,6 +31,7 @@ interface AppOtpVerificationModalProps {
 const AppOtpVerificationModal = ({
   open,
   onClose,
+  onSuccess,
   email,
   onVerify,
   onResend,
@@ -124,7 +126,11 @@ const AppOtpVerificationModal = ({
       setStatus("success");
       // Add a slight delay before closing so user sees the green success state
       setTimeout(() => {
-        onClose();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          onClose();
+        }
         setOtp(new Array(6).fill(""));
         setStatus("idle");
       }, 1000);

@@ -142,7 +142,6 @@ const ForgotPasswordPage = () => {
       if (result.success && result.data) {
         setPasswordResetToken(result.data.passwordResetToken);
         toast.success("OTP verified successfully");
-        setStep(3);
         return true;
       } else {
         toast.error(result.message || "Invalid OTP code");
@@ -263,6 +262,9 @@ const ForgotPasswordPage = () => {
           open={step === 2}
           onClose={() => {
             setStep(1);
+          }}
+          onSuccess={() => {
+            setStep(3);
           }}
           email={email}
           onVerify={onVerifyOtpModal}

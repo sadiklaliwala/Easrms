@@ -3,6 +3,7 @@ import {
   HubConnectionBuilder,
   HubConnectionState,
   LogLevel,
+  HttpTransportType,
 } from "@microsoft/signalr";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "./useAppSelector";
@@ -16,10 +17,15 @@ export const useNotificationHub = () => {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const fullHubUrl = `${window.location.origin}/hubs/notification`;
+    let backendUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+    // Strip trailing '/api' or '/api/' if present
+    backendUrl = backendUrl.replace(/\/api\/?$/, "");
+    const fullHubUrl = `${backendUrl}/hubs/notification`;
 
     const connection = new HubConnectionBuilder()
       .withUrl(fullHubUrl, {
+        accessTokenFactory: () => localStorage.getItem("accessToken") || "",
+        transport: HttpTransportType.LongPolling,
         withCredentials: true,
       })
       .withAutomaticReconnect()

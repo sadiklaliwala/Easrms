@@ -24,7 +24,9 @@ const AppFileUpload: React.FC<AppFileUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -41,8 +43,11 @@ const AppFileUpload: React.FC<AppFileUploadProps> = ({
 
     try {
       // 1. Get Signature
-      const sigResponse = await getSignature({ folder: "Easrms_Upload" }).unwrap();
-      const { apiKey, cloudName, timestamp, signature, folder } = sigResponse.data;
+      const sigResponse = await getSignature({
+        folder: "Easrms_Upload",
+      }).unwrap();
+      const { apiKey, cloudName, timestamp, signature, folder } =
+        sigResponse.data;
 
       // 2. Upload to Cloudinary
       const formData = new FormData();
@@ -57,7 +62,7 @@ const AppFileUpload: React.FC<AppFileUploadProps> = ({
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
 
       const uploadResult = await uploadResponse.json();
@@ -74,41 +79,55 @@ const AppFileUpload: React.FC<AppFileUploadProps> = ({
     } finally {
       setIsUploading(false);
       // Reset the input so the same file can be selected again if needed
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-      {label && <Typography variant="caption" color="text.secondary">{label} (Max 10MB)</Typography>}
+      {label && (
+        <Typography variant="caption" color="text.secondary">
+          {label} (Max 10MB)
+        </Typography>
+      )}
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <Button
           component="label"
           variant="outlined"
           color={errorMsg ? "error" : "primary"}
-          startIcon={isUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+          startIcon={
+            isUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />
+          }
           disabled={isUploading}
-          sx={{ textTransform: 'none' }}
+          sx={{ textTransform: "none" }}
         >
-          {isUploading ? "Uploading..." : value ? "Replace File" : "Choose File"}
-          <input
-            type="file"
-            hidden
-            onChange={handleFileChange}
-          />
+          {isUploading
+            ? "Uploading..."
+            : value
+              ? "Replace File"
+              : "Choose File"}
+          <input type="file" hidden onChange={handleFileChange} />
         </Button>
         {value && !isUploading && (
-          <Typography variant="body2" color="success.main" sx={{
+          <Typography
+            variant="body2"
+            color="success.main"
+            sx={{
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              maxWidth: "200px"
-          }}>
+              maxWidth: "200px",
+            }}
+          >
             Attached
           </Typography>
         )}
       </Box>
-      {errorMsg && <Typography variant="caption" color="error">{errorMsg}</Typography>}
+      {errorMsg && (
+        <Typography variant="caption" color="error">
+          {errorMsg}
+        </Typography>
+      )}
     </Box>
   );
 };

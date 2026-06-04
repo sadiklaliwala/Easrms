@@ -40,8 +40,8 @@ public class OAuthLoginCommandHandler : IRequestHandler<OAuthLoginCommand, Login
 
         var accessToken = _jwtService.GenerateAccessToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken();
-        _jwtService.SetTokenCookie(accessToken);
-        _jwtService.SetRefreshTokenCookie(refreshToken);
+        //_jwtService.SetTokenCookie(accessToken);
+        //_jwtService.SetRefreshTokenCookie(refreshToken);
 
         await _userRepository.UpdateLoginMetaAsync(user.UserId, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays), cancellationToken);
 
@@ -51,7 +51,9 @@ public class OAuthLoginCommandHandler : IRequestHandler<OAuthLoginCommand, Login
             FullName = user.FullName,
             Email = user.Email,
             RoleName = user.Role.RoleName,
-            ManagerId = user.ManagerId
+            ManagerId = user.ManagerId,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
         };
     }
 
