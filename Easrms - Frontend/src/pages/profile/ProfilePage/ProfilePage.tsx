@@ -34,7 +34,6 @@ import {
   useChangePasswordMutation,
 } from "../../../store/api/profile.endpoints";
 import { useGetCloudinarySignatureMutation } from "../../../store/api/cloudinary.endpoints";
-import ApiEndPoints from "../../../store/ApiEndPoints";
 
 // ─── Change Password Step 3 Schema ───────────────────────────────────────────
 const changePasswordSchema = Joi.object({
