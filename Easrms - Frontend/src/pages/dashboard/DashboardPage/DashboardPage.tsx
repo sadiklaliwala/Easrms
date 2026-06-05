@@ -54,22 +54,22 @@ const DashboardPage = () => {
     isError: slaError,
   } = useGetSLADashboardQuery(undefined, { skip: !isSlaRole });
 
+  const [employeeSearch, setEmployeeSearch] = useState("");
+
+  const filteredEmployees = useMemo(() => {
+    if (!response?.data?.managedEmployees) return [];
+    return response.data.managedEmployees.filter(
+      (emp) =>
+        emp.fullName?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+        emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()),
+    );
+  }, [response?.data?.managedEmployees, employeeSearch]);
+
   if (isLoading) return <AppLoader />;
   if (isError || !response?.success)
     return <AppErrorState message="Failed to load dashboard data" />;
 
   const data = response.data;
-
-  const [employeeSearch, setEmployeeSearch] = useState("");
-
-  const filteredEmployees = useMemo(() => {
-    if (!data.managedEmployees) return [];
-    return data.managedEmployees.filter(
-      (emp) =>
-        emp.fullName?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
-        emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()),
-    );
-  }, [data.managedEmployees, employeeSearch]);
 
   const priorityChartData = data.byPriority.map((p) => ({
     priority: PRIORITY_LABEL[p.priority],

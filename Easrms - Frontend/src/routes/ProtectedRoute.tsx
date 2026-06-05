@@ -18,8 +18,10 @@ const ProtectedRoute = () => {
     (state) => state.auth,
   );
 
-  // Wait for getMe to finish before making auth decision
-  if (isInitializing) return <AppLoader />;
+  // Show loader ONLY when we're waiting for the /me token check on app refresh
+  // and we don't yet know if the user is authenticated.
+  // If isAuthenticated is already true (e.g. just logged in), skip the loader.
+  if (isInitializing && !isAuthenticated) return <AppLoader />;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

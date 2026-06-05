@@ -1,13 +1,12 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-import ProtectedRoute from "./ProtectedRoute";
-import RoleBasedRoute from "./RoleBasedRoute";
-import AppLayout from "../components/common/layout/AppLayout";
-import AppLoader from "../components/common/feedback/AppLoader";
-
 import { useAppSelector } from "../hooks/useAppSelector";
 import { ROLES } from "../constants/role.constants";
+
+const ProtectedRoute = lazy(() => import("./ProtectedRoute"));
+const RoleBasedRoute = lazy(() => import("./RoleBasedRoute"));
+const AppLayout = lazy(() => import("../components/common/layout/AppLayout"));
+const AppLoader = lazy(() => import("../components/common/feedback/AppLoader"));
 
 // ─── Lazy Loaded Pages ────────────────────────────────────────────────────────
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));

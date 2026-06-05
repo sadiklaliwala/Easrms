@@ -32,7 +32,11 @@ const AppPasswordInput = ({
         input: {
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={() => setShow((prev) => !prev)} edge="end">
+              <IconButton 
+                onClick={() => setShow((prev) => !prev)} 
+                edge="end"
+                aria-label={show ? "Hide password" : "Show password"}
+              >
                 {show ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             </InputAdornment>

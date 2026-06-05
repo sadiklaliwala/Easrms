@@ -2,7 +2,7 @@
 
 public static class PasswordHelper
 {
-    private const int WorkFactor = 10;
+    private const int WorkFactor = 8;
 
     public static string Hash(string password)
     {

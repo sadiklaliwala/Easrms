@@ -67,17 +67,18 @@ namespace Easrms.Infrastructure
             //    options.UseNpgsql(connectionString)
             //    .UseSnakeCaseNamingConvention();
             //});
-            services.AddDbContext<AppDbContext>(options =>
+            services.AddDbContextPool<AppDbContext>(
+                options =>
             {
                 options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(2),
                         errorCodesToAdd: null);
                 })
                 .UseSnakeCaseNamingConvention();
-            });
+            },poolSize:128);
 
             // Bulk upload services
             services.AddScoped<IUserBulkUploadService, UserBulkUploadService>();
@@ -85,12 +86,29 @@ namespace Easrms.Infrastructure
             services.AddScoped<IRequestBulkUploadService, RequestBulkUploadService>();
 
             // Elasticsearch client and service registration
-            var esUrl = configuration.GetValue<string>("Elasticsearch:Url") ?? "http://localhost:9200";
-            var settings = new ConnectionSettings(new Uri(esUrl)).DefaultIndex("easrms-requests");
+            var esUrl = Environment.GetEnvironmentVariable("BONSAI_URL")
+            ?? configuration.GetValue<string>("Elasticsearch:Url")
+            ?? "http://localhost:9200";
+
+            var uri = new Uri(esUrl);
+            var settings = new ConnectionSettings(uri)
+                .DefaultIndex("easrms-requests")
+                .RequestTimeout(TimeSpan.FromSeconds(10));
+
+            if (!string.IsNullOrEmpty(uri.UserInfo))
+            {
+                var parts = uri.UserInfo.Split(':');
+                settings = settings.BasicAuthentication(parts[0], parts[1]);
+            }
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                settings = settings.DisableDirectStreaming();
+            }
+
             var client = new ElasticClient(settings);
             services.AddSingleton<IElasticClient>(client);
             services.AddScoped<IElasticService, ElasticService>();
-
             return services;
         }
     }

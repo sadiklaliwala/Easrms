@@ -107,6 +107,7 @@ const LoginPage = () => {
 
   return (
     <Box
+      component="main"
       sx={{
         minHeight: "100vh",
         display: "flex",
