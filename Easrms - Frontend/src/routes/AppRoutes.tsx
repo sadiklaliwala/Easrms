@@ -26,9 +26,7 @@ const ApprovalQueuePage = lazy(
 );
 const AssignmentPage = lazy(() => import("../pages/assignment/AssignmentPage"));
 const SupportTaskPage = lazy(() => import("../pages/support/SupportTaskPage"));
-const OAuthCallbackPage = lazy(
-  () => import("../pages/auth/OAuthCallbackPage"),
-);
+const OAuthCallbackPage = lazy(() => import("../pages/auth/OAuthCallbackPage"));
 const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
 const ForgotPasswordPage = lazy(
   () => import("../pages/auth/ForgotPasswordPage"),
@@ -86,7 +84,13 @@ const AppRoutes = () => {
             </Route>
 
             {/* Create Request — Employee and Manager */}
-            <Route element={<RoleBasedRoute allowedRoles={[ROLES.EMPLOYEE, ROLES.MANAGER]} />}>
+            <Route
+              element={
+                <RoleBasedRoute
+                  allowedRoles={[ROLES.EMPLOYEE, ROLES.MANAGER]}
+                />
+              }
+            >
               <Route path="/requests/create" element={<CreateRequestPage />} />
             </Route>
 
