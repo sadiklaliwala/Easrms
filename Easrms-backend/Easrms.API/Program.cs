@@ -21,8 +21,8 @@ builder.Services.AddSwaggerGen();
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
-    //.ReadFrom.Configuration(builder.Configuration)
-    .WriteTo.Console()
+    .ReadFrom.Configuration(builder.Configuration)
+    //.WriteTo.Console()
     .CreateLogger();
 
 builder.Host.UseSerilog();
