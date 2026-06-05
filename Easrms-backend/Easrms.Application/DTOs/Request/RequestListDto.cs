@@ -1,4 +1,4 @@
-﻿using Easrms.Common.Enums;
+using Easrms.Common.Enums;
 
 namespace Easrms.Application.DTOs.Request;
 
@@ -12,7 +12,7 @@ public class RequestListDto
     public RequestStatusEnum Status { get; set; }
     public DateTime CreatedOn { get; set; }
 
-
+    public string EmployeeName { get; set; } = string.Empty;
     public string AssigneeName { get; set; } = string.Empty;
     public DateTime? DueDate { get; set; }
     public string SLAStatus { get; set; } = string.Empty;

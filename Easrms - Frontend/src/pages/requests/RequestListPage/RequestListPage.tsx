@@ -203,8 +203,8 @@
 // export default RequestListPage;
 
 import { useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box, Stack } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Box, Stack, Button, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
 
@@ -258,6 +258,8 @@ import type { GridColumn } from "../../../types/common.types";
 // ─── Component ────────────────────────────────────────────────────────────────
 const RequestListPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const filterEmployeeName = location.state?.filterEmployeeName;
   const { roleName } = useAppSelector((state) => state.auth);
 
   const [params, setParams] = useState<RequestQueryParams>({
@@ -267,7 +269,17 @@ const RequestListPage = () => {
     sortAscending: false,
   });
 
-  const { data: response, isLoading, isError } = useGetRequestsQuery(params);
+  const queryParams = useMemo(() => {
+    if (filterEmployeeName) {
+      return {
+        ...params,
+        pageSize: 100, // Fetch more records so client-side filtering doesn't return empty pages
+      };
+    }
+    return params;
+  }, [params, filterEmployeeName]);
+
+  const { data: response, isLoading, isError } = useGetRequestsQuery(queryParams);
   const { data: categoriesResponse } = useGetCategoriesQuery({
     pageNumber: 1,
     pageSize: 100,
@@ -363,6 +375,7 @@ const RequestListPage = () => {
         ),
       },
       { key: "categoryName", label: "Category" },
+      { key: "employeeName", label: "Employee Name" },
       {
         key: "priority",
         label: "Priority",
@@ -519,11 +532,22 @@ const RequestListPage = () => {
     }
   };
 
+  const requests = useMemo(() => {
+    if (!response?.data?.items) return [];
+    let items = response.data.items;
+    if (filterEmployeeName) {
+      items = items.filter(
+        (r) =>
+          r.employeeName?.toLowerCase() === filterEmployeeName.toLowerCase()
+      );
+    }
+    return items;
+  }, [response?.data?.items, filterEmployeeName]);
+
   if (isLoading) return <AppLoader />;
   if (isError || !response?.success)
     return <AppErrorState message="Failed to load requests" />;
 
-  const requests = response.data.items;
   const pagination = response.data.pagination;
 
   return (
@@ -539,7 +563,7 @@ const RequestListPage = () => {
               startIcon={<FileUploadIcon />}
               onClick={() => setBulkOpen(true)}
             /> */}
-            {roleName === ROLES.EMPLOYEE && (
+            {(roleName === ROLES.EMPLOYEE || roleName === ROLES.MANAGER) && (
               <AppButton
                 label="New Request"
                 startIcon={<AddIcon />}
@@ -549,6 +573,32 @@ const RequestListPage = () => {
           </Stack>
         }
       />
+
+      {filterEmployeeName && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            p: 2,
+            backgroundColor: "rgba(25, 118, 210, 0.08)",
+            border: "1px solid rgba(25, 118, 210, 0.2)",
+            borderRadius: 1,
+          }}
+        >
+          <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 500 }}>
+            Filtering requests created by team member: <strong>{filterEmployeeName}</strong>
+          </Typography>
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => navigate("/requests", { replace: true, state: {} })}
+            sx={{ color: "primary.main", textTransform: "none", fontWeight: 600 }}
+          >
+            Clear Filter
+          </Button>
+        </Box>
+      )}
 
       {/* Filters */}
       {/* <AppFilterBar>
@@ -658,14 +708,16 @@ const RequestListPage = () => {
       />
 
       {/* Pagination */}
-      <AppPagination
-        totalPages={pagination.totalPages}
-        pageNumber={pagination.pageNumber}
-        pageSize={pagination.pageSize}
-        totalCount={pagination.totalCount}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-      />
+      {!filterEmployeeName && (
+        <AppPagination
+          totalPages={pagination.totalPages}
+          pageNumber={pagination.pageNumber}
+          pageSize={pagination.pageSize}
+          totalCount={pagination.totalCount}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
 
       <EscalateRequestDialog
         open={!!escalateRow}

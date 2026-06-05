@@ -1,3 +1,5 @@
+import type { UserListDto } from "./user.types";
+
 export interface PriorityCountDto {
   priority: number;
   count: number;
@@ -31,6 +33,8 @@ export interface DashboardSummaryDto {
   nearingBreachCount: number;
   breachedCount: number;
   escalatedCount: number;
+  managedEmployeesCount?: number;
+  managedEmployees?: UserListDto[];
 }
 
 export type SLADashboardDto = {

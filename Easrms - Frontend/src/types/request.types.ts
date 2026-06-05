@@ -84,6 +84,7 @@ export interface RequestListDto {
   priority: number;
   status: number;
   createdOn: string;
+  employeeName: string;
   assigneeName: string;
   dueDate: string | null;
   slaStatus: string;

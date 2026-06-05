@@ -85,8 +85,8 @@ const AppRoutes = () => {
               <Route path="/requests/:id" element={<RequestDetailPage />} />
             </Route>
 
-            {/* Create Request — Employee only */}
-            <Route element={<RoleBasedRoute allowedRoles={[ROLES.EMPLOYEE]} />}>
+            {/* Create Request — Employee and Manager */}
+            <Route element={<RoleBasedRoute allowedRoles={[ROLES.EMPLOYEE, ROLES.MANAGER]} />}>
               <Route path="/requests/create" element={<CreateRequestPage />} />
             </Route>
 

@@ -1,4 +1,6 @@
-﻿namespace Easrms.Application.DTOs.Dashboard;
+using Easrms.Application.DTOs.User;
+
+namespace Easrms.Application.DTOs.Dashboard;
 
 public class DashboardSummaryDto
 {
@@ -19,5 +21,8 @@ public class DashboardSummaryDto
     public List<PriorityCountDto> ByPriority { get; set; } = new List<PriorityCountDto>();
     public List<CategoryCountDto> ByCategory { get; set; } = new List<CategoryCountDto>();
     public List<AssignedUserCountDto> ByAssignedUser { get; set; } = new();
+
+    public int? ManagedEmployeesCount { get; set; }
+    public List<UserListDto> ManagedEmployees { get; set; } = new();
 }
 

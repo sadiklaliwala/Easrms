@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Easrms.Application.DTOs.Common;
 using Easrms.Application.DTOs.Request;
 using Easrms.Application.Interfaces.Repositories;
@@ -159,6 +159,7 @@ public class RequestRepository : IRequestRepository
                 sr.priority AS Priority,
                 sr.status AS Status,
                 sr.created_on AS CreatedOn,
+                emp.full_name AS EmployeeName,
                 au.full_name AS AssigneeName,
                 sr.due_date AS DueDate,
                 sr.is_escalated AS IsEscalated,
@@ -175,6 +176,7 @@ public class RequestRepository : IRequestRepository
                 sr.attachment_url AS AttachmentUrl
             FROM service_requests sr
             LEFT JOIN request_categories rc ON sr.category_id  = rc.category_id
+            LEFT JOIN users            emp ON sr.employee_id = emp.user_id
             LEFT JOIN users            au ON sr.assigned_to   = au.user_id
             LEFT JOIN users            u_esc ON u_esc.user_id = sr.escalated_by
             WHERE {where}
@@ -198,6 +200,7 @@ public class RequestRepository : IRequestRepository
             int priorityInt = (int)row.priority;
             int statusInt = (int)row.status;
             DateTime createdOn = row.createdon;
+            string employeeName = row.employeename ?? string.Empty;
             string assigneeName = row.assignename ?? string.Empty;
             string attachmentUrl = row.attachmenturl ?? string.Empty;
 
@@ -224,6 +227,7 @@ public class RequestRepository : IRequestRepository
                 Priority = priority,
                 Status = status,
                 CreatedOn = createdOn,
+                EmployeeName = employeeName,
                 AssigneeName = assigneeName,
                 DueDate = dueDate,
                 SLAStatus = slaStatus,

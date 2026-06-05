@@ -1,4 +1,4 @@
-﻿// DashboardRepository.cs
+// DashboardRepository.cs
 using Dapper;
 using Easrms.Application.DTOs.Dashboard;
 using Easrms.Application.Interfaces.Repositories;
@@ -116,6 +116,24 @@ public class DashboardRepository : IDashboardRepository
             new CommandDefinition(slaSql, parameters, cancellationToken: cancellationToken))
             ?? new SlaRow();
 
+        int? managedEmployeesCount = null;
+        List<Easrms.Application.DTOs.User.UserListDto> managedEmployees = new();
+
+        if (queryParams.ManagerId.HasValue)
+        {
+            var empSql = @"
+                SELECT u.user_id AS UserId, u.full_name AS FullName, u.email AS Email, r.role_name AS RoleName, u.is_active AS IsActive, u.created_on AS CreatedOn
+                FROM users u
+                LEFT JOIN roles r ON u.role_id = r.role_id
+                WHERE u.manager_id = @ManagerId AND u.is_deleted = FALSE;";
+            
+            var emps = (await conn.QueryAsync<Easrms.Application.DTOs.User.UserListDto>(
+                new CommandDefinition(empSql, new { ManagerId = queryParams.ManagerId.Value }, cancellationToken: cancellationToken))).ToList();
+            
+            managedEmployees = emps;
+            managedEmployeesCount = emps.Count;
+        }
+
         return new DashboardSummaryDto
         {
             TotalRequests = statusCounts.Values.Sum(),
@@ -133,7 +151,9 @@ public class DashboardRepository : IDashboardRepository
             EscalatedCount = (int)slaRow.EscalatedCount,
             ByPriority = priorityCounts.ToList(),
             ByCategory = categoryCounts.ToList(),
-            ByAssignedUser = assignedUserCounts.ToList()
+            ByAssignedUser = assignedUserCounts.ToList(),
+            ManagedEmployeesCount = managedEmployeesCount,
+            ManagedEmployees = managedEmployees
         };
     }
 

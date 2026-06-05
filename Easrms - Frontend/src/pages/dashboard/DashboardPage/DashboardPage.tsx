@@ -216,7 +216,23 @@
 
 // export default DashboardPage;
 
-import { Grid, Stack, Typography } from "@mui/material";
+import { useState, useMemo } from "react";
+import {
+  Grid,
+  Stack,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Avatar,
+  TextField,
+  InputAdornment,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import SearchIcon from "@mui/icons-material/Search";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PendingIcon from "@mui/icons-material/Pending";
@@ -224,6 +240,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import BuildIcon from "@mui/icons-material/Build";
 import ArchiveIcon from "@mui/icons-material/Archive";
+import PeopleIcon from "@mui/icons-material/People";
 
 import {
   useGetDashboardSummaryQuery,
@@ -243,8 +260,10 @@ import AppErrorState from "../../../components/common/feedback/AppErrorState";
 import { STATUS } from "../../../constants/status.constants";
 import { PRIORITY_LABEL } from "../../../constants/priority.constants";
 import { ROLES } from "../../../constants/role.constants";
+import { Box } from "@mui/system";
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
   const { roleName } = useAppSelector((state) => state.auth);
   const { data: response, isLoading, isError } = useGetDashboardSummaryQuery();
   const isSlaRole = roleName === ROLES.ADMIN || roleName === ROLES.MANAGER;
@@ -259,6 +278,17 @@ const DashboardPage = () => {
     return <AppErrorState message="Failed to load dashboard data" />;
 
   const data = response.data;
+
+  const [employeeSearch, setEmployeeSearch] = useState("");
+
+  const filteredEmployees = useMemo(() => {
+    if (!data.managedEmployees) return [];
+    return data.managedEmployees.filter(
+      (emp) =>
+        emp.fullName?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+        emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()),
+    );
+  }, [data.managedEmployees, employeeSearch]);
 
   const priorityChartData = data.byPriority.map((p) => ({
     priority: PRIORITY_LABEL[p.priority],
@@ -338,6 +368,15 @@ const DashboardPage = () => {
       color: "#64748b",
     },
   ];
+
+  if (roleName === ROLES.MANAGER && data.managedEmployeesCount !== undefined) {
+    metrics.push({
+      title: "Managed Employees",
+      count: data.managedEmployeesCount ?? 0,
+      icon: <PeopleIcon />,
+      color: "#ec4899",
+    });
+  }
 
   return (
     <Stack spacing={4}>
@@ -450,6 +489,153 @@ const DashboardPage = () => {
           </Grid>
         )}
       </Grid>
+
+      {/* Managed Employees List for Manager */}
+      {roleName === ROLES.MANAGER &&
+        data.managedEmployees &&
+        data.managedEmployees.length > 0 && (
+          <AppCard sx={{ p: 3 }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              sx={{
+                spacing: 2,
+                justifyContent: "space-between",
+                alignItems: { xs: "stretch", sm: "center" },
+                mb: 2,
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 600, color: "text.primary" }}
+              >
+                My Team / Managed Employees
+              </Typography>
+
+              <TextField
+                size="small"
+                placeholder="Search employees..."
+                value={employeeSearch}
+                onChange={(e) => setEmployeeSearch(e.target.value)}
+                sx={{ width: { xs: "100%", sm: 250 } }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Stack>
+            <TableContainer sx={{ mt: 1 }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ borderBottom: 1, borderColor: "divider" }}>
+                    <TableCell sx={{ fontWeight: 600, px: 2, py: 1.5 }}>
+                      Name
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, px: 2, py: 1.5 }}>
+                      Email
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, px: 2, py: 1.5 }}>
+                      Status
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredEmployees.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        align="center"
+                        sx={{ py: 3, color: "text.secondary" }}
+                      >
+                        No employees found matching "{employeeSearch}"
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredEmployees.map((emp) => (
+                      <TableRow
+                        key={emp.userId}
+                        hover
+                        onClick={() =>
+                          navigate("/requests", {
+                            state: { filterEmployeeName: emp.fullName },
+                          })
+                        }
+                        sx={{
+                          cursor: "pointer",
+                          "&:hover": {
+                            backgroundColor: "action.hover",
+                          },
+                        }}
+                      >
+                        <TableCell sx={{ px: 2, py: 1.5 }}>
+                          <Stack
+                            sx={{
+                              alignItems: "center",
+                            }}
+                            direction="row"
+                            spacing={2}
+                          >
+                            <Avatar
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                fontSize: "0.875rem",
+                                fontWeight: 600,
+                                bgcolor: "primary.main",
+                                color: "primary.contrastText",
+                              }}
+                            >
+                              {emp.fullName
+                                ? emp.fullName
+                                    .split(" ")
+                                    .filter(Boolean)
+                                    .map((n: string) => n[0])
+                                    .join("")
+                                    .toUpperCase()
+                                : "U"}
+                            </Avatar>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 500, color: "text.primary" }}
+                            >
+                              {emp.fullName}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell
+                          sx={{ px: 2, py: 1.5, color: "text.secondary" }}
+                        >
+                          {emp.email}
+                        </TableCell>
+                        <TableCell sx={{ px: 2, py: 1.5 }}>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                              backgroundColor: emp.isActive
+                                ? "rgba(16, 185, 129, 0.15)"
+                                : "rgba(239, 68, 68, 0.15)",
+                              color: emp.isActive ? "#10b981" : "#ef4444",
+                            }}
+                          >
+                            {emp.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </AppCard>
+        )}
     </Stack>
   );
 };
