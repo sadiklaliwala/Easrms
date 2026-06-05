@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Http;
 using Easrms.Application.Settings;
 using Easrms.Application.Interfaces.Jwt;
+using Microsoft.Extensions.Logging;
 
 namespace Easrms.Infrastructure.Services;
 
@@ -41,13 +42,16 @@ public sealed class JwtService : IJwtService
 
     private readonly JwtSettings _jwtSettings;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<JwtService> _logger;
 
     public JwtService(
         IOptions<JwtSettings> jwtSettings,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<JwtService> logger)
     {
         _jwtSettings = jwtSettings.Value;
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -57,6 +61,8 @@ public sealed class JwtService : IJwtService
     /// <inheritdoc/>
     public string GenerateAccessToken(User user)
     {
+        _logger.LogInformation("Generating access token for user {UserId}", user.UserId);
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -86,7 +92,10 @@ public sealed class JwtService : IJwtService
 
         var handler = new JwtSecurityTokenHandler();
         var token = handler.CreateToken(tokenDescriptor);
-        return handler.WriteToken(token);
+        var written = handler.WriteToken(token);
+
+        _logger.LogInformation("Access token generated for user {UserId}", user.UserId);
+        return written;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

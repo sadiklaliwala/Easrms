@@ -6,10 +6,12 @@ using AutoMapper;
 using Easrms.Application.Mappings;
 using Easrms.Application.Settings;
 using Easrms.Application.Interfaces.Jwt;
+using MediatR;
+using Easrms.Application.Behaviors;
 
 namespace Easrms.Application
 {
-    public static class DepandancyInjection 
+    public static class DepandancyInjection
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
@@ -20,6 +22,10 @@ namespace Easrms.Application
 
             // Register AutoMapper with the application's mapping profile
             services.AddAutoMapper(cfg => { }, assembly);
+
+            // Register pipeline behavior to log exceptions from handlers
+            services.AddTransient(typeof(IPipelineBehavior<,>),typeof(ExceptionLoggingBehavior<,>)
+);
 
             // Register application services, handlers, etc. here
             // e.g. services.AddScoped<IRequestHandler<CreateRequestCommand>, CreateRequestCommandHandler>();

@@ -2,6 +2,7 @@ using Easrms.Application.DTOs.Auth;
 using Easrms.Application.Interfaces.OAuth;
 using Easrms.Common.Constants;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using System.Text.Json;
 
@@ -10,10 +11,12 @@ namespace Easrms.Infrastructure.Services.OAuth;
 public class AzureOAuthService : IOAuthService
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<AzureOAuthService> _logger;
 
-    public AzureOAuthService(IConfiguration config)
+    public AzureOAuthService(IConfiguration config, ILogger<AzureOAuthService> logger)
     {
         _config = config;
+        _logger = logger;
     }
     public AuthProviderEnum Provider => AuthProviderEnum.Azure;
     public async Task<OAuthUserInfo> GetUserInfoAsync(string code, CancellationToken cancellationToken = default)
@@ -35,15 +38,27 @@ public class AzureOAuthService : IOAuthService
             {"scope", "openid profile email"}
         };
 
+        _logger.LogInformation("Starting Azure authentication");
+
         var tokenResp = await http.PostAsync("https://login.microsoftonline.com/common/oauth2/v2.0/token", new FormUrlEncodedContent(tokenRequest), cancellationToken);
-        if (!tokenResp.IsSuccessStatusCode)
-            throw new UnauthorizedAccessException("Failed to exchange code with Azure.");
+        _logger.LogInformation("Azure Token Response Status: {StatusCode}", tokenResp.StatusCode);
 
         var tokenJson = await tokenResp.Content.ReadAsStringAsync(cancellationToken);
+        _logger.LogInformation("Azure Token Response Body: {ResponseBody}", tokenJson);
+
+        if (!tokenResp.IsSuccessStatusCode)
+        {
+            _logger.LogError("Failed to exchange code with Azure. Status: {StatusCode}, Response: {ResponseBody}", tokenResp.StatusCode, tokenJson);
+            throw new UnauthorizedAccessException("Failed to exchange code with Azure.");
+        }
+
         using var doc = JsonDocument.Parse(tokenJson);
         var root = doc.RootElement;
         if (!root.TryGetProperty("id_token", out var idTokenEl))
+        {
+            _logger.LogError("No id_token received from Azure. Response: {ResponseBody}", tokenJson);
             throw new UnauthorizedAccessException("No id_token received from Azure.");
+        }
 
         var idToken = idTokenEl.GetString()!;
         // Decode JWT to get claims
