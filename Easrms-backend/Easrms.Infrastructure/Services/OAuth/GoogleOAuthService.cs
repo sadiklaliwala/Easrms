@@ -70,7 +70,7 @@ public class GoogleOAuthService : IOAuthService
             );
 
             throw new UnauthorizedAccessException(
-                $"Status: {resp.StatusCode} Google Related${resp} Error Occurred Please Login Again"
+                $"Status: {resp.StatusCode} Google Related${responseBody} Error Occurred Please Login Again"
             );
         }
 
