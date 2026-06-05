@@ -46,6 +46,7 @@ public class GoogleOAuthService : IOAuthService
 
         _logger.LogInformation("Starting Google authentication");
 
+
         var resp = await http.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(tokenRequest), cancellationToken);
 
         var responseBody = await resp.Content.ReadAsStringAsync(cancellationToken);
