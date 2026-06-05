@@ -47,6 +47,9 @@ public class CategoryBulkUploadService : ICategoryBulkUploadService
 
             while (await csv.ReadAsync())
             {
+                if (csv.HeaderRecord == null)
+                    continue;
+
                 var dict = csv.HeaderRecord.ToDictionary(
                     h => h,
                     h => csv.GetField(h) ?? string.Empty,
@@ -88,16 +91,16 @@ public class CategoryBulkUploadService : ICategoryBulkUploadService
             }
         }
 
-        if (!rows.Any()) throw new InvalidOperationException("File contains no data rows");
+        if (rows.Count == 0) throw new InvalidOperationException("File contains no data rows");
 
         var required = new[] { "CategoryName", "IsApprovalRequired", "SLAHours" };
         var headerKeys = rows.First().Keys.Select(k => k).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var missing = required.Where(r => !headerKeys.Contains(r)).ToList();
-        if (missing.Any()) throw new InvalidOperationException($"Invalid file structure. Missing columns: {string.Join(", ", missing)}");
+        if (missing.Count != 0) throw new InvalidOperationException($"Invalid file structure. Missing columns: {string.Join(", ", missing)}");
 
         var allowed = new HashSet<string>(required, StringComparer.OrdinalIgnoreCase);
         var unknown = headerKeys.Where(h => !allowed.Contains(h)).ToList();
-        if (unknown.Any()) throw new InvalidOperationException($"Invalid file structure. Unknown columns: {string.Join(", ", unknown)}");
+        if (unknown.Count != 0) throw new InvalidOperationException($"Invalid file structure. Unknown columns: {string.Join(", ", unknown)}");
 
         var result = new BulkUploadResultDto { TotalRows = rows.Count };
 
@@ -109,9 +112,9 @@ public class CategoryBulkUploadService : ICategoryBulkUploadService
             var name = rows[i].GetValueOrDefault("CategoryName")?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(name)) continue;
             var low = name.ToLowerInvariant();
-            if (nameFirstRow.ContainsKey(low))
+            if (nameFirstRow.TryGetValue(low, out int value))
             {
-                result.Errors.Add(new BulkUploadErrorDto { Row = i + 2, Identifier = name, Reason = $"Duplicate category name in uploaded file (first seen on row {nameFirstRow[low] + 2})" });
+                result.Errors.Add(new BulkUploadErrorDto { Row = i + 2, Identifier = name, Reason = $"Duplicate category name in uploaded file (first seen on row {value + 2})" });
                 duplicateRows.Add(i);
             }
             else nameFirstRow[low] = i;
@@ -143,7 +146,7 @@ public class CategoryBulkUploadService : ICategoryBulkUploadService
 
             if (!int.TryParse(sla, out var slaHours) || slaHours <= 0) errors.Add("SLAHours must be a positive integer");
 
-            if (!errors.Any())
+            if (errors.Count == 0)
             {
                 if (existingCategoryNames.Contains(name.ToLower())) { result.Errors.Add(new BulkUploadErrorDto { Row = rowNumber, Identifier = name, Reason = "Category name already exists in DB" }); continue; }
 
@@ -165,7 +168,7 @@ public class CategoryBulkUploadService : ICategoryBulkUploadService
             }
         }
 
-        if (validCategories.Any())
+        if (validCategories.Count != 0)
         {
             using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
             try

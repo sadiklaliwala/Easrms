@@ -9,6 +9,44 @@ import {
 } from "../../../types/common.types";
 import AppSelect from "../../common/form/AppSelect";
 
+const ExpandableText = ({ text, limit = 150 }: { text: string; limit?: number }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (text.length <= limit) {
+    return (
+      <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+        {text}
+      </Typography>
+    );
+  }
+
+  return (
+    <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+      {isExpanded ? text : `${text.slice(0, limit)}...`}
+      <Box
+        component="span"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
+        sx={{
+          color: "primary.main",
+          cursor: "pointer",
+          fontWeight: 600,
+          ml: 0.5,
+          fontSize: "0.8rem",
+          display: "inline-block",
+          "&:hover": {
+            textDecoration: "underline",
+          },
+        }}
+      >
+        {isExpanded ? "Show less" : "Read more"}
+      </Box>
+    </Typography>
+  );
+};
+
 interface RequestCommentBoxProps {
   comments: CommentListDto[];
   onAddComment: (data: AddCommentDto) => Promise<void>;
@@ -88,7 +126,7 @@ const RequestCommentBox = ({
                   </Typography>
                 </Box>
               </Box>
-              <Typography variant="body2">{c.commentText}</Typography>
+              <ExpandableText text={c.commentText} />
             </Box>
           ))
         )}
@@ -110,7 +148,9 @@ const RequestCommentBox = ({
           }}
           helperText={
             text.length >= 990 ? (
-              <span style={{ color: "#d32f2f" }}>Maximum limit of 990 characters reached</span>
+              <span style={{ color: "#d32f2f" }}>
+                Maximum limit of 990 characters reached
+              </span>
             ) : (
               ""
             )

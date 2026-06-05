@@ -340,7 +340,28 @@ const RequestListPage = () => {
           </span>
         ),
       },
-      { key: "title", label: "Title" },
+      {
+        key: "title",
+        label: "Title",
+        render: (row) => (
+          <Box
+            sx={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              wordBreak: "break-word",
+              whiteSpace: "normal",
+              minWidth: "150px",
+              maxWidth: "300px",
+            }}
+            title={row.title}
+          >
+            {row.title}
+          </Box>
+        ),
+      },
       { key: "categoryName", label: "Category" },
       {
         key: "priority",

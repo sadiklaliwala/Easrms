@@ -3,7 +3,6 @@ using Easrms.Application.Interfaces.OAuth;
 using Easrms.Common.Constants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
 using System.Text.Json;
 
 namespace Easrms.Infrastructure.Services.OAuth;
@@ -12,22 +11,25 @@ public class AzureOAuthService : IOAuthService
 {
     private readonly IConfiguration _config;
     private readonly ILogger<AzureOAuthService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public AzureOAuthService(IConfiguration config, ILogger<AzureOAuthService> logger)
+
+    public AzureOAuthService(IConfiguration config, ILogger<AzureOAuthService> logger, IHttpClientFactory httpClientFactory )
     {
         _config = config;
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
     }
     public AuthProviderEnum Provider => AuthProviderEnum.Azure;
     public async Task<OAuthUserInfo> GetUserInfoAsync(string code, CancellationToken cancellationToken = default)
     {
         var settings = _config.GetSection("OAuth:Azure");
-        var clientId = settings["ClientId"];
-        var clientSecret = settings["ClientSecret"];
-        var redirectUri = settings["RedirectUri"];
-
+        var clientId = settings["ClientId"] ?? throw new InvalidOperationException("OAuth:Azure:ClientId is not configured.");
+        var clientSecret = settings["ClientSecret"] ?? throw new InvalidOperationException("OAuth:Azure:ClientSecret is not configured.");
+        var redirectUri = settings["RedirectUri"] ?? throw new InvalidOperationException("OAuth:Azure:RedirectUri is not configured.");
+        var TenantId = settings["TenantId"] ?? throw new InvalidOperationException("OAuth:Azure:Tenant Id is not configured.");
         // Exchange code for token
-        using var http = new HttpClient();
+        using var http = _httpClientFactory.CreateClient();
         var tokenRequest = new Dictionary<string, string>
         {
             {"client_id", clientId},
@@ -40,11 +42,11 @@ public class AzureOAuthService : IOAuthService
 
         _logger.LogInformation("Starting Azure authentication");
 
-        var tokenResp = await http.PostAsync("https://login.microsoftonline.com/common/oauth2/v2.0/token", new FormUrlEncodedContent(tokenRequest), cancellationToken);
+        var tokenResp = await http.PostAsync($"https://login.microsoftonline.com/{TenantId}/oauth2/v2.0/token", new FormUrlEncodedContent(tokenRequest), cancellationToken);
         _logger.LogInformation("Azure Token Response Status: {StatusCode}", tokenResp.StatusCode);
 
         var tokenJson = await tokenResp.Content.ReadAsStringAsync(cancellationToken);
-        _logger.LogInformation("Azure Token Response Body: {ResponseBody}", tokenJson);
+        //_logger.LogInformation("Azure Token Response Body: {ResponseBody}", tokenJson);
 
         if (!tokenResp.IsSuccessStatusCode)
         {

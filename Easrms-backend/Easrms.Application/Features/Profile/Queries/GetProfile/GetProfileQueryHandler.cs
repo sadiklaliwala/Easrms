@@ -19,7 +19,7 @@ public class GetProfileQueryHandler : IRequestHandler<GetProfileQuery, ApiRespon
 
     public async Task<ApiResponse<ProfileDetailDto>> Handle(GetProfileQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByIdAsync(request.CurrentUserId);
+        var user = await _userRepository.GetByIdAsync(request.CurrentUserId, cancellationToken: cancellationToken);
         if (user == null)
             return ApiResponse<ProfileDetailDto>.FailResponse("User not found", 400);
 

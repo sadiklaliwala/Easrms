@@ -48,6 +48,9 @@ public class UserBulkUploadService : IUserBulkUploadService
 
             while (await csv.ReadAsync())
             {
+                if (csv.HeaderRecord == null)
+                    continue;
+
                 var dict = csv.HeaderRecord.ToDictionary(
                     h => h,
                     h => csv.GetField(h) ?? string.Empty,
@@ -89,16 +92,16 @@ public class UserBulkUploadService : IUserBulkUploadService
             }
         }
 
-        if (!rows.Any()) throw new InvalidOperationException("File contains no data rows");
+        if (rows.Count == 0) throw new InvalidOperationException("File contains no data rows");
 
         var required = new[] { "FullName", "Email", "Password", "RoleName", "ManagerEmail" };
         var headerKeys = rows.First().Keys.Select(k => k).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var missing = required.Where(r => !headerKeys.Contains(r)).ToList();
-        if (missing.Any()) throw new InvalidOperationException($"Invalid file structure. Missing columns: {string.Join(", ", missing)}");
+        if (missing.Count != 0) throw new InvalidOperationException($"Invalid file structure. Missing columns: {string.Join(", ", missing)}");
 
         var allowed = new HashSet<string>(required, StringComparer.OrdinalIgnoreCase);
         var unknown = headerKeys.Where(h => !allowed.Contains(h)).ToList();
-        if (unknown.Any()) throw new InvalidOperationException($"Invalid file structure. Unknown columns: {string.Join(", ", unknown)}");
+        if (unknown.Count != 0) throw new InvalidOperationException($"Invalid file structure. Unknown columns: {string.Join(", ", unknown)}");
 
         var result = new BulkUploadResultDto { TotalRows = rows.Count };
 
@@ -110,9 +113,9 @@ public class UserBulkUploadService : IUserBulkUploadService
             var email = rows[i].GetValueOrDefault("Email")?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(email)) continue;
             var low = email.ToLowerInvariant();
-            if (emailFirstRow.ContainsKey(low))
+            if (emailFirstRow.TryGetValue(low, out int value))
             {
-                result.Errors.Add(new BulkUploadErrorDto { Row = i + 2, Identifier = email, Reason = $"Duplicate email in uploaded file (first seen on row {emailFirstRow[low] + 2})" });
+                result.Errors.Add(new BulkUploadErrorDto { Row = i + 2, Identifier = email, Reason = $"Duplicate email in uploaded file (first seen on row {value + 2})" });
                 duplicateRows.Add(i);
             }
             else emailFirstRow[low] = i;
@@ -152,7 +155,7 @@ public class UserBulkUploadService : IUserBulkUploadService
             if (!string.IsNullOrWhiteSpace(managerEmail)) { try { var m = new System.Net.Mail.MailAddress(managerEmail); } catch { errors.Add("ManagerEmail must be a valid email if provided"); } }
 
             // BUSINESS VALIDATION
-            if (!errors.Any())
+            if (errors.Count == 0)
             {
                 if (existingEmails.Contains(email.ToLower())) { result.Errors.Add(new BulkUploadErrorDto { Row = rowNumber, Identifier = email, Reason = "Email already exists in DB" }); continue; }
 
@@ -185,7 +188,7 @@ public class UserBulkUploadService : IUserBulkUploadService
         }
 
         // Batch insert
-        if (validUsers.Any())
+        if (validUsers.Count != 0)
         {
             using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
             try

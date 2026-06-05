@@ -22,9 +22,13 @@ public class GitHubOAuthService : IOAuthService
     public async Task<OAuthUserInfo> GetUserInfoAsync(string code, CancellationToken cancellationToken = default)
     {
         var settings = _config.GetSection("OAuth:GitHub");
-        var clientId = settings["ClientId"];
-        var clientSecret = settings["ClientSecret"];
-        var redirectUri = settings["RedirectUri"];
+        //var clientId = settings["ClientId"];
+        //var clientSecret = settings["ClientSecret"];
+        //var redirectUri = settings["RedirectUri"];
+        var clientId = settings["ClientId"] ?? throw new InvalidOperationException("OAuth:Azure:ClientId is not configured.");
+        var clientSecret = settings["ClientSecret"] ?? throw new InvalidOperationException("OAuth:Azure:ClientSecret is not configured.");
+        var redirectUri = settings["RedirectUri"] ?? throw new InvalidOperationException("OAuth:Azure:RedirectUri is not configured.");
+
 
         using var http = new HttpClient();
         var tokenRequest = new Dictionary<string, string>

@@ -30,7 +30,7 @@ public class ProfileController : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var query = new GetProfileQuery { CurrentUserId = userId };
         var result = await _mediator.Send(query, cancellationToken);
-        return Ok(ApiResponse<ProfileDetailDto>.SuccessResponse(result.Data, result.Message));
+        return Ok(ApiResponse<ProfileDetailDto>.SuccessResponse(result.Data!, result.Message));
     }
 
     [HttpPut]

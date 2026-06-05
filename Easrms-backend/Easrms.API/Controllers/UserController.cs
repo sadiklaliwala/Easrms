@@ -42,7 +42,7 @@ public partial class UserController : ControllerBase
             Search = search,
             RoleId = roleId,
             IsActive = isActive,
-            SortBy = sortBy,
+            SortBy = sortBy??"",
             SortDirection = sortDirection,
             SortAscending = sortAscending ?? false
         });

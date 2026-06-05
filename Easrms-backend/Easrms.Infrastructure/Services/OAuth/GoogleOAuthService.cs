@@ -29,9 +29,10 @@ public class GoogleOAuthService : IOAuthService
         // However following the spec, we'll attempt to exchange code via token endpoint.
 
         var googleSettings = _config.GetSection("OAuth:Google");
-        var clientId = googleSettings["ClientId"];
-        var clientSecret = googleSettings["ClientSecret"];
-        var redirectUri = googleSettings["RedirectUri"];
+        var clientId = googleSettings["ClientId"] ?? throw new InvalidOperationException("OAuth:Azure:ClientId is not configured.");
+var clientSecret = googleSettings["ClientSecret"] ?? throw new InvalidOperationException("OAuth:Azure:ClientSecret is not configured.");
+var redirectUri = googleSettings["RedirectUri"] ?? throw new InvalidOperationException("OAuth:Azure:RedirectUri is not configured.");
+
 
         // Exchange code for tokens
         using var http = new HttpClient();

@@ -38,10 +38,7 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
         var user = await _userRepository.GetByIdAsync(
             request.CurrentUserId,
             trackChanges: false,
-            cancellationToken: cancellationToken);
-
-        if (user is null)
-            throw new UnauthorizedAccessException("User session not found.");
+            cancellationToken: cancellationToken) ?? throw new UnauthorizedAccessException("User session not found.");
 
         // 2. Wipe refresh token — direct ExecuteUpdateAsync, no SaveChanges needed
         await _userRepository.RevokeRefreshTokenAsync(request.CurrentUserId, cancellationToken);

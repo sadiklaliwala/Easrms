@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Easrms.Application.Behaviors
 {
     public class ExceptionLoggingBehavior<TRequest, TResponse>
-        : IPipelineBehavior<TRequest, TResponse>
+        : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
         private readonly ILogger<ExceptionLoggingBehavior<TRequest, TResponse>> _logger;
 
@@ -24,7 +24,7 @@ namespace Easrms.Application.Behaviors
         {
             try
             {
-                return await next();
+                return await next(cancellationToken);
             }
             catch (Exception ex)
             {

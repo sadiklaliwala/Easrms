@@ -11,7 +11,7 @@ using Xunit;
 using Easrms.Application.Interfaces.Jwt;
 using Easrms.Common.Helpers;
 
-namespace Easrms.Test.features.Auth.Commands;
+namespace Easrms.UnitTest.features.Auth.Commands;
 
 public class LoginCommandHandlerTests
 {

@@ -47,6 +47,9 @@ public class RequestBulkUploadService : IRequestBulkUploadService
 
             while (await csv.ReadAsync())
             {
+                if (csv.HeaderRecord == null)
+                    continue;
+
                 var dict = csv.HeaderRecord.ToDictionary(
                     h => h,
                     h => csv.GetField(h) ?? string.Empty,
@@ -88,16 +91,16 @@ public class RequestBulkUploadService : IRequestBulkUploadService
             }
         }
 
-        if (!rows.Any()) throw new InvalidOperationException("File contains no data rows");
+        if (rows.Count == 0) throw new InvalidOperationException("File contains no data rows");
 
         var required = new[] { "CategoryName", "Title", "Description", "Priority" };
         var headerKeys = rows.First().Keys.Select(k => k).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var missing = required.Where(r => !headerKeys.Contains(r)).ToList();
-        if (missing.Any()) throw new InvalidOperationException($"Invalid file structure. Missing columns: {string.Join(", ", missing)}");
+        if (missing.Count != 0) throw new InvalidOperationException($"Invalid file structure. Missing columns: {string.Join(", ", missing)}");
 
         var allowed = new HashSet<string>(required, StringComparer.OrdinalIgnoreCase);
         var unknown = headerKeys.Where(h => !allowed.Contains(h)).ToList();
-        if (unknown.Any()) throw new InvalidOperationException($"Invalid file structure. Unknown columns: {string.Join(", ", unknown)}");
+        if (unknown.Count != 0) throw new InvalidOperationException($"Invalid file structure. Unknown columns: {string.Join(", ", unknown)}");
 
         var result = new BulkUploadResultDto { TotalRows = rows.Count };
 
@@ -109,9 +112,9 @@ public class RequestBulkUploadService : IRequestBulkUploadService
             var title = rows[i].GetValueOrDefault("Title")?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(title)) continue;
             var low = title.ToLowerInvariant();
-            if (titleFirstRow.ContainsKey(low))
+            if (titleFirstRow.TryGetValue(low, out int value))
             {
-                result.Errors.Add(new BulkUploadErrorDto { Row = i + 2, Identifier = title, Reason = $"Duplicate request title in uploaded file (first seen on row {titleFirstRow[low] + 2})" });
+                result.Errors.Add(new BulkUploadErrorDto { Row = i + 2, Identifier = title, Reason = $"Duplicate request title in uploaded file (first seen on row {value + 2})" });
                 duplicateRows.Add(i);
             }
             else titleFirstRow[low] = i;
@@ -143,7 +146,7 @@ public class RequestBulkUploadService : IRequestBulkUploadService
 
             if (!priorityMap.ContainsKey(priority)) errors.Add("Priority must be High, Medium, or Low");
 
-            if (!errors.Any())
+            if (errors.Count == 0)
             {
                 if (!activeCategories.TryGetValue(categoryName.ToLower(), out var category))
                 {
@@ -184,7 +187,7 @@ public class RequestBulkUploadService : IRequestBulkUploadService
             }
         }
 
-        if (validRequests.Any())
+        if (validRequests.Count != 0)
         {
             using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
