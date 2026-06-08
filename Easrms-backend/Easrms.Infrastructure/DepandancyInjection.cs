@@ -95,6 +95,8 @@ namespace Easrms.Infrastructure
                 .DefaultIndex("easrms-requests")
                 .RequestTimeout(TimeSpan.FromSeconds(10));
 
+            services.AddHttpClient<IClaudeService, ClaudeService>();
+
             if (!string.IsNullOrEmpty(uri.UserInfo))
             {
                 var parts = uri.UserInfo.Split(':');

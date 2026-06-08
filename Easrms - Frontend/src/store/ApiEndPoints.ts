@@ -131,6 +131,11 @@ const ApiEndPoints = {
   AUTH_SEND_OTP: '/api/auth/send-otp',
   AUTH_VERIFY_OTP: '/api/auth/verify-otp',
   AUTH_RESET_PASSWORD: '/api/auth/reset-password',
+
+  // Chat
+  CHAT: {
+    MESSAGE: '/api/chat/message',
+  },
 };
 
 export default ApiEndPoints;

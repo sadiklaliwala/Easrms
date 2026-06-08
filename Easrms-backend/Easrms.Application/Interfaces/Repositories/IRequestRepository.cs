@@ -114,6 +114,9 @@ public interface IRequestRepository
     /// <param name="request">The modified <see cref="ServiceRequest"/> entity.</param>
     void Update(ServiceRequest request);
 
+    Task<ServiceRequest?> GetRequestByNumberAsync(string requestNumber);
+
+
     /// <summary>
     /// Persists all pending changes in the current DbContext to the database.
     /// Called once at the end of each command handler to commit the unit of work.

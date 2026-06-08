@@ -1,6 +1,4 @@
 using Easrms.Application.Interfaces.Cloudinary;
-using Easrms.Application.Settings;
-using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -42,9 +40,8 @@ public class CloudinaryService : ICloudinaryService
 
     private static string ComputeSha1Hash(string input)
     {
-        using var sha1 = SHA1.Create();
         var bytes = Encoding.UTF8.GetBytes(input);
-        var hash = sha1.ComputeHash(bytes);
+        var hash = SHA1.HashData(bytes);
         return string.Concat(hash.Select(b => b.ToString("x2")));
     }
 }

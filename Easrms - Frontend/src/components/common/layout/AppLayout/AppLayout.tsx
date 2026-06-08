@@ -10,6 +10,7 @@ import { clearCredentials } from "../../../../store/slices/authSlice";
 import { api } from "../../../../store/api/api";
 
 import { useNotificationHub } from "../../../../hooks/useNotificationHub";
+import ChatWidget from "../../chat/ChatWidget/ChatWidget";
 
 // const DRAWER_WIDTH = 240;
 
@@ -53,6 +54,7 @@ const AppLayout = () => {
         <Toolbar />
         <Outlet />
       </Box>
+      <ChatWidget />
     </Box>
   );
 };

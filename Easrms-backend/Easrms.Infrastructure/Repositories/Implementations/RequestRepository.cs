@@ -267,6 +267,22 @@ public class RequestRepository : IRequestRepository
             .FirstOrDefaultAsync(sr => sr.RequestId == requestId, cancellationToken);
     }
 
+
+    public async Task<ServiceRequest?> GetRequestByNumberAsync(string requestNumber)
+    {
+        var entity = await _dbContext.ServiceRequests
+            .Include(r => r.Employee)
+            .Include(r => r.AssignedUser)
+            .Include(r => r.Category)
+            .FirstOrDefaultAsync(r => r.RequestNumber == requestNumber.ToUpper());
+
+        if (entity is null) return null;
+
+        //return _mapper.Map<RequestDetailDto>(entity);
+        return entity;
+
+    }
+
     /// <summary>
     /// Lightweight fetch with only Category navigation loaded.
     /// Read-only (no tracking) — used for approval checks.
