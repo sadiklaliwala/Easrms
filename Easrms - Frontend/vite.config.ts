@@ -25,30 +25,29 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React runtime — always cached first
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-
-          // Redux + RTK Query
-          'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
-
-          // MUI core components
-          'vendor-mui-core': ['@mui/material', '@mui/system', '@emotion/react', '@emotion/styled'],
-
-          // MUI icons (large — split away from core)
-          'vendor-mui-icons': ['@mui/icons-material'],
-
-          // Form handling + validation
-          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'joi'],
-
-          // Charts (recharts is heavy)
-          'vendor-charts': ['recharts'],
-
-          // SignalR (large, only needed post-login)
-          'vendor-signalr': ['@microsoft/signalr'],
-
-          // Misc utilities
-          'vendor-misc': ['react-hot-toast'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@mui')) {
+              // Group all MUI packages together to prevent circular dependency errors like "Cannot set properties of undefined"
+              return 'vendor-mui';
+            }
+            if (id.includes('react') || id.includes('@remix-run') || id.includes('router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('redux')) {
+              return 'vendor-redux';
+            }
+            if (id.includes('joi')) {
+              return 'vendor-joi';
+            }
+            if (id.includes('@microsoft/signalr')) {
+              return 'vendor-signalr';
+            }
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'vendor-charts';
+            }
+            return 'vendor-core'; // Fallback for other node_modules
+          }
         },
       },
     },
