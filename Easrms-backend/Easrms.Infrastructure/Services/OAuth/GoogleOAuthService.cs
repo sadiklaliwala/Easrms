@@ -4,90 +4,161 @@ using Easrms.Common.Constants;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Easrms.Infrastructure.Services.OAuth;
 
 public class GoogleOAuthService : IOAuthService
 {
-    private readonly IConfiguration _config;
+    private readonly HttpClient _httpClient;
     private readonly ILogger<GoogleOAuthService> _logger;
 
-    public GoogleOAuthService(IConfiguration config, ILogger<GoogleOAuthService> logger)
+    // Config values read once at startup — fails fast if misconfigured
+    private readonly string _clientId;
+    private readonly string _clientSecret;
+    private readonly string _redirectUri;
+
+    public GoogleOAuthService(
+        IHttpClientFactory httpClientFactory,
+        IConfiguration config,
+        ILogger<GoogleOAuthService> logger)
     {
-        _config = config;
+        _httpClient = httpClientFactory.CreateClient("Google");
         _logger = logger;
+
+        var googleSettings = config.GetSection("OAuth:Google");
+
+        _clientId = googleSettings["ClientId"]
+            ?? throw new InvalidOperationException("OAuth:Google:ClientId is not configured.");
+
+        _clientSecret = googleSettings["ClientSecret"]
+            ?? throw new InvalidOperationException("OAuth:Google:ClientSecret is not configured.");
+
+        _redirectUri = googleSettings["RedirectUri"]
+            ?? throw new InvalidOperationException("OAuth:Google:RedirectUri is not configured.");
     }
 
     public AuthProviderEnum Provider => AuthProviderEnum.Google;
 
     public async Task<OAuthUserInfo> GetUserInfoAsync(string code, CancellationToken cancellationToken = default)
     {
-        // Note: Implementing full OAuth token exchange requires HTTP calls to Google's token endpoint.
-        // For brevity and to avoid heavy dependencies here, we'll perform a simple token verification flow
-        // assuming the client will exchange code for id_token on the client side and pass id_token instead.
-        // However following the spec, we'll attempt to exchange code via token endpoint.
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Authorization code must not be empty.", nameof(code));
 
-        var googleSettings = _config.GetSection("OAuth:Google");
-        var clientId = googleSettings["ClientId"] ?? throw new InvalidOperationException("OAuth:Azure:ClientId is not configured.");
-var clientSecret = googleSettings["ClientSecret"] ?? throw new InvalidOperationException("OAuth:Azure:ClientSecret is not configured.");
-var redirectUri = googleSettings["RedirectUri"] ?? throw new InvalidOperationException("OAuth:Azure:RedirectUri is not configured.");
+        _logger.LogInformation("Starting Google OAuth token exchange.");
 
+        // Step 1: Exchange authorization code for tokens
+        var idToken = await ExchangeCodeForIdTokenAsync(code, cancellationToken);
 
-        // Exchange code for tokens
-        using var http = new HttpClient();
+        // Step 2: Validate id_token and extract user info
+        var userInfo = await ValidateAndExtractUserInfoAsync(idToken, cancellationToken);
+
+        _logger.LogInformation(
+            "Google OAuth authentication succeeded for ExternalUserId: {ExternalUserId}",
+            userInfo.ExternalUserId);
+
+        return userInfo;
+    }
+
+    // -------------------------------------------------------------------------
+    // Private Helpers
+    // -------------------------------------------------------------------------
+
+    private async Task<string> ExchangeCodeForIdTokenAsync(string code, CancellationToken cancellationToken)
+    {
         var tokenRequest = new Dictionary<string, string>
         {
-            {"code", code},
-            {"client_id", clientId},
-            {"client_secret", clientSecret},
-            {"redirect_uri", redirectUri},
-            {"grant_type", "authorization_code"}
+            { "code",          code          },
+            { "client_id",     _clientId     },
+            { "client_secret", _clientSecret },
+            { "redirect_uri",  _redirectUri  },
+            { "grant_type",    "authorization_code" }
         };
 
-        _logger.LogInformation("Starting Google authentication");
+        HttpResponseMessage response;
 
-
-        var resp = await http.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(tokenRequest), cancellationToken);
-
-        var responseBody = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-        _logger.LogInformation(
-            "Google Response Status: {StatusCode}",
-            resp.StatusCode
-        );
-
-        _logger.LogInformation(
-            "Google Response Body: {ResponseBody}",
-            responseBody
-        );
-
-        if (!resp.IsSuccessStatusCode)
+        try
         {
-            _logger.LogError(
-                "Google authentication failed. Status: {StatusCode}, Response: {ResponseBody}",
-                resp.StatusCode,
-                responseBody
-            );
-
-            throw new UnauthorizedAccessException(
-                $"Status: {resp.StatusCode} Google Related${responseBody} Error Occurred Please Login Again"
-            );
+            response = await _httpClient.PostAsync(
+                "https://oauth2.googleapis.com/token",
+                new FormUrlEncodedContent(tokenRequest),
+                cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Network error while contacting Google token endpoint.");
+            throw new InvalidOperationException("Unable to reach Google authentication service. Please try again.", ex);
         }
 
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Google token endpoint responded with status: {StatusCode}",
+            response.StatusCode);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            // Log full details internally — never expose to the caller
+            _logger.LogError(
+                "Google token exchange failed. Status: {StatusCode}, Body: {Body}",
+                response.StatusCode,
+                responseBody);
+
+            throw new UnauthorizedAccessException("Google authentication failed. Please try logging in again.");
+        }
+
+        // Parse id_token from response
         using var doc = System.Text.Json.JsonDocument.Parse(responseBody);
         var root = doc.RootElement;
-        if (!root.TryGetProperty("id_token", out var idTokenEl))
+
+        if (!root.TryGetProperty("id_token", out var idTokenElement))
         {
-            _logger.LogError("No id_token received from Google. Response: {ResponseBody}", responseBody);
-            throw new UnauthorizedAccessException("No id_token received from Google.");
+            _logger.LogError("Google token response did not contain an id_token.");
+            throw new UnauthorizedAccessException("Google authentication failed: missing identity token.");
         }
 
-        var payload = await GoogleJsonWebSignature.ValidateAsync(idTokenEl.GetString()!);
+        var idToken = idTokenElement.GetString();
+
+        if (string.IsNullOrWhiteSpace(idToken))
+        {
+            _logger.LogError("Google token response contained an empty id_token.");
+            throw new UnauthorizedAccessException("Google authentication failed: empty identity token.");
+        }
+
+        return idToken;
+    }
+
+    private async Task<OAuthUserInfo> ValidateAndExtractUserInfoAsync(string idToken, CancellationToken cancellationToken)
+    {
+        // Respect cancellation before an async operation that doesn't natively accept a token
+        cancellationToken.ThrowIfCancellationRequested();
+
+        GoogleJsonWebSignature.Payload payload;
+
+        try
+        {
+            // Validate signature, expiry, issuer, AND audience (prevents token substitution attacks)
+            payload = await GoogleJsonWebSignature.ValidateAsync(
+                idToken,
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { _clientId }
+                });
+        }
+        catch (InvalidJwtException ex)
+        {
+            _logger.LogWarning(ex, "Google id_token validation failed.");
+            throw new UnauthorizedAccessException("Google identity token is invalid or expired. Please log in again.", ex);
+        }
+
+        if (string.IsNullOrWhiteSpace(payload.Email))
+        {
+            _logger.LogError("Google payload is missing email for Subject: {Subject}", payload.Subject);
+            throw new UnauthorizedAccessException("Google account did not provide an email address.");
+        }
 
         return new OAuthUserInfo
         {
-            Email = payload.Email ?? string.Empty,
+            Email = payload.Email,
             ExternalUserId = payload.Subject ?? string.Empty,
             Name = payload.Name ?? string.Empty
         };

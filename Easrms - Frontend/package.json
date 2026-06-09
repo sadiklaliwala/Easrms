@@ -29,6 +29,7 @@
     "papaparse": "^5.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-draggable": "^4.6.0",
     "react-hook-form": "^7.75.0",
     "react-hot-toast": "^2.6.0",
     "react-redux": "^9.2.0",

@@ -61,7 +61,7 @@ const ChatBubble = ({ role, text, timestamp, intent }: ChatBubbleProps) => {
         <Typography
           variant="caption"
           color="text.secondary"
-          sx={{ mt: 0.5, px: 0.5, fontSize: "0.7rem" }}
+          sx={{ mt: 0.5, mx: 0.5 }}
         >
           {format(new Date(timestamp), "HH:mm")}
         </Typography>

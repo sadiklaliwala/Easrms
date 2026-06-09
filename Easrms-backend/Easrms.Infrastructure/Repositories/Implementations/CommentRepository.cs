@@ -102,8 +102,8 @@ ORDER BY rc.created_on ASC;";
                 CommentText = row.CommentText?.ToString() ?? string.Empty,
 
                 CommentType = Enum.IsDefined(typeof(CommentTypeEnum), commentTypeInt)
-                    ? ((CommentTypeEnum)commentTypeInt).ToString()
-                    : commentTypeInt.ToString(),
+        ? (CommentTypeEnum)commentTypeInt
+        : default,
 
                 CommentByName = row.CommentByName?.ToString() ?? string.Empty,
 

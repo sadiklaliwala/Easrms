@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,8 +27,16 @@ namespace Easrms.Application
             services.AddTransient(typeof(IPipelineBehavior<,>),typeof(ExceptionLoggingBehavior<,>)
 );
 
-            // Register application services, handlers, etc. here
-            // e.g. services.AddScoped<IRequestHandler<CreateRequestCommand>, CreateRequestCommandHandler>();
+            // Register Intent Handlers dynamically
+            var intentHandlerType = typeof(Easrms.Application.Features.ChatMessage.Intents.IIntentHandler);
+            var intentHandlers = assembly.GetTypes()
+                .Where(t => intentHandlerType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            foreach (var handler in intentHandlers)
+            {
+                services.AddScoped(intentHandlerType, handler);
+            }
+
             return services;
         }
     }

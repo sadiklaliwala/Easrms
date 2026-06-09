@@ -1,235 +1,189 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Box, Typography, IconButton, Paper } from "@mui/material";
+import { useState, useRef } from "react";
+import { Box, Typography, IconButton, Paper, Tooltip } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
-import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import Draggable from "react-draggable";
 
 import ChatBubble from "../ChatBubble/ChatBubble";
 import ChatInput from "../ChatInput/ChatInput";
-
-import { useSendChatMessageMutation } from "../../../../store/api/chat.endpoints";
-import { ROLES } from "../../../../constants/role.constants";
-import type { ChatMessage } from "../../../../types/chat.types";
+import { useChat } from "./useChat";
 
 interface ChatWindowProps {
   onClose: () => void;
 }
 
-const generateWelcomeMessage = (fullName: string, roleName: string) => {
-  let examples = "show my requests, check status of REQ-0001";
-
-  if (roleName === ROLES.MANAGER) {
-    examples = "show my pending approvals, show dashboard summary";
-  } else if (roleName === ROLES.ADMIN) {
-    examples = "show dashboard summary, show open requests";
-  } else if (roleName === ROLES.SUPPORT_USER) {
-    examples = "show my tasks, show assigned requests";
-  }
-
-  return `Hi ${
-    fullName || "there"
-  }! I am your EASRMS assistant. You can ask me things like: ${examples}.`;
-};
-
 const ChatWindow = ({ onClose }: ChatWindowProps) => {
-  const user = useSelector((state: any) => state.auth.user);
+  const {
+    messages,
+    isLoading,
+    messagesEndRef,
+    handleSendMessage,
+    handleClearChat,
+  } = useChat();
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const paperRef = useRef<HTMLDivElement>(null);
 
-  const [sendMessage, { isLoading }] = useSendChatMessageMutation();
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, []);
-
-  const initChat = useCallback(() => {
-    const welcomeText = generateWelcomeMessage(
-      user?.fullName || "",
-      user?.roleName || "",
-    );
-
-    setMessages([
-      {
-        id: crypto.randomUUID(),
-        role: "bot",
-        text: welcomeText,
-        timestamp: new Date(),
-      },
-    ]);
-  }, [user]);
-
-  useEffect(() => {
-    initChat();
-  }, [initChat]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  const handleSendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
-
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      text,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-
-    const lowerText = text.trim().toLowerCase();
-    if (
-      lowerText === "help" ||
-      lowerText === "what can i do" ||
-      lowerText === "what can you do"
-    ) {
-      let helpText =
-        "Here is what you can ask me to do:\n• Show my requests\n• Show details for a request (e.g., 'What is REQ-0001?')\n• Show request history or comments\n\nPhase 2 Actions:\n• 'create request'\n• 'approve REQ-0001' / 'reject REQ-0001'\n• 'add comment to REQ-0001'";
-
-      if (user?.roleName === ROLES.MANAGER) {
-        helpText += "\n• Show my pending approvals\n• Show dashboard summary";
-      } else if (user?.roleName === ROLES.ADMIN) {
-        helpText += "\n• Show dashboard summary\n• Show open requests";
-      } else if (user?.roleName === ROLES.SUPPORT_USER) {
-        helpText += "\n• Show my assigned tasks";
-      }
-
-      const botMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "bot",
-        text: helpText,
-        timestamp: new Date(),
-        intent: "help",
-      };
-
-      // Add a tiny delay to feel natural
-      setTimeout(() => {
-        setMessages((prev) => [...prev, botMsg]);
-      }, 400);
-      return;
-    }
-
-    try {
-      const response = await sendMessage({
-        message: text,
-      }).unwrap();
-
-      const botMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "bot",
-        text:
-          response.data?.reply ||
-          response.message ||
-          "Sorry, I couldn't process that.",
-        timestamp: new Date(),
-        intent: response.data?.intent,
-      };
-
-      setMessages((prev) => [...prev, botMsg]);
-    } catch (error) {
-      console.error(error);
-
-      toast.error("Failed to send message to the assistant.");
-
-      const errorMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "bot",
-        text: "Sorry, I am having trouble connecting to the server right now.",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorMsg]);
+  const toggleMinimize = () => {
+    setIsMinimized((prev) => !prev);
+    if (isMaximized && !isMinimized) {
+      setIsMaximized(false);
     }
   };
 
-  const handleClearChat = () => {
-    initChat();
+  const toggleMaximize = () => {
+    setIsMaximized((prev) => !prev);
+    if (isMinimized && !isMaximized) {
+      setIsMinimized(false);
+    }
   };
 
   return (
-    <Paper
-      elevation={6}
-      sx={{
-        width: 380,
-        height: 520,
-        display: "flex",
-        flexDirection: "column",
-        borderRadius: 3,
-        overflow: "hidden",
-      }}
-    >
-      <Box
+    <Draggable nodeRef={paperRef} handle=".chat-drag-handle">
+      <Paper
+        ref={paperRef}
+        elevation={6}
         sx={{
-          p: 2,
-          bgcolor: "primary.main",
-          color: "white",
+          position: "fixed",
+          bottom: isMaximized ? 0 : 80,
+          right: isMaximized ? 0 : 24,
+          width: isMaximized ? "100vw" : 380,
+          height: isMinimized ? 64 : isMaximized ? "100vh" : 550,
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          flexDirection: "column",
+          overflow: "hidden",
+          borderRadius: isMaximized ? 0 : 3,
+          zIndex: 1000,
+          bgcolor: "background.paper",
+          transition:
+            "height 0.3s ease, width 0.3s ease, border-radius 0.3s ease",
         }}
       >
-        <Typography
+        {/* Header - Drag Handle */}
+        <Box
+          className="chat-drag-handle"
           sx={{
-            variant: "subtitle1",
-            fontWeight: "bold",
+            p: 2,
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            cursor: "grab",
+            "&:active": {
+              cursor: "grabbing",
+            },
           }}
         >
-          EASRMS Assistant
-        </Typography>
-
-        <Box>
-          <IconButton
-            size="small"
-            onClick={handleClearChat}
-            sx={{ color: "white", mr: 1 }}
-            title="Clear Chat"
-          >
-            <DeleteSweepIcon fontSize="small" />
-          </IconButton>
-
-          <IconButton size="small" onClick={onClose} sx={{ color: "white" }}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      </Box>
-
-      <Box
-        sx={{
-          flexGrow: 1,
-          p: 2,
-          overflowY: "auto",
-          bgcolor: "grey.50",
-        }}
-      >
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} {...msg} />
-        ))}
-
-        {isLoading && (
-          <Box
+          <Typography
             sx={{
-              display: "flex",
-              alignItems: "center",
-              mb: 2,
+              variant: "subtitle1",
+              fontWeight: "bold",
+              userSelect: "none",
             }}
           >
-            <Typography variant="body2" color="text.secondary">
-              Assistant is typing...
-            </Typography>
+            EASRMS Assistant
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 0.5 }}>
+            <Tooltip title="Clear Chat">
+              <IconButton
+                size="small"
+                onClick={handleClearChat}
+                sx={{ color: "inherit" }}
+              >
+                <DeleteSweepIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title={isMinimized ? "Expand" : "Minimize"}>
+              <IconButton
+                size="small"
+                onClick={toggleMinimize}
+                sx={{ color: "inherit" }}
+              >
+                {isMinimized ? (
+                  <KeyboardArrowUpIcon fontSize="small" />
+                ) : (
+                  <KeyboardArrowDownIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title={isMaximized ? "Restore" : "Maximize"}>
+              <IconButton
+                size="small"
+                onClick={toggleMaximize}
+                sx={{ color: "inherit" }}
+              >
+                {isMaximized ? (
+                  <FullscreenExitIcon fontSize="small" />
+                ) : (
+                  <FullscreenIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Close">
+              <IconButton
+                size="small"
+                onClick={onClose}
+                sx={{ color: "inherit" }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
+        </Box>
+
+        {/* Messages Area - hidden when minimized */}
+        {!isMinimized && (
+          <>
+            <Box
+              sx={{
+                flex: 1,
+                p: 2,
+                overflowY: "auto",
+                bgcolor: "grey.50",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {messages.map((msg) => (
+                <ChatBubble
+                  key={msg.id}
+                  role={msg.role}
+                  text={msg.text}
+                  timestamp={msg.timestamp}
+                  intent={msg.intent}
+                />
+              ))}
+              {isLoading && (
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Typing...
+                  </Typography>
+                </Box>
+              )}
+              <div ref={messagesEndRef} />
+            </Box>
+
+            {/* Input Area */}
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
+          </>
         )}
-
-        <div ref={messagesEndRef} />
-      </Box>
-
-      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
-    </Paper>
+      </Paper>
+    </Draggable>
   );
 };
 

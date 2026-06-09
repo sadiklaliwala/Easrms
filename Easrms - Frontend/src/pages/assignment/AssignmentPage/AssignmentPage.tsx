@@ -118,7 +118,22 @@ const AssignmentPage = () => {
         </span>
       ),
     },
-    { key: "title", label: "Title" },
+    {
+      key: "title",
+      label: "Title",
+      render: (row) => (
+        <span
+          style={{
+            display: "inline-block",
+            maxWidth: 250,
+            wordBreak: "break-word",
+            whiteSpace: "normal",
+          }}
+        >
+          {row.title}
+        </span>
+      ),
+    },
     { key: "categoryName", label: "Category" },
     {
       key: "priority",
