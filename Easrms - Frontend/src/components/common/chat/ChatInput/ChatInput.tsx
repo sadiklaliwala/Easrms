@@ -1,5 +1,11 @@
 import { useState, type KeyboardEvent } from "react";
-import { Box, TextField, IconButton, CircularProgress } from "@mui/material";
+import {
+  Box,
+  TextField,
+  IconButton,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 
 interface ChatInputProps {
@@ -34,24 +40,43 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
         alignItems: "flex-end",
       }}
     >
-      <TextField
-        fullWidth
-        multiline
-        maxRows={4}
-        placeholder="Type your message..."
-        variant="outlined"
-        size="small"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={isLoading}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 3,
-            backgroundColor: "background.paper",
-          },
-        }}
-      />
+      <Box sx={{ flex: 1, position: "relative" }}>
+        <TextField
+          fullWidth
+          multiline
+          maxRows={4}
+          placeholder="Type your message..."
+          variant="outlined"
+          size="small"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
+          slotProps={{
+            htmlInput: {
+              maxLength: 250,
+            },
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 3,
+              backgroundColor: "background.paper",
+            },
+          }}
+        />
+        <Typography
+          variant="caption"
+          sx={{
+            position: "absolute",
+            bottom: -18,
+            right: 8,
+            fontSize: "0.65rem",
+            color: message.length >= 250 ? "error.main" : "text.secondary",
+          }}
+        >
+          {message.length} / 250
+        </Typography>
+      </Box>
       <IconButton
         color="primary"
         onClick={handleSend}
